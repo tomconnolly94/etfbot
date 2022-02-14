@@ -1,20 +1,13 @@
 import requests
 import os
 from dotenv import load_dotenv
+from Controllers.DataController import DataController
+
+from Interfaces.AlpacaInterface import AlpacaInterface
+from Interfaces.SP500IndexInterface import SP500IndexInterface
 
 load_dotenv()
 
-MARKETSTACK_API_KEY = os.getenv('MARKETSTACK_API_KEY')
+dataController = DataController()
 
-params = {
-  'access_key': MARKETSTACK_API_KEY
-}
-
-api_result = requests.get('http://api.marketstack.com/v1/tickers/aapl/eod', params)
-
-api_response = api_result.json()
-
-print(api_response)
-
-for stock_data in api_response['data']:
-    print(f"Ticker {stock_data['symbol']} has a day high of {stock_data['high']} on {stock_data['date']}")
+dataController.getIndexSymbolsWithValues()
