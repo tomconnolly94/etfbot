@@ -1,13 +1,14 @@
-import requests
-import os
-from dotenv import load_dotenv
-from Controllers.DataController import DataController
+#!/usr/bin/python
 
-from Interfaces.AlpacaInterface import AlpacaInterface
-from Interfaces.SP500IndexInterface import SP500IndexInterface
+# external dependencies
+from dotenv import load_dotenv
+
+# internal dependencies
+from Controllers.InvestmentController import InvestmentController
 
 load_dotenv()
 
-dataController = DataController()
+investmentController = InvestmentController()
 
-dataController.getIndexSymbolsWithValues()
+investmentController.getOpenPositions()
+investmentController.generateDesiredStockWeightings()

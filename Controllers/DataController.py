@@ -1,10 +1,6 @@
 #!/usr/bin/python
 
 # external dependencies
-import alpaca_trade_api
-import os
-import finsymbols
-import requests
 
 # internal dependencies
 from Interfaces.AlpacaInterface import AlpacaInterface
@@ -17,10 +13,14 @@ class DataController:
         self.sP500IndexInterface = SP500IndexInterface()
         self.alpacaInterface = AlpacaInterface()
 
-
     def getIndexSymbolsWithValues(self: object):
         symbols = self.sP500IndexInterface.getIndexSymbols()
-            
         stockPrices = self.alpacaInterface.getStockPrices(symbols)
-        for stockSymbol, stockPrice in stockPrices.items():
-            print(f"{stockSymbol} is at {stockPrice}")
+
+        return stockPrices
+
+    def getOrderedStockData(self: object):
+        symbols = self.sP500IndexInterface.getIndexSymbols()
+        stockData = self.alpacaInterface.getStockDataList(symbols)
+
+        return sorted(stockData, key=lambda x: x.latest_trade.p, reverse=True)
