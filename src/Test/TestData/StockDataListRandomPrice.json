@@ -1,0 +1,412 @@
+[
+    {
+        "symbol": "A",
+        "price": 1
+    },
+    {
+        "symbol": "B",
+        "price": 4
+    },
+    {
+        "symbol": "C",
+        "price": 5.6
+    },
+    {
+        "symbol": "D",
+        "price": 78
+    },
+    {
+        "symbol": "E",
+        "price": 34
+    },
+    {
+        "symbol": "F",
+        "price": 1.1
+    },
+    {
+        "symbol": "G",
+        "price": 99.4
+    },
+    {
+        "symbol": "H",
+        "price": 101.2
+    },
+    {
+        "symbol": "I",
+        "price": 55
+    },
+    {
+        "symbol": "J",
+        "price": 20
+    },
+
+    {
+        "symbol": "K",
+        "price": 15
+    },
+    {
+        "symbol": "L",
+        "price": 46.44
+    },
+    {
+        "symbol": "M",
+        "price": 71
+    },
+    {
+        "symbol": "N",
+        "price": 8.32
+    },
+    {
+        "symbol": "O",
+        "price": 201.4
+    },
+    {
+        "symbol": "P",
+        "price": 1.12
+    },
+    {
+        "symbol": "Q",
+        "price": 94.2
+    },
+    {
+        "symbol": "R",
+        "price": 164
+    },
+    {
+        "symbol": "S",
+        "price": 38.5
+    },
+    {
+        "symbol": "T",
+        "price": 2.02
+    },
+
+
+    {
+        "symbol": "U",
+        "price": 81.032
+    },
+    {
+        "symbol": "V",
+        "price": 1.922
+    },
+    {
+        "symbol": "W",
+        "price": 112
+    },
+    {
+        "symbol": "X",
+        "price": 222.738
+    },
+    {
+        "symbol": "Y",
+        "price": 137.757
+    },
+    {
+        "symbol": "Z",
+        "price": 298
+    },
+    {
+        "symbol": "AA",
+        "price": 44
+    },
+    {
+        "symbol": "AB",
+        "price": 104.457
+    },
+    {
+        "symbol": "AC",
+        "price": 20
+    },
+    {
+        "symbol": "AD",
+        "price": 260.038
+    },
+
+    {
+        "symbol": "AE",
+        "price": 38.133
+    },
+    {
+        "symbol": "AF",
+        "price": 217
+    },
+    {
+        "symbol": "AG",
+        "price": 300
+    },
+    {
+        "symbol": "AH",
+        "price": 132.884
+    },
+    {
+        "symbol": "AI",
+        "price": 121
+    },
+    {
+        "symbol": "AJ",
+        "price": 53.326
+    },
+    {
+        "symbol": "AK",
+        "price": 268
+    },
+    {
+        "symbol": "AL",
+        "price": 86
+    },
+    {
+        "symbol": "AM",
+        "price": 46
+    },
+    {
+        "symbol": "AN",
+        "price": 231
+    },
+
+    {
+        "symbol": "AO",
+        "price": 109.197
+    },
+    {
+        "symbol": "AP",
+        "price": 125.461
+    },
+    {
+        "symbol": "AQ",
+        "price": 196
+    },
+    {
+        "symbol": "AR",
+        "price": 288
+    },
+    {
+        "symbol": "AS",
+        "price": 195.646
+    },
+    {
+        "symbol": "AT",
+        "price": 102
+    },
+    {
+        "symbol": "AU",
+        "price": 115
+    },
+    {
+        "symbol": "AV",
+        "price": 169
+    },
+    {
+        "symbol": "AW",
+        "price": 237.018
+    },
+    {
+        "symbol": "AX",
+        "price": 49
+    },
+
+    {
+        "symbol": "AY",
+        "price": 128
+    },
+    {
+        "symbol": "AZ",
+        "price": 29
+    },
+    {
+        "symbol": "BA",
+        "price": 184.2
+    },
+    {
+        "symbol": "BB",
+        "price": 268
+    },
+    {
+        "symbol": "BC",
+        "price": 273.110
+    },
+    {
+        "symbol": "BD",
+        "price": 276.872
+    },
+    {
+        "symbol": "BE",
+        "price": 43.196
+    },
+    {
+        "symbol": "BF",
+        "price": 192.823
+    },
+    {
+        "symbol": "BG",
+        "price": 203.659
+    },
+    {
+        "symbol": "BH",
+        "price": 135.176
+    },
+
+    {
+        "symbol": "BI",
+        "price": 78.262
+    },
+    {
+        "symbol": "BJ",
+        "price": 183
+    },
+    {
+        "symbol": "BK",
+        "price": 190
+    },
+    {
+        "symbol": "BL",
+        "price": 201
+    },
+    {
+        "symbol": "BM",
+        "price": 285
+    },
+    {
+        "symbol": "BN",
+        "price": 194
+    },
+    {
+        "symbol": "BO",
+        "price": 133
+    },
+    {
+        "symbol": "BP",
+        "price": 205.110
+    },
+    {
+        "symbol": "BQ",
+        "price": 67.544
+    },
+    {
+        "symbol": "BR",
+        "price": 285.766
+    },
+
+    {
+        "symbol": "BS",
+        "price": 99.973
+    },
+    {
+        "symbol": "BT",
+        "price": 7
+    },
+    {
+        "symbol": "BU",
+        "price": 37.853
+    },
+    {
+        "symbol": "BV",
+        "price": 217.661
+    },
+    {
+        "symbol": "BW",
+        "price": 24
+    },
+    {
+        "symbol": "BX",
+        "price": 18.865
+    },
+    {
+        "symbol": "BY",
+        "price": 65.154
+    },
+    {
+        "symbol": "BZ",
+        "price": 191.618
+    },
+    {
+        "symbol": "CA",
+        "price": 101
+    },
+    {
+        "symbol": "CB",
+        "price": 228
+    },
+
+    {
+        "symbol": "CC",
+        "price": 104.571
+    },
+    {
+        "symbol": "CD",
+        "price": 201.153
+    },
+    {
+        "symbol": "CE",
+        "price": 141
+    },
+    {
+        "symbol": "CF",
+        "price": 157
+    },
+    {
+        "symbol": "CG",
+        "price": 122.159
+    },
+    {
+        "symbol": "CH",
+        "price": 123
+    },
+    {
+        "symbol": "CI",
+        "price": 289.130
+    },
+    {
+        "symbol": "CJ",
+        "price": 154.300
+    },
+    {
+        "symbol": "CK",
+        "price": 155
+    },
+    {
+        "symbol": "CL",
+        "price": 296.325
+    },
+
+    {
+        "symbol": "CM",
+        "price": 281
+    },
+    {
+        "symbol": "CN",
+        "price": 23
+    },
+    {
+        "symbol": "CO",
+        "price": 120
+    },
+    {
+        "symbol": "CP",
+        "price": 137.335
+    },
+    {
+        "symbol": "CQ",
+        "price": 254
+    },
+    {
+        "symbol": "CR",
+        "price": 60
+    },
+    {
+        "symbol": "CS",
+        "price": 60.5
+    },
+    {
+        "symbol": "CT",
+        "price": 74
+    },
+    {
+        "symbol": "CU",
+        "price": 137
+    },
+    {
+        "symbol": "CV",
+        "price": 176
+    }
+]

@@ -4,7 +4,7 @@
 from dotenv import load_dotenv
 
 # internal dependencies
-from Controllers.InvestmentController import InvestmentController
+from src.Controllers.InvestmentController import InvestmentController
 
 load_dotenv()
 

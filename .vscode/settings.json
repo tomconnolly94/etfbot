@@ -1,0 +1,12 @@
+{
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./src/Test/Controllers",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "python.defaultInterpreterPath": "venv/bin/python"
+}

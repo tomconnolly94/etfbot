@@ -3,8 +3,8 @@
 # external dependencies
 
 # internal dependencies
-from Interfaces.AlpacaInterface import AlpacaInterface
-from Interfaces.SP500IndexInterface import SP500IndexInterface
+from src.Interfaces.AlpacaInterface import AlpacaInterface
+from src.Interfaces.SP500IndexInterface import SP500IndexInterface
 
 
 class DataController:
