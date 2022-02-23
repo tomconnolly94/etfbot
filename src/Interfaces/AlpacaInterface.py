@@ -7,6 +7,8 @@ import os
 
 from numpy import number
 
+from Types.StockData import StockData
+
 
 class AlpacaInterface:
 
@@ -14,6 +16,7 @@ class AlpacaInterface:
         # instantiate REST API
         self.api = alpaca_trade_api.REST(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"), os.getenv("ALPACA_TRADING_URL"), api_version='v2')
     
+
     def _submitOrder(self, stockSymbol, quantity, order):
         self.api.submit_order(
             symbol=stockSymbol, 
@@ -21,26 +24,31 @@ class AlpacaInterface:
             side=order
         )
 
-    def getStockPrices(self: object, stockSymbols: list):
-        stockData: dict = self.getStockData(stockSymbols)
-        stockPrices: dict = {}
 
-        for symbol, data in stockData.items():
-            print(f"{symbol}: {data}")
-            stockPrices[symbol] = data.latest_trade.p
+    def _getAlpacaAccount(self):
+        return self.api.get_account()
 
-        return stockPrices
+    def getAvailableFunds(self):
+        return float(self._getAlpacaAccount().cash)
+
+
+    def getPortfolioValue(self):
+        return float(self._getAlpacaAccount().equity)
+
 
     def getStockDataList(self: object, stockSymbols: 'list[str]') -> dict:
-        stockData: dict = self.api.get_snapshots(stockSymbols)
+        stockSnapShots: dict = self.api.get_snapshots(stockSymbols)
+        return [ StockData(symbol, snapshot.latest_trade.p) for symbol, snapshot in stockSnapShots.items() ]
 
-        return [ stockDataItem[1] for stockDataItem in stockData.items() ]
 
     def buyStock(self, stockSymbol: str, quantity: number):
         self._submitOrder(stockSymbol, quantity, "buy")
     
+
     def sellStock(self, stockSymbol: str, quantity: number):
         self._submitOrder(stockSymbol, quantity, "sell")
 
+
     def getOpenPositions(self: object) -> 'list[Position]':
-        return self.api.list_positions()
+        positions = self.api.list_positions()
+        return { position.symbol: int(position.qty) for position in positions }

@@ -14,3 +14,4 @@ class SP500IndexInterface:
         sp500 = finsymbols.get_sp500_symbols()
         symbols = [item["symbol"].replace("\n", "") for item in sp500]
         return symbols
+        

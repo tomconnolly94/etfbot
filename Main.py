@@ -10,5 +10,4 @@ load_dotenv()
 
 investmentController = InvestmentController()
 
-investmentController.getOpenPositions()
-investmentController.generateDesiredStockWeightings()
+investmentController.rebalanceInvestments()
