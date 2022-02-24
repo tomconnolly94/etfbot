@@ -37,7 +37,7 @@ class AlpacaInterface(InvestingInterface):
         return float(self._getAlpacaAccount().equity)
 
 
-    def getStockDataList(self: object, stockSymbols: 'list[str]') -> dict:
+    def getStockDataList(self: object, stockSymbols: 'list[str]') -> 'list[StockData]':
         stockSnapShots: dict = self.api.get_snapshots(stockSymbols)
         return [ StockData(symbol, snapshot.latest_trade.p) for symbol, snapshot in stockSnapShots.items() ]
 
