@@ -3,10 +3,7 @@
 # external dependencies
 import math
 
-from numpy import number
-
 # internal dependencies
-from src.Controllers.DataController import DataController
 from src.Types.StockData import StockData
 
 

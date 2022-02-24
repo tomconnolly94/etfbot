@@ -6,8 +6,8 @@ from alpaca_trade_api.entity import Account
 import os
 
 # internal dependencies
-from Interfaces.InvestingInterface import InvestingInterface
-from Types.StockData import StockData
+from src.Interfaces.InvestingInterface import InvestingInterface
+from src.Types.StockData import StockData
 
 
 class AlpacaInterface(InvestingInterface):

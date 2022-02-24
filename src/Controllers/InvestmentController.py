@@ -3,10 +3,10 @@
 # external dependencies
 
 # internal dependencies
-from Controllers.StockChoiceController import StockChoiceController
-from Interfaces.AlpacaInterface import AlpacaInterface
-from Interfaces.SP500IndexInterface import SP500IndexInterface
-from Types.StockData import StockData
+from src.Controllers.StockChoiceController import StockChoiceController
+from src.Interfaces.AlpacaInterface import AlpacaInterface
+from src.Interfaces.SP500IndexInterface import SP500IndexInterface
+from src.Types.StockData import StockData
 
 """
 InvestmentController
