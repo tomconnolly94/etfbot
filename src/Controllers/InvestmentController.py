@@ -1,11 +1,12 @@
 #!/usr/bin/python
 
 # external dependencies
+import logging
 
 # internal dependencies
+from src.Controllers.DataController import DataController
 from src.Controllers.StockChoiceController import StockChoiceController
 from src.Interfaces.AlpacaInterface import AlpacaInterface
-from src.Interfaces.SP500IndexInterface import SP500IndexInterface
 from src.Types.StockData import StockData
 
 """
@@ -26,6 +27,7 @@ class InvestmentController:
         self._sortedFullStockCache = []
         self._stockChoiceController = StockChoiceController()
         self._alpacaInterface = AlpacaInterface()
+        self._dataController = DataController()
 
 
     """
@@ -45,17 +47,17 @@ class InvestmentController:
                             invest in
     """
     def _getStockRangeIdeal(self: object) -> 'list[StockData]':
-        if not self._sortedFullStockCache:
-            self._refreshStockCache()
-        return self._sortedFullStockCache[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
+        return self._getStockCache()[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
 
 
     """
     `_refreshStockCache`: save list of StockData items, prices and symbols from index
     """
-    def _refreshStockCache(self: object) -> None:
-        stockDataList = self._alpacaInterface.getOrderedStockData()
-        self._sortedFullStockCache = sorted(stockDataList, key=lambda x: x.price, reverse=True)
+    def _getStockCache(self: object) -> None:
+        if not self._sortedFullStockCache:
+            stockDataList = self._dataController.getOrderedStockData()
+            self._sortedFullStockCache = sorted(stockDataList, key=lambda x: x.price, reverse=True)
+        return self._sortedFullStockCache
 
 
     """
@@ -63,9 +65,7 @@ class InvestmentController:
                                 the "ideal" stock range
     """
     def _getStockRangeDontSell(self: object) -> 'list[StockData]':
-        if not self._sortedFullStockCache:
-            self._refreshStockCache()
-        return self._sortedFullStockCache[:self._idealStockRangeIndexEnd]
+        return self._getStockCache()[:self._idealStockRangeIndexEnd]
 
 
     ########## debug funcs ##########
@@ -74,18 +74,11 @@ class InvestmentController:
     `_getPositionInIndex`: returns the position of a stock in the index by symbol
     """
     def _getPositionInIndex(self: object, stockDataSymbol: str):
-        for index, cachedStock in enumerate(self._sortedFullStockCache):
+        for index, cachedStock in enumerate(self._getStockCache()):
             if cachedStock.symbol == stockDataSymbol:
                 return index
         return None
 
-
-    """
-    `_printPositions`: pretty print symbols and index positions
-    """
-    def _printPositions(self: object, positions: 'dict[str, int]'):
-        for positionSymbol in positions.keys():
-            print(f"{positionSymbol}: {self._getPositionInIndex(positionSymbol)}")
 
     ########## debug funcs ##########
 
@@ -97,10 +90,6 @@ class InvestmentController:
     def _getPositionsToSell(self: object, currentPositions: 'dict[str, int]') -> 'dict[str, int]':
         dontSellStockRange = [ stockData.symbol for stockData in self._getStockRangeDontSell() ]
         positions = dict(filter(lambda entry: entry[0] not in dontSellStockRange, currentPositions.items()))
-
-        self._printPositions(currentPositions)
-        self._printPositions(positions)
-
         return positions
 
 
@@ -125,8 +114,19 @@ class InvestmentController:
     `_getValueOfStockList`: take a list of positions, find their value and returns the sum
     """
     def _getValueOfStockList(self: object, stockSymbolList: 'dict[str, int]') -> float:
-        relevantStockDataList: 'list[StockData]' = [ stockData for stockData in self._sortedFullStockCache if stockData.symbol in stockSymbolList.keys() ]
+        relevantStockDataList: 'list[StockData]' = [ stockData for stockData in self._getStockCache() if stockData.symbol in stockSymbolList.keys() ]
         return sum(stockData.price for stockData in relevantStockDataList)
+
+
+    """
+    `_getValueOfStock`: returns the price of a stock from the `StockData` cache
+    """
+    def _getValueOfStock(self: object, stockSymbol: str) -> float:
+        for stock in self._getStockCache():
+            if stock.symbol == stockSymbol:
+                return stock.price
+            else:
+                return None
 
 
     """
@@ -138,8 +138,12 @@ class InvestmentController:
         # get current positions
         currentPositions = self._alpacaInterface.getOpenPositions()
 
+        logging.info(f"Number of current positions held: {len(currentPositions)}.")
+        logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
+
         # calculate trades that should be made to turn current position into ideal position
         positionsToSell = self._getPositionsToSell(currentPositions)
+        logging.info(f"Number of positions that should be closed: {len(positionsToSell)}.")
         valueOfPositionsToSell: float = self._getValueOfStockList(positionsToSell)
         availableFunds = self._alpacaInterface.getAvailableFunds()
         totalBuyingPower = valueOfPositionsToSell + availableFunds
@@ -147,10 +151,13 @@ class InvestmentController:
 
         if totalBuyingPower > 0:
             positionsToBuy = self._getPositionsToBuy(currentPositions, totalBuyingPower)
+            logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}.")
 
         # make trades
         for positionKey, positionQuantity in positionsToSell.items():
             self._alpacaInterface.sellStock(positionKey, positionQuantity)
+            logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}.")
 
         for positionKey, positionQuantity in positionsToBuy.items():
             self._alpacaInterface.buyStock(positionKey, positionQuantity)
+            logging.info(f"Bought {positionQuantity} share{'s' if positionQuantity > 1 else ''} of : {positionKey} at {self._getValueOfStock(positionKey)}.")

@@ -2,12 +2,19 @@
 
 # external dependencies
 from dotenv import load_dotenv
+import logging
 
 # internal dependencies
+from src.Controllers import LoggingController
 from src.Controllers.InvestmentController import InvestmentController
 
 load_dotenv()
 
-investmentController = InvestmentController()
+#intitialise logging module
+LoggingController.initLogging()
 
-investmentController.rebalanceInvestments()
+
+logging.info(f"Program started.")
+
+# run program
+InvestmentController().rebalanceInvestments()

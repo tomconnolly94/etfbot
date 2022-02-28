@@ -28,4 +28,4 @@ class DataController:
         symbols = self.sP500IndexInterface.getIndexSymbols()
         stockData = self.alpacaInterface.getStockDataList(symbols)
 
-        return sorted(stockData, key=lambda x: x.latest_trade.p, reverse=True)
+        return sorted(stockData, key=lambda x: x.price, reverse=True)

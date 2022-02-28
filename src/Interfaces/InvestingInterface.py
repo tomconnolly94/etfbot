@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 
 # internal dependencies
-from Types.StockData import StockData
+from src.Types.StockData import StockData
 
 
 """
