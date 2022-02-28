@@ -3,6 +3,10 @@
 # external dependencies
 from abc import ABC, abstractmethod
 
+# internal dependencies
+from Types.StockData import StockData
+
+
 """
 InvestingInterface
 
@@ -32,7 +36,7 @@ class InvestingInterface(ABC):
     `getAvailableFunds`: return any uninvested funds 
     """
     @abstractmethod
-    def getAvailableFunds(self) -> float:
+    def getAvailableFunds(self: object) -> float:
         pass
 
 
@@ -40,7 +44,7 @@ class InvestingInterface(ABC):
     `getPortfolioValue`: return the value of stocks + uninvested funds
     """
     @abstractmethod
-    def getPortfolioValue(self) -> float:
+    def getPortfolioValue(self: object) -> float:
         pass
 
 
@@ -52,10 +56,9 @@ class InvestingInterface(ABC):
         pass
 
 
-
     """
     `getStockDataList`: return stock data on each stockSymbol in `stockSymbols`
     """
     @abstractmethod
-    def getStockDataList(self: object, stockSymbols: 'list[str]') -> dict:
+    def getStockDataList(self: object, stockSymbols: 'list[str]') -> 'list[StockData]':
         pass

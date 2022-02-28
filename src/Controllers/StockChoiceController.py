@@ -6,21 +6,33 @@ import math
 # internal dependencies
 from src.Types.StockData import StockData
 
+"""
+StockChoiceController
 
+This is a class to contain numerical information about how funds are distributed 
+among stocks
+
+"""
 class StockChoiceController:
 
     def __init__(self: object):
         pass
 
 
+    """
+    `getStockOrderNumbers`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
+    """
     def getStockOrderNumbers(self: object, stockDataList: 'list[StockData]', availableFunds: int) -> 'dict[str, int]':
-
         stockWeights = self._generateStockWeightsBasedOnValue(stockDataList)
         return self._getBuyingQuantities(availableFunds, stockWeights)
 
 
+    """
+    `_generateStockWeightsBasedOnValue`:    returns a list of StockData objects complete with `fundWeighting` 
+                                            fields indicating the weighting that should be placed on this 
+                                            stock based on the value of that stock.
+    """
     def _generateStockWeightsBasedOnValue(self: object, stockDataList: 'list[StockData]') -> 'list[StockData]':
-
         # order the stockDataList
         stockDataList = sorted(stockDataList, key=lambda x: x.price, reverse=True)
 
@@ -30,6 +42,10 @@ class StockChoiceController:
         return stockDataList
 
 
+    """
+    `_getStockWeightBasedOnListIndex`:  returns a percentage of the fund that should be placed on the stock at 
+                                        index `stockListIndex`, based on its position in the index
+    """
     def _getStockWeightBasedOnListIndex(self, stockListIndex, listLength) -> int:
         relativeIndex = stockListIndex / listLength
 
@@ -41,7 +57,8 @@ class StockChoiceController:
             if relativeIndex < (index + 1) / 10:
                 return divisionWeight / numberOfItemsInTenPercent
 
-
+        # weighting matrix
+        #
         # | index position | share of fund | running total | 
         # |________________|_______________|_______________|
         # |      0-10      |      32%      |      32%      |
@@ -56,12 +73,12 @@ class StockChoiceController:
         # |    91-100      |     0.5%      |     100%      |
 
 
-    def storeTotalUnusedFunds(self: object, totalUnusedFunds:float):
-        print(totalUnusedFunds)
-
-
-    def _getBuyingQuantities(self: object, funds: float, stockDataList: 'list[StockData]') -> 'list[StockData]':
-        
+    """
+    `_getStockWeightBasedOnListIndex`:  returns a dictionary of stock symbols mapped to the number of 
+                                        shares of that stock to buy, based on the available funds and the 
+                                        pre-caclulated fund weightings
+    """
+    def _getBuyingQuantities(self: object, funds: float, stockDataList: 'list[StockData]') -> 'dict[str, int]':
         numberOfSharesToBuy = {stockData.symbol: 0 for stockData in stockDataList}
         totalFunds = funds
         numberOfNewOrders = 0
@@ -86,8 +103,6 @@ class StockChoiceController:
             
             numberOfSharesToBuy[stockData.symbol] += 1
             funds = funds - stockData.price
-
-        self.storeTotalUnusedFunds(funds)
 
         return numberOfSharesToBuy
 
