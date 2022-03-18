@@ -42,11 +42,10 @@ class InvestmentController:
         logging.info(f"Number of current positions held: {len(currentPositions)}.")
         logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
 
-
         # calculate trades that should be made to turn current position into ideal position
         positionsToSell = self._getPositionsToSell(currentPositions)
         logging.info(f"Number of positions that should be closed: {len(positionsToSell)}.")
-
+        
         valueOfPositionsToSell: float = self._getValueOfStockList(positionsToSell)
         availableFunds = self._alpacaInterface.getAvailableFunds()
         totalBuyingPower = valueOfPositionsToSell + availableFunds
