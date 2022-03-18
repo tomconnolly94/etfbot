@@ -21,7 +21,7 @@ class StockChoiceController:
 
     """
     `getStockOrderNumbers`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
-    test: None
+    test: TestStockChoiceController.test_getStockOrderNumbers
     """
     def getStockOrderNumbers(self: object, stockDataList: 'list[StockData]', availableFunds: int) -> 'dict[str, int]':
         stockWeights = self._generateStockWeightsBasedOnValue(stockDataList)

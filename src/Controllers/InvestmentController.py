@@ -31,6 +31,58 @@ class InvestmentController:
 
 
     """
+    `rebalanceInvestments`: analyse open positions to look for positions to close, and 
+                            replace any closed positions with new openings
+    """
+    def rebalanceInvestments(self):
+
+        # get current positions
+        currentPositions = self._alpacaInterface.getOpenPositions()
+
+        logging.info(f"Number of current positions held: {len(currentPositions)}.")
+        logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
+
+        # calculate trades that should be made to turn current position into ideal position
+        positionsToSell = self._getPositionsToSell(currentPositions)
+        logging.info(f"Number of positions that should be closed: {len(positionsToSell)}.")
+        
+        valueOfPositionsToSell: float = self._getValueOfStockList(positionsToSell)
+        availableFunds = self._alpacaInterface.getAvailableFunds()
+        totalBuyingPower = valueOfPositionsToSell + availableFunds
+        positionsToBuy = {}
+
+        if totalBuyingPower > 0:
+            positionsToBuy = self._getPositionsToBuy(currentPositions, totalBuyingPower)
+            logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}.")
+
+        # make trades
+        for positionKey, positionQuantity in positionsToSell.items():
+            self._alpacaInterface.sellStock(positionKey, positionQuantity)
+            logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}.")
+
+        for positionKey, positionQuantity in positionsToBuy.items():
+            self._alpacaInterface.buyStock(positionKey, positionQuantity)
+            logging.info(f"Bought {positionQuantity} share{'s' if positionQuantity > 1 else ''} of : {positionKey} at {self._getValueOfStock(positionKey)}.")
+
+
+
+    def getExchanges(self):
+
+        available_stocks = self._alpacaInterface.showAllAvailableStocks()
+        exchanges = []
+
+        for stock in available_stocks:
+            if stock.exchange not in exchanges:
+                exchanges.append(stock.exchange)
+                if stock.symbol[-1] == "L":
+                    print(stock)
+
+        print(exchanges)
+
+        return
+
+
+    """
     `_getIdealPositions`:   returns a list (symbols and quantities) of the ideal stocks 
                             to invest in based on the portfolio value
     """
@@ -128,53 +180,3 @@ class InvestmentController:
             else:
                 return None
 
-
-    """
-    `rebalanceInvestments`: analyse open positions to look for positions to close, and 
-                            replace any closed positions with new openings
-    """
-    def rebalanceInvestments(self):
-
-        # get current positions
-        currentPositions = self._alpacaInterface.getOpenPositions()
-
-        logging.info(f"Number of current positions held: {len(currentPositions)}.")
-        logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
-
-        # calculate trades that should be made to turn current position into ideal position
-        positionsToSell = self._getPositionsToSell(currentPositions)
-        logging.info(f"Number of positions that should be closed: {len(positionsToSell)}.")
-        valueOfPositionsToSell: float = self._getValueOfStockList(positionsToSell)
-        availableFunds = self._alpacaInterface.getAvailableFunds()
-        totalBuyingPower = valueOfPositionsToSell + availableFunds
-        positionsToBuy = {}
-
-        if totalBuyingPower > 0:
-            positionsToBuy = self._getPositionsToBuy(currentPositions, totalBuyingPower)
-            logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}.")
-
-        # make trades
-        for positionKey, positionQuantity in positionsToSell.items():
-            self._alpacaInterface.sellStock(positionKey, positionQuantity)
-            logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}.")
-
-        for positionKey, positionQuantity in positionsToBuy.items():
-            self._alpacaInterface.buyStock(positionKey, positionQuantity)
-            logging.info(f"Bought {positionQuantity} share{'s' if positionQuantity > 1 else ''} of : {positionKey} at {self._getValueOfStock(positionKey)}.")
-
-
-
-    def getExchanges(self):
-
-        available_stocks = self._alpacaInterface.showAllAvailableStocks()
-        exchanges = []
-
-        for stock in available_stocks:
-            if stock.exchange not in exchanges:
-                exchanges.append(stock.exchange)
-                if stock.symbol[-1] == "L":
-                    print(stock)
-
-        print(exchanges)
-
-        return
