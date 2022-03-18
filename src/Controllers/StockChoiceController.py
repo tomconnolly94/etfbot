@@ -21,6 +21,7 @@ class StockChoiceController:
 
     """
     `getStockOrderNumbers`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
+    test: None
     """
     def getStockOrderNumbers(self: object, stockDataList: 'list[StockData]', availableFunds: int) -> 'dict[str, int]':
         stockWeights = self._generateStockWeightsBasedOnValue(stockDataList)
@@ -31,6 +32,7 @@ class StockChoiceController:
     `_generateStockWeightsBasedOnValue`:    returns a list of StockData objects complete with `fundWeighting` 
                                             fields indicating the weighting that should be placed on this 
                                             stock based on the value of that stock.
+    test: TestStockChoiceController.test__generateStockWeightsBasedOnValue
     """
     def _generateStockWeightsBasedOnValue(self: object, stockDataList: 'list[StockData]') -> 'list[StockData]':
         # order the stockDataList
@@ -45,6 +47,7 @@ class StockChoiceController:
     """
     `_getStockWeightBasedOnListIndex`:  returns a percentage of the fund that should be placed on the stock at 
                                         index `stockListIndex`, based on its position in the index
+    test: TestStockChoiceController.test__getStockWeightBasedOnListIndex
     """
     def _getStockWeightBasedOnListIndex(self, stockListIndex, listLength) -> int:
         relativeIndex = stockListIndex / listLength
@@ -77,6 +80,7 @@ class StockChoiceController:
     `_getStockWeightBasedOnListIndex`:  returns a dictionary of stock symbols mapped to the number of 
                                         shares of that stock to buy, based on the available funds and the 
                                         pre-caclulated fund weightings
+    test: TestStockChoiceController.test_getBuyingQuantities
     """
     def _getBuyingQuantities(self: object, funds: float, stockDataList: 'list[StockData]') -> 'dict[str, int]':
         numberOfSharesToBuy = {stockData.symbol: 0 for stockData in stockDataList}

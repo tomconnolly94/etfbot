@@ -161,3 +161,20 @@ class InvestmentController:
         for positionKey, positionQuantity in positionsToBuy.items():
             self._alpacaInterface.buyStock(positionKey, positionQuantity)
             logging.info(f"Bought {positionQuantity} share{'s' if positionQuantity > 1 else ''} of : {positionKey} at {self._getValueOfStock(positionKey)}.")
+
+
+
+    def getExchanges(self):
+
+        available_stocks = self._alpacaInterface.showAllAvailableStocks()
+        exchanges = []
+
+        for stock in available_stocks:
+            if stock.exchange not in exchanges:
+                exchanges.append(stock.exchange)
+                if stock.symbol[-1] == "L":
+                    print(stock)
+
+        print(exchanges)
+
+        return
