@@ -1,0 +1,6 @@
+{
+    "stockExchange": "NASDAQ",
+    "exchangeRangeTop": 300,
+    "exchangeRangeBottom": 400,
+    "divisionWeights": [32, 22, 14, 10, 8, 6, 4, 2, 1.5, 0.5 ]
+}
