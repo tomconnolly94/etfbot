@@ -29,7 +29,7 @@ class StockIndexDataInterface:
 
 
     """
-    `getIndexSymbols`: returns a list of symbols in the S&P500 index 
+    `getIndexSymbols`: returns a list of symbols in the S&P500 index - needs work, only sp500 is an index
     """
     def getIndexSymbols(self: object, stockExchange: StockExchange) -> 'list[str]':
         if stockExchange == StockExchange.NASDAQ:
@@ -41,7 +41,7 @@ class StockIndexDataInterface:
         if stockExchange == StockExchange.NYSE:
             return self.__processFinSymbolsResults(finsymbols.get_nyse_symbols())
         if stockExchange == StockExchange.FTSE100:
-            raise NotImplementedError("FTSE 100 Stock Exchange data not connected yet")
+            raise NotImplementedError("FTSE 100 Stock Index data not connected yet")
         
     
     """
