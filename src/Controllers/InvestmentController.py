@@ -15,7 +15,7 @@ InvestmentController
 This is a class to control investment decisions
 
 """
-class InvestmentController:
+class InvestmentController():
 
     """
     `__init__`: intialise object fields
@@ -103,7 +103,7 @@ class InvestmentController:
 
 
     """
-    `_refreshStockCache`: save list of StockData items, prices and symbols from index
+    `_getStockCache`: save list of StockData items, prices and symbols from index
     """
     def _getStockCache(self: object) -> None:
         if not self._sortedFullStockCache:

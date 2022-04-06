@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # internal dependencies
-from Types.StockData import StockData
-from Controllers.StockChoiceController import StockChoiceController;
+from src.Types.StockData import StockData
+from src.Controllers.StockChoiceController import StockChoiceController;
 
 class TestStockChoiceController(unittest.TestCase):
 
@@ -25,8 +25,8 @@ class TestStockChoiceController(unittest.TestCase):
         
         return stockData
 
-    @mock.patch("Controllers.StockChoiceController.StockChoiceController._getBuyingQuantities")
-    @mock.patch("Controllers.StockChoiceController.StockChoiceController._generateStockWeightsBasedOnValue")
+    @mock.patch("src.Controllers.StockChoiceController.StockChoiceController._getBuyingQuantities")
+    @mock.patch("src.Controllers.StockChoiceController.StockChoiceController._generateStockWeightsBasedOnValue")
     def test_getStockOrderNumbers(self, _generateStockWeightsBasedOnValueMock, _getBuyingQuantitiesMock):
         
         # configure fake data
@@ -143,3 +143,8 @@ class TestStockChoiceController(unittest.TestCase):
         plt.title('Investment weightings')
 
         plt.show()
+
+
+
+if __name__ == '__main__':
+    unittest.main()
