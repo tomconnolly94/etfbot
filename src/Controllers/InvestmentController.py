@@ -39,12 +39,12 @@ class InvestmentController():
         # get current positions
         currentPositions = self._alpacaInterface.getOpenPositions()
 
-        logging.info(f"Number of current positions held: {len(currentPositions)}.")
+        logging.info(f"Number of current positions held: {len(currentPositions)}")
         logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
 
         # calculate trades that should be made to turn current position into ideal position
         positionsToSell = self._getPositionsToSell(currentPositions)
-        logging.info(f"Number of positions that should be closed: {len(positionsToSell)}.")
+        logging.info(f"Number of positions that should be closed: {len(positionsToSell)}")
         
         valueOfPositionsToSell: float = self._getValueOfStockList(positionsToSell)
         availableFunds = self._alpacaInterface.getAvailableFunds()
@@ -53,16 +53,16 @@ class InvestmentController():
 
         if totalBuyingPower > 0:
             positionsToBuy = self._getPositionsToBuy(currentPositions, totalBuyingPower)
-            logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}.")
+            logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}")
 
         # make trades
         for positionKey, positionQuantity in positionsToSell.items():
             self._alpacaInterface.sellStock(positionKey, positionQuantity)
-            logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}.")
+            logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}")
 
         for positionKey, positionQuantity in positionsToBuy.items():
             self._alpacaInterface.buyStock(positionKey, positionQuantity)
-            logging.info(f"Bought {positionQuantity} share{'s' if positionQuantity > 1 else ''} of : {positionKey} at {self._getValueOfStock(positionKey)}.")
+            logging.info(f"Bought {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}")
 
 
 
