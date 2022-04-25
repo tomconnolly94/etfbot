@@ -57,6 +57,7 @@ class TestInvestmentController(unittest.TestCase):
         _getValueOfStockListMock.return_value = fakeValueOfStockList
         getAvailableFundsMock.return_value = fakeAvailableFunds
         _getPositionsToBuyMock.return_value = fakePositionsToBuy
+        _getValueOfStockMock.return_value = 10
 
         # run testable function
         InvestmentController().rebalanceInvestments()
@@ -82,6 +83,17 @@ class TestInvestmentController(unittest.TestCase):
             mock.call("fakePositionToSell2"),
             mock.call("fakePositionToBuy1"),
             mock.call("fakePositionToBuy2")
+        ])
+
+        loggingMock.assert_has_calls([
+            mock.call("Number of current positions held: 2"),
+            mock.call("Current positions - (symbol: index position) fakeOpenPosition1: 3, fakeOpenPosition2: 6"),
+            mock.call(f"Number of positions that should be closed: {len(fakePositionsToSell)}"),
+            mock.call(f"Number of positions that should be opened: {len(fakePositionsToBuy)}"),
+            mock.call("Sold 2 shares of fakePositionToSell1 at 10"),
+            mock.call("Sold 4 shares of fakePositionToSell2 at 10"),
+            mock.call("Bought 5 shares of fakePositionToBuy1 at 10"),
+            mock.call("Bought 7 shares of fakePositionToBuy2 at 10"),
         ])
 
 
