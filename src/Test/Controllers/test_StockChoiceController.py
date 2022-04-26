@@ -2,14 +2,15 @@
 
 # external dependencies
 import json
+import time
 import unittest
 from unittest import mock
 import matplotlib.pyplot as plt
 import numpy as np
 
 # internal dependencies
-from Types.StockData import StockData
-from Controllers.StockChoiceController import StockChoiceController;
+from src.Types.StockData import StockData
+from src.Controllers.StockChoiceController import StockChoiceController;
 
 class TestStockChoiceController(unittest.TestCase):
 
@@ -25,8 +26,8 @@ class TestStockChoiceController(unittest.TestCase):
         
         return stockData
 
-    @mock.patch("Controllers.StockChoiceController.StockChoiceController._getBuyingQuantities")
-    @mock.patch("Controllers.StockChoiceController.StockChoiceController._generateStockWeightsBasedOnValue")
+    @mock.patch("src.Controllers.StockChoiceController.StockChoiceController._getBuyingQuantities")
+    @mock.patch("src.Controllers.StockChoiceController.StockChoiceController._generateStockWeightsBasedOnValue")
     def test_getStockOrderNumbers(self, _generateStockWeightsBasedOnValueMock, _getBuyingQuantitiesMock):
         
         # configure fake data
@@ -101,30 +102,30 @@ class TestStockChoiceController(unittest.TestCase):
         # inputs 
         funds = 100
         stockDataList = sorted([
-            StockData("A", 12, 30),
-            StockData("B", 7, 20), # 50
-            StockData("C", 5, 15), # 65
-            StockData("D", 4, 12), # 77
-            StockData("E", 3.5, 8),# 85
-            StockData("F", 3, 6),  # 91
-            StockData("G", 2, 4),  # 95
-            StockData("H", 1, 3),  # 98
-            StockData("I", 0.5, 1),# 99
-            StockData("J", 0.2, 1) # 100
+            StockData("0-10%", 12, 30),
+            StockData("11-20%", 7, 20), # 50
+            StockData("21-30%", 5, 15), # 65
+            StockData("31-40%", 4, 12), # 77
+            StockData("41-50%", 3.5, 8),# 85
+            StockData("51-60%", 3, 6),  # 91
+            StockData("61-70%", 2, 4),  # 95
+            StockData("71-80%", 1, 3),  # 98
+            StockData("81-90%", 0.5, 1),# 99
+            StockData("91-100%", 0.2, 1) # 100
         ], key=lambda stockData: -stockData.price)
 
         numberOfSharesToBuy = stockChoiceController._getBuyingQuantities(funds, stockDataList)
 
-        self.assertEquals(3, numberOfSharesToBuy["A"]) #    28   2
-        self.assertEquals(2, numberOfSharesToBuy["B"]) # 12 40   8 extra
-        self.assertEquals(3, numberOfSharesToBuy["C"]) # 14 54   1
-        self.assertEquals(3, numberOfSharesToBuy["D"]) # 10 64   2
-        self.assertEquals(2, numberOfSharesToBuy["E"]) #  6 70   2
-        self.assertEquals(2, numberOfSharesToBuy["F"]) #  6 76   0
-        self.assertEquals(2, numberOfSharesToBuy["G"]) #3.5 79.5 .5 extra
-        self.assertEquals(4, numberOfSharesToBuy["H"]) #  3 82.5 0 
-        self.assertEquals(2, numberOfSharesToBuy["I"]) #  1 83.5 0
-        self.assertEquals(5, numberOfSharesToBuy["J"]) #  1 84.5 0
+        self.assertEquals(3, numberOfSharesToBuy["0-10%"]) #    28   2
+        self.assertEquals(2, numberOfSharesToBuy["11-20%"]) # 12 40   8 extra
+        self.assertEquals(3, numberOfSharesToBuy["21-30%"]) # 14 54   1
+        self.assertEquals(3, numberOfSharesToBuy["31-40%"]) # 10 64   2
+        self.assertEquals(2, numberOfSharesToBuy["41-50%"]) #  6 70   2
+        self.assertEquals(2, numberOfSharesToBuy["51-60%"]) #  6 76   0
+        self.assertEquals(2, numberOfSharesToBuy["61-70%"]) #3.5 79.5 .5 extra
+        self.assertEquals(4, numberOfSharesToBuy["71-80%"]) #  3 82.5 0 
+        self.assertEquals(2, numberOfSharesToBuy["81-90%"]) #  1 83.5 0
+        self.assertEquals(5, numberOfSharesToBuy["91-100%"]) #  1 84.5 0
                                                 # leftover: 15.5
 
 
@@ -142,4 +143,18 @@ class TestStockChoiceController(unittest.TestCase):
         plt.ylabel('Value')
         plt.title('Investment weightings')
 
-        plt.show()
+        def close_event():
+            plt.close()
+
+        fig = plt.figure()
+        timer = fig.canvas.new_timer(interval = 2000) #creating a timer object and setting an interval of 3000 milliseconds
+        timer.add_callback(close_event)
+
+        plt.show(block=False)
+        plt.pause(3)
+        plt.close()
+
+
+
+if __name__ == '__main__':
+    unittest.main()
