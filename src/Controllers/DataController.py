@@ -26,7 +26,7 @@ class DataController:
     `getOrderedStockData`:  returns a sorted list of S&P500 stocks with prices
     """
     def getOrderedStockData(self: object):
-        symbols = self.stockIndexDataInterface.getIndexSymbols(StockExchange.NASDAQ)
+        symbols = self.stockIndexDataInterface.getIndexSymbols(StockExchange.SP500)
         stockData = self.alpacaInterface.getStockDataList(symbols)
 
         return sorted(stockData, key=lambda x: x.price, reverse=True)
