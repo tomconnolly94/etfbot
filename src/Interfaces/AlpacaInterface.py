@@ -21,7 +21,7 @@ class AlpacaInterface(InvestingInterface):
     def __init__(self: object):
         # instantiate REST API
         self.api = alpaca_trade_api.REST(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"), os.getenv("ALPACA_TRADING_URL"), api_version='v2')
-        self.devMode = True
+        self.devMode = False
 
     """
     `_submitOrder`: submits an order to the alpaca api to buy/sell 

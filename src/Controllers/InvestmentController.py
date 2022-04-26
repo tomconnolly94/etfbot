@@ -43,18 +43,13 @@ class InvestmentController():
         logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
 
         # calculate trades that should be made to turn current position into ideal position
-        positionsToSell = self._getPositionsToSell(currentPositions)
+        idealPositions = self._getIdealPositions()
+        positionsToBuy = { position[0]: position[1] for position in idealPositions.items() if position[0] not in currentPositions.keys() }
+        positionsToSell = { position[0]: position[1] for position in currentPositions.items() if position[0] not in idealPositions.keys() }
+
+        logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}")
         logging.info(f"Number of positions that should be closed: {len(positionsToSell)}")
         
-        valueOfPositionsToSell: float = self._getValueOfStockList(positionsToSell)
-        availableFunds = self._alpacaInterface.getAvailableFunds()
-        totalBuyingPower = valueOfPositionsToSell + availableFunds
-        positionsToBuy = {}
-
-        if totalBuyingPower > 0:
-            positionsToBuy = self._getPositionsToBuy(currentPositions, totalBuyingPower)
-            logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}")
-
         # make trades
         for positionKey, positionQuantity in positionsToSell.items():
             self._alpacaInterface.sellStock(positionKey, positionQuantity)
@@ -88,8 +83,8 @@ class InvestmentController():
     """
     def _getIdealPositions(self: object) -> 'dict[str, int]':
         idealStockRange = self._getStockRangeIdeal()
-        portfolioValue = self._alpacaInterface.getPortfolioValue()
-        allStockOrders = self._stockChoiceController.getStockOrderNumbers(idealStockRange, portfolioValue)
+        totalBuyingPower = self._alpacaInterface.getPortfolioValue() + self._alpacaInterface.getAvailableFunds()
+        allStockOrders = self._stockChoiceController.getStockOrderNumbers(idealStockRange, totalBuyingPower)
         idealPositions = dict(filter(lambda entry: entry[1] > 0, allStockOrders.items()))
         return idealPositions
 
@@ -174,9 +169,9 @@ class InvestmentController():
     `_getValueOfStock`: returns the price of a stock from the `StockData` cache
     """
     def _getValueOfStock(self: object, stockSymbol: str) -> float:
+        cache = self._getStockCache()
         for stock in self._getStockCache():
             if stock.symbol == stockSymbol:
                 return stock.price
-            else:
-                return None
+        return None
 
