@@ -5,11 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "etbot - Main",
             "type": "python",
             "request": "launch",
-            "program": "Main.py",
-            "console": "integratedTerminal"
+            "module": "Main",
+            "justMyCode": true,
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
