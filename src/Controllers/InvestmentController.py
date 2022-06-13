@@ -4,15 +4,13 @@
 import logging
 
 # internal dependencies
-from src.Controllers.DataController import DataController
 from src.Controllers.StockChoiceController import StockChoiceController
 from src.Interfaces.AlpacaInterface import AlpacaInterface
-from src.Types.StockData import StockData
 
 """
 InvestmentController
 
-This is a class to control investment decisions
+This is a class to control the retrieval and execution of stock trades
 
 """
 class InvestmentController():
@@ -22,12 +20,8 @@ class InvestmentController():
     """
     def __init__(self: object):
         # class fields
-        self._idealStockRangeIndexStart = 300
-        self._idealStockRangeIndexEnd = 400
-        self._sortedFullStockCache = []
         self._stockChoiceController = StockChoiceController()
         self._alpacaInterface = AlpacaInterface()
-        self._dataController = DataController()
 
 
     """
@@ -42,39 +36,40 @@ class InvestmentController():
         logging.info(f"Number of current positions held: {len(currentPositions)}")
         logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
 
-        # calculate trades that should be made to turn current position into ideal position
-        idealPositions = self._getIdealPositions()
-        positionsToBuy = { position[0]: position[1] for position in idealPositions.items() if position[0] not in currentPositions.keys() }
-        positionsToSell = { position[0]: position[1] for position in currentPositions.items() if position[0] not in idealPositions.keys() }
+        # calculate ideal positions
+        idealPositions: 'dict[str, int]' = self._getIdealPositions()
 
-        logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}")
+        # calculate positions to dump
+        positionsToSell = { position[0]: position[1] for position in currentPositions.items() if position[0] not in idealPositions.keys() }
+        valueOfPositionsToSell = sum(positionsToSell.values())
+
+        positionsToBuy = { position[0]: position[1] for position in idealPositions.items() if position[0] not in currentPositions.keys() }
+
         logging.info(f"Number of positions that should be closed: {len(positionsToSell)}")
+        logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}")
         
         # make trades
         for positionKey, positionQuantity in positionsToSell.items():
             self._alpacaInterface.sellStock(positionKey, positionQuantity)
             logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}")
 
-        for positionKey, positionQuantity in positionsToBuy.items():
+        moneySpent = 0
+        moneyAvailable = valueOfPositionsToSell + self._alpacaInterface.getAvailableFunds()
+
+        for positionKey, reccomendedPositionQuantity in positionsToBuy.items():
+            stockValue = self._getValueOfStock(positionKey)
+
+            # clamp the quantity to buy as much of the stock as possible up to the reccomended amount
+            positionQuantity = max(0, min(moneyAvailable/stockValue, reccomendedPositionQuantity))
+            tradeValue = stockValue * positionQuantity
+
+            if tradeValue > moneyAvailable: # check if purchasing this stock would overspend funds
+                break
+
             self._alpacaInterface.buyStock(positionKey, positionQuantity)
-            logging.info(f"Bought {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}")
-
-
-
-    def getExchanges(self):
-
-        available_stocks = self._alpacaInterface.showAllAvailableStocks()
-        exchanges = []
-
-        for stock in available_stocks:
-            if stock.exchange not in exchanges:
-                exchanges.append(stock.exchange)
-                if stock.symbol[-1] == "L":
-                    print(stock)
-
-        print(exchanges)
-
-        return
+            moneyAvailable -= tradeValue
+            moneySpent += tradeValue
+            logging.info(f"Bought {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {stockValue}. Money spent: {moneySpent}")
 
 
     """
@@ -82,40 +77,12 @@ class InvestmentController():
                             to invest in based on the portfolio value
     """
     def _getIdealPositions(self: object) -> 'dict[str, int]':
-        idealStockRange = self._getStockRangeIdeal()
         totalBuyingPower = self._alpacaInterface.getPortfolioValue() + self._alpacaInterface.getAvailableFunds()
-        allStockOrders = self._stockChoiceController.getStockOrderNumbers(idealStockRange, totalBuyingPower)
-        idealPositions = dict(filter(lambda entry: entry[1] > 0, allStockOrders.items()))
-        return idealPositions
+        
+        logging.info(f"Total buying power: {totalBuyingPower}")
+        allStockOrders = self._stockChoiceController.getStockOrderNumbers(totalBuyingPower)
+        return allStockOrders
 
-
-    """
-    `_getStockRangeIdeal`:  returns a limited list (StockData) of the ideal stocks to 
-                            invest in
-    """
-    def _getStockRangeIdeal(self: object) -> 'list[StockData]':
-        return self._getStockCache()[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
-
-
-    """
-    `_getStockCache`: save list of StockData items, prices and symbols from index
-    """
-    def _getStockCache(self: object) -> None:
-        if not self._sortedFullStockCache:
-            stockDataList = self._dataController.getOrderedStockData()
-            self._sortedFullStockCache = sorted(stockDataList, key=lambda x: x.price, reverse=True)
-        return self._sortedFullStockCache
-
-
-    """
-    `_getStockRangeDontSell`:   returns a list of StockData items that fall in or above 
-                                the "ideal" stock range
-    """
-    def _getStockRangeDontSell(self: object) -> 'list[StockData]':
-        return self._getStockCache()[:self._idealStockRangeIndexEnd]
-
-
-    ########## debug funcs ##########
 
     """
     `_getPositionInIndex`: returns the position of a stock in the index by symbol
@@ -127,50 +94,19 @@ class InvestmentController():
         return None
 
 
-    ########## debug funcs ##########
-
-
-    """
-    `_getPositionsToSell`:  returns a dict of symbols and quantities of open positions 
-                            that should be closed
-    """
-    def _getPositionsToSell(self: object, currentPositions: 'dict[str, int]') -> 'dict[str, int]':
-        dontSellStockRange = [ stockData.symbol for stockData in self._getStockRangeDontSell() ]
-        positions = dict(filter(lambda entry: entry[0] not in dontSellStockRange, currentPositions.items()))
-        return positions
-
-
-    """
-    `_getPositionsToBuy`:   returns a dict of symbols and quantities of open positions 
-                            that should be opened with the available funds
-    """
-    def _getPositionsToBuy(self: object, currentPositions: 'dict[str, int]', availableFunds: float) -> 'dict[str, int]':
-        idealPositionsToBuy = list(filter(lambda entry: entry.symbol not in currentPositions, self._getStockRangeIdeal()))
-        runningPositionsTotalValue = 0
-        actualPositionsToBuy = {}
-
-        for stockData in idealPositionsToBuy:
-            runningPositionsTotalValue += stockData.price
-            if runningPositionsTotalValue <= availableFunds:
-                actualPositionsToBuy[stockData.symbol] = 1
-
-        return actualPositionsToBuy
-
-
-    """
-    `_getValueOfStockList`: take a list of positions, find their value and returns the sum
-    """
-    def _getValueOfStockList(self: object, stockSymbolList: 'dict[str, int]') -> float:
-        relevantStockDataList: 'list[StockData]' = [ stockData for stockData in self._getStockCache() if stockData.symbol in stockSymbolList.keys() ]
-        return sum(stockData.price for stockData in relevantStockDataList)
+    # """
+    # `_getValueOfStockList`: take a list of positions, find their value and returns the sum
+    # """
+    # def _getValueOfStockList(self: object, stockSymbolList: 'dict[str, int]') -> float:
+    #     relevantStockDataList: 'list[StockData]' = [ stockData for stockData in self._getStockCache() if stockData.symbol in stockSymbolList.keys() ]
+    #     return sum(stockData.price for stockData in relevantStockDataList)
 
 
     """
     `_getValueOfStock`: returns the price of a stock from the `StockData` cache
     """
     def _getValueOfStock(self: object, stockSymbol: str) -> float:
-        cache = self._getStockCache()
-        for stock in self._getStockCache():
+        for stock in self._alpacaInterface.getStockCache():
             if stock.symbol == stockSymbol:
                 return stock.price
         return None

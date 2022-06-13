@@ -6,8 +6,10 @@ from alpaca_trade_api.entity import Account
 import os
 
 # internal dependencies
+from src.Types.StockExchange import StockExchange
 from src.Interfaces.InvestingInterface import InvestingInterface
 from src.Types.StockData import StockData
+from src.Interfaces.StockIndexDataInterface import StockIndexDataInterface
 
 
 """
@@ -23,25 +25,18 @@ class AlpacaInterface(InvestingInterface):
         self.api = alpaca_trade_api.REST(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"), os.getenv("ALPACA_TRADING_URL"), api_version='v2')
         self.devMode = False
 
-    """
-    `_submitOrder`: submits an order to the alpaca api to buy/sell 
-    test: None
-    """
-    def _submitOrder(self, stockSymbol, quantity, order) -> None:
-        if self.devMode: return
-        self.api.submit_order(
-            symbol=stockSymbol, 
-            qty=quantity, 
-            side=order
-        )
+        self._sortedFullStockCache = []
+        self._stockIndexDataInterface = StockIndexDataInterface()
 
 
     """
-    `_getAlpacaAccount`: returns information about the alpaca account associated with the details above
-    test: None
+    `getStockCache`: save list of StockData items, prices and symbols from index
     """
-    def _getAlpacaAccount(self) -> Account:
-        return self.api.get_account()
+    def getStockCache(self: object) -> None:
+        if not self._sortedFullStockCache:
+            indexSymbols = self._stockIndexDataInterface.getIndexSymbols(StockExchange.SP500)
+            self._sortedFullStockCache = sorted(self.getStockDataList(indexSymbols), key=lambda x: x.price, reverse=True)
+        return self._sortedFullStockCache
 
 
     """
@@ -96,6 +91,22 @@ class AlpacaInterface(InvestingInterface):
         return [ StockData(symbol, snapshot.latest_trade.p) for symbol, snapshot in stockSnapShots.items() ]
 
 
-    def showAllAvailableStocks(self):
-        active_assets = self.api.list_assets(status='active')
-        return active_assets
+    """
+    `_submitOrder`: submits an order to the alpaca api to buy/sell 
+    test: None
+    """
+    def _submitOrder(self, stockSymbol, quantity, order) -> None:
+        if self.devMode: return
+        self.api.submit_order(
+            symbol=stockSymbol, 
+            qty=quantity, 
+            side=order
+        )
+
+
+    """
+    `_getAlpacaAccount`: returns information about the alpaca account associated with the details above
+    test: None
+    """
+    def _getAlpacaAccount(self) -> Account:
+        return self.api.get_account()
