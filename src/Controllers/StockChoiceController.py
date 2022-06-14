@@ -9,8 +9,7 @@ from abc import ABC
 """
 StockChoiceController
 
-This is a class to contain numerical information about how funds are distributed 
-among stocks
+This is a class to allow the software to change its stock choice strategy
 
 """
 class StockChoiceController(ABC):

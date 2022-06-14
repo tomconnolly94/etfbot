@@ -7,18 +7,18 @@ import unittest
 from unittest import mock
 import matplotlib.pyplot as plt
 import numpy as np
+from src.Interfaces.StockChoiceStrategies.CustomWeightingStrategy import CustomWeightingStrategy
 
 # internal dependencies
 from src.Types.StockData import StockData
-from src.Controllers.StockChoiceController import StockChoiceController;
 
-class TestStockChoiceController(unittest.TestCase):
+class TestCustomWeightingStrategy(unittest.TestCase):
 
     def _loadStockData(self):
 
         stockData = []
 
-        with open("src/Test/TestData/StockDataListRandomPrice.json", "r") as read_file:
+        with open("Test/TestData/StockDataListRandomPrice.json", "r") as read_file:
             stockDataRaw = json.load(read_file)
 
             for item in stockDataRaw:
@@ -26,9 +26,10 @@ class TestStockChoiceController(unittest.TestCase):
         
         return stockData
 
-    @mock.patch("src.Controllers.StockChoiceController.StockChoiceController._getBuyingQuantities")
-    @mock.patch("src.Controllers.StockChoiceController.StockChoiceController._generateStockWeightsBasedOnValue")
-    def test_getStockOrderNumbers(self, _generateStockWeightsBasedOnValueMock, _getBuyingQuantitiesMock):
+    @mock.patch("src.Interfaces.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getBuyingQuantities")
+    @mock.patch("src.Interfaces.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._generateStockWeightsBasedOnValue")
+    @mock.patch("src.Interfaces.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getStockRangeIdeal")
+    def test_getStockOrderNumbers(self, _getStockRangeIdealMock, _generateStockWeightsBasedOnValueMock, _getBuyingQuantitiesMock):
         
         # configure fake data
         fakeStockWeights = {"fakeStockWeight": 1}
@@ -37,56 +38,58 @@ class TestStockChoiceController(unittest.TestCase):
         fakeAvailableFunds = 100
 
         # configure mocks
+        _getStockRangeIdealMock.return_value = fakeStockDataList
         _generateStockWeightsBasedOnValueMock.return_value = fakeStockWeights
         _getBuyingQuantitiesMock.return_value = fakeStockOrderNumbers
 
         # run testable function
-        actualStockOrderNumbers = StockChoiceController().getStockOrderNumbers(fakeStockDataList, fakeAvailableFunds)
+        actualStockOrderNumbers = CustomWeightingStrategy().getStockOrderNumbers(fakeAvailableFunds)
 
         # asserts
         self.assertEquals(fakeStockOrderNumbers, actualStockOrderNumbers)
+        _getStockRangeIdealMock.assert_called()
         _generateStockWeightsBasedOnValueMock.assert_called_with(fakeStockDataList)
         _getBuyingQuantitiesMock.assert_called_with(fakeAvailableFunds, fakeStockWeights)
 
 
 
     def test__getStockWeightBasedOnListIndex(self):
-        stockChoiceController = StockChoiceController()
+        customWeightingStrategy = CustomWeightingStrategy()
 
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(0, 100)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(0, 100)
         self.assertEquals(3.2, stockWeight)
         
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(1, 100)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(1, 100)
         self.assertEquals(3.2, stockWeight)
         
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(10, 100)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(10, 100)
         self.assertEquals(2.2, stockWeight)
 
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(11, 100)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(11, 100)
         self.assertEquals(2.2, stockWeight)
 
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(20, 100)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(20, 100)
         self.assertEquals(1.4, stockWeight)
         
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(4, 10)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(4, 10)
         self.assertEquals(8, stockWeight)
         
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(6, 10)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(6, 10)
         self.assertEquals(4, stockWeight)
 
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(1, 10)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(1, 10)
         self.assertEquals(22, stockWeight)
         
-        stockWeight = stockChoiceController._getStockWeightBasedOnListIndex(1, 20)
+        stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(1, 20)
         self.assertEquals(16, stockWeight)
 
 
     def test__generateStockWeightsBasedOnValue(self):
-        stockChoiceController = StockChoiceController()
+        customWeightingStrategy = CustomWeightingStrategy()
 
         stockData = self._loadStockData()
 
-        stockWeights = stockChoiceController._generateStockWeightsBasedOnValue(stockData)
+        stockWeights = customWeightingStrategy._generateStockWeightsBasedOnValue(stockData)
 
         stockWeightTotal = 0
 
@@ -97,7 +100,7 @@ class TestStockChoiceController(unittest.TestCase):
 
 
     def test__getBuyingQuantities(self):
-        stockChoiceController = StockChoiceController()
+        customWeightingStrategy = CustomWeightingStrategy()
 
         # inputs 
         funds = 100
@@ -114,7 +117,7 @@ class TestStockChoiceController(unittest.TestCase):
             StockData("91-100%", 0.2, 1) # 100
         ], key=lambda stockData: -stockData.price)
 
-        numberOfSharesToBuy = stockChoiceController._getBuyingQuantities(funds, stockDataList)
+        numberOfSharesToBuy = customWeightingStrategy._getBuyingQuantities(funds, stockDataList)
 
         self.assertEquals(3, numberOfSharesToBuy["0-10%"]) #    28   2
         self.assertEquals(2, numberOfSharesToBuy["11-20%"]) # 12 40   8 extra

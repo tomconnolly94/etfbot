@@ -19,10 +19,10 @@ class CustomWeightingStrategy(StockChoiceStrategy):
 
     def __init__(self):
         # class fields
-        self.__idealStockRangeIndexStart = 300
-        self.__idealStockRangeIndexEnd = 400
-        self.__divisionWeights = [32, 22, 14, 10, 8, 6, 4, 2, 1.5, .5]
-        self.__alpacaInterface = AlpacaInterface()
+        self._idealStockRangeIndexStart = 300
+        self._idealStockRangeIndexEnd = 400
+        self._divisionWeights = [32, 22, 14, 10, 8, 6, 4, 2, 1.5, .5]
+        self._alpacaInterface = AlpacaInterface()
 
 
     """
@@ -30,46 +30,46 @@ class CustomWeightingStrategy(StockChoiceStrategy):
     test: TestStockChoiceController.test_getStockOrderNumbers
     """
     def getStockOrderNumbers(self: object, availableFunds: int) -> 'dict[str, int]':
-        stockDataList = self.__getStockRangeIdeal()
-        stockWeights = self.__generateStockWeightsBasedOnValue(stockDataList)
-        return self.__getBuyingQuantities(availableFunds, stockWeights)
+        stockDataList = self._getStockRangeIdeal()
+        stockWeights = self._generateStockWeightsBasedOnValue(stockDataList)
+        return self._getBuyingQuantities(availableFunds, stockWeights)
 
 
     """
-    `__getStockRangeIdeal`:  returns a limited list (StockData) of the ideal stocks to 
+    `_getStockRangeIdeal`:  returns a limited list (StockData) of the ideal stocks to 
                             invest in
     """
-    def __getStockRangeIdeal(self: object) -> 'list[StockData]':
-        return self.__alpacaInterface.getStockCache()[self.__idealStockRangeIndexStart:self.__idealStockRangeIndexEnd]
+    def _getStockRangeIdeal(self: object) -> 'list[StockData]':
+        return self._alpacaInterface.getStockCache()[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
 
 
     """
-    `__generateStockWeightsBasedOnValue`:    returns a list of StockData objects complete with `fundWeighting` 
+    `_generateStockWeightsBasedOnValue`:    returns a list of StockData objects complete with `fundWeighting` 
                                             fields indicating the weighting that should be placed on this 
                                             stock based on the value of that stock.
-    test: TestStockChoiceController.test__generateStockWeightsBasedOnValue
+    test: TestStockChoiceController.test_generateStockWeightsBasedOnValue
     """
-    def __generateStockWeightsBasedOnValue(self: object, stockDataList: 'list[StockData]') -> 'list[StockData]':
+    def _generateStockWeightsBasedOnValue(self: object, stockDataList: 'list[StockData]') -> 'list[StockData]':
         # order the stockDataList
         stockDataList = sorted(stockDataList, key=lambda x: x.price, reverse=True)
 
         for index, stockData in enumerate(stockDataList):
-            stockData.fundWeighting = self.__getStockWeightBasedOnListIndex(index, len(stockDataList))
+            stockData.fundWeighting = self._getStockWeightBasedOnListIndex(index, len(stockDataList))
         
         return stockDataList
 
 
     """
-    `__getStockWeightBasedOnListIndex`:  returns a percentage of the fund that should be placed on the stock at 
+    `_getStockWeightBasedOnListIndex`:  returns a percentage of the fund that should be placed on the stock at 
                                         index `stockListIndex`, based on its position in the index
-    test: TestStockChoiceController.test__getStockWeightBasedOnListIndex
+    test: TestStockChoiceController.test_getStockWeightBasedOnListIndex
     """
-    def __getStockWeightBasedOnListIndex(self, stockListIndex, listLength) -> int:
+    def _getStockWeightBasedOnListIndex(self, stockListIndex, listLength) -> int:
         relativeIndex = stockListIndex / listLength
 
         numberOfItemsInTenPercent = listLength / 10
 
-        for index, divisionWeight in enumerate(self.__divisionWeights):
+        for index, divisionWeight in enumerate(self._divisionWeights):
             if relativeIndex < (index + 1) / 10:
                 return divisionWeight / numberOfItemsInTenPercent
 
@@ -90,12 +90,12 @@ class CustomWeightingStrategy(StockChoiceStrategy):
 
 
     """
-    `__getStockWeightBasedOnListIndex`:  returns a dictionary of stock symbols mapped to the number of 
+    `_getStockWeightBasedOnListIndex`:  returns a dictionary of stock symbols mapped to the number of 
                                         shares of that stock to buy, based on the available funds and the 
                                         pre-caclulated fund weightings
     test: TestStockChoiceController.test_getBuyingQuantities
     """
-    def __getBuyingQuantities(self: object, funds: float, stockDataList: 'list[StockData]') -> 'dict[str, int]':
+    def _getBuyingQuantities(self: object, funds: float, stockDataList: 'list[StockData]') -> 'dict[str, int]':
         numberOfSharesToBuy = {stockData.symbol: 0 for stockData in stockDataList}
         totalFunds = funds
         numberOfNewOrders = 0

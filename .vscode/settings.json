@@ -2,7 +2,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./src/Test/Controllers",
+        "./Test",
         "-p",
         "test_*.py"
     ],
