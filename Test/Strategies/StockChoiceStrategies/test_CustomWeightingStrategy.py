@@ -7,7 +7,7 @@ import unittest
 from unittest import mock
 import matplotlib.pyplot as plt
 import numpy as np
-from src.Interfaces.StockChoiceStrategies.CustomWeightingStrategy import CustomWeightingStrategy
+from src.Strategies.StockChoiceStrategies.CustomWeightingStrategy import CustomWeightingStrategy
 
 # internal dependencies
 from src.Types.StockData import StockData

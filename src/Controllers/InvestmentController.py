@@ -64,7 +64,7 @@ class InvestmentController():
             positionQuantity = math.floor(max(0, min(moneyAvailable/stockValue, reccomendedPositionQuantity)))
             tradeValue = stockValue * positionQuantity
 
-            if tradeValue == 0: break # check if anything will be bought
+            if tradeValue == 0: continue # check if anything will be bought
             if tradeValue > moneyAvailable: break # check if purchasing this stock would overspend funds
 
             logging.info(f"Atempting to buy {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {stockValue}.")

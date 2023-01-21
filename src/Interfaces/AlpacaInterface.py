@@ -23,7 +23,7 @@ class AlpacaInterface(InvestingInterface):
     def __init__(self: object):
         # instantiate REST API
         self.api = alpaca_trade_api.REST(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"), os.getenv("ALPACA_TRADING_URL"), api_version='v2')
-        self.devMode = False
+        self.devMode = True
 
         self._sortedFullStockCache = []
         self._stockIndexDataInterface = StockIndexDataInterface()
@@ -32,7 +32,7 @@ class AlpacaInterface(InvestingInterface):
     """
     `getStockCache`: save list of StockData items, prices and symbols from index
     """
-    def getStockCache(self: object) -> None:
+    def getStockCache(self: object) -> 'list[StockData]':
         if not self._sortedFullStockCache:
             indexSymbols = self._stockIndexDataInterface.getIndexSymbols(StockExchange.SP500)
             self._sortedFullStockCache = sorted(self.getStockDataList(indexSymbols), key=lambda x: x.price, reverse=True)

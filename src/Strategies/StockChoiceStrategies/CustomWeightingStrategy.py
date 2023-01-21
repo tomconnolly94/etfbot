@@ -6,14 +6,17 @@ import math
 
 # internal dependencies
 from src.Interfaces.AlpacaInterface import AlpacaInterface
-from src.Interfaces.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
+from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
 from src.Types.StockData import StockData
 
 """
 CustomWeightingStrategy
 
 This is a StockChoiceStrategy that takes a custom weighting configuration and a range of stocks and reccomends stock based on applying the configuration to the stock range
-
+The strategy is as follows:
+    * Use all available funds to buy stock that is placed between position 300 and 400 in the S&P index 
+    * Sell stock that rises above position 300 or below position 400 in the S&P index
+    * Weight the purchases (according to `self._divisionWeights`) allocating more money for stock closer to position 300
 """
 class CustomWeightingStrategy(StockChoiceStrategy):
 
@@ -29,7 +32,7 @@ class CustomWeightingStrategy(StockChoiceStrategy):
     `getStockOrderNumbers`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
     test: TestStockChoiceController.test_getStockOrderNumbers
     """
-    def getStockOrderNumbers(self: object, availableFunds: int) -> 'dict[str, int]':
+    def getBuyOrders(self: object, availableFunds: int) -> 'dict[str, int]':
         stockDataList = self._getStockRangeIdeal()
         stockWeights = self._generateStockWeightsBasedOnValue(stockDataList)
         return self._getBuyingQuantities(availableFunds, stockWeights)
