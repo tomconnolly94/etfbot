@@ -3,6 +3,7 @@
 # external dependencies
 import logging
 import math
+from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
 
 # internal dependencies
 from src.Controllers.StockChoiceController import StockChoiceController
@@ -37,40 +38,31 @@ class InvestmentController():
         logging.info(f"Number of current positions held: {len(currentPositions)}")
         logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
 
-        # calculate ideal positions
-        idealPositions: 'dict[str, int]' = self._getIdealPositions()
+        stockChoiceStrategy: StockChoiceStrategy = self._stockChoiceController.getStockChoiceStrategy()
 
         # calculate positions to dump
-        positionsToSell = { position[0]: position[1] for position in currentPositions.items() if position[0] not in idealPositions.keys() }
+        positionsToSell: 'dict[str, int]' = stockChoiceStrategy.getSellOrders()
         valueOfPositionsToSell = sum(positionsToSell.values())
-
-        positionsToBuy = { position[0]: position[1] for position in idealPositions.items() if position[0] not in currentPositions.keys() }
-
-        logging.info(f"Number of positions that should be closed: {len(positionsToSell)}")
-        logging.info(f"Number of positions that should be opened: {len(positionsToBuy)}")
+        logging.info(f"Number of positions that will be closed: {len(positionsToSell)}, total value: {valueOfPositionsToSell}")
         
-        # make trades
+        # make sales
         for positionKey, positionQuantity in positionsToSell.items():
             self._alpacaInterface.sellStock(positionKey, positionQuantity)
             logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}")
 
+        # evaluate remaining funds
+        liquidFunds = self._alpacaInterface.getAvailableFunds()
+        positionsToBuy: 'dict[str, int]' = stockChoiceStrategy.getBuyOrders(liquidFunds)
+        logging.info(f"Number of positions that will be opened: {len(positionsToBuy)}")
         moneySpent = 0
-        moneyAvailable = valueOfPositionsToSell + self._alpacaInterface.getAvailableFunds()
 
-        for positionKey, reccomendedPositionQuantity in positionsToBuy.items():
+        # make buys
+        for positionKey, positionQuantity in positionsToBuy.items():
             stockValue = self._getValueOfStock(positionKey)
-
-            # clamp the quantity to buy as much of the stock as possible up to the reccomended amount
-            positionQuantity = math.floor(max(0, min(moneyAvailable/stockValue, reccomendedPositionQuantity)))
             tradeValue = stockValue * positionQuantity
 
-            if tradeValue == 0: continue # check if anything will be bought
-            if tradeValue > moneyAvailable: break # check if purchasing this stock would overspend funds
-
             logging.info(f"Attempting to buy {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {stockValue}.")
-
             self._alpacaInterface.buyStock(positionKey, positionQuantity)
-            moneyAvailable -= tradeValue
             moneySpent += tradeValue
             logging.info(f"Buy successful, total money spent: {moneySpent}")
 

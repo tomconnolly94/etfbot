@@ -15,8 +15,9 @@ This is a class to allow the software to change its stock choice strategy
 class StockChoiceController():
 
     def __init__(self: object):
-        self.stockChoiceStrategy = LinearWeightingStrategy()
+        # self._stockChoiceStrategy = CustomWightingStrategy()
+        self._stockChoiceStrategy = LinearWeightingStrategy()
         pass
 
-    def getStockOrderNumbers(self, totalFunds: int):
-        return self.stockChoiceStrategy.getStockOrderNumbers(totalFunds)
+    def getStockChoiceStrategy(self: object):
+        return self._stockChoiceStrategy
