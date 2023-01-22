@@ -38,7 +38,7 @@ class LinearWeightingStrategy(StockChoiceStrategy):
     `getSellOrders`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
     test: TestStockChoiceController.test_getSellOrders
     """
-    def getSellOrders(self: object) -> 'dict[str, int]':
+    def getSellOrders(self: object) -> 'list[str]':
         stockCurrentlyOwned: 'dict[str, int]' = self._alpacaInterface.getOpenPositions()
         fullStockRange: 'list[StockData]' = self._alpacaInterface.getStockCache()
 
@@ -72,12 +72,18 @@ class LinearWeightingStrategy(StockChoiceStrategy):
 
         while True:
 
+            ordersAddedOnThisLoop = 0
+
             for stock in stockDataList:
 
-                if funds < stock.price: return buyingQuantities
+                if funds < stock.price: continue
 
                 if stock.symbol not in buyingQuantities:
                     buyingQuantities[stock.symbol] = 1
                 else:
                     buyingQuantities[stock.symbol] += 1
+                ordersAddedOnThisLoop += 1
                 funds = funds - stock.price
+            
+            if ordersAddedOnThisLoop == 0:
+                return buyingQuantities

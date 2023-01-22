@@ -29,5 +29,5 @@ class StockChoiceStrategy(ABC):
     `getSellOrders`: get numbers of each stock to be ordered according to the strategy
     """
     @abstractmethod
-    def getSellOrders(self, quantity: int) -> 'dict[str, int]':
+    def getSellOrders(self, quantity: int) -> 'list[str]':
         pass

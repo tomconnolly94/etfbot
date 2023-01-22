@@ -43,10 +43,10 @@ class TestInvestmentController(unittest.TestCase):
             "fakeBuyOrder1": 10,
             "fakeBuyOrder2": 15
         }
-        fakeSellOrders = {
-            "fakeOpenPosition1": 10, 
-            "fakeOpenPosition2": 15
-        }
+        fakeSellOrders = [
+            "fakeOpenPosition1",
+            "fakeOpenPosition2"
+        ]
 
         class FakeStockChoiceStrategy(StockChoiceStrategy):
             
@@ -73,7 +73,7 @@ class TestInvestmentController(unittest.TestCase):
 
         # asserts
         getOpenPositionsMock.assert_called()
-        self.assertEquals(10, loggingMock.call_count)
+        self.assertEquals(11, loggingMock.call_count)
         getAvailableFundsMock.assert_called()
 
         sellStockMock.assert_has_calls([ 
@@ -83,8 +83,8 @@ class TestInvestmentController(unittest.TestCase):
         buyStockMock.assert_has_calls([mock.call(key, value) for key, value in fakeBuyOrders.items() ])
         self.assertEquals(4, _getValueOfStockMock.call_count)
         _getValueOfStockMock.assert_has_calls([
-            mock.call(list(fakeSellOrders.keys())[0]),
-            mock.call(list(fakeSellOrders.keys())[1]),
+            mock.call(fakeSellOrders[0]),
+            mock.call(fakeSellOrders[1]),
             mock.call(list(fakeBuyOrders.keys())[0]),
             mock.call(list(fakeBuyOrders.keys())[1])
         ])
@@ -92,9 +92,10 @@ class TestInvestmentController(unittest.TestCase):
         loggingMock.assert_has_calls([
             mock.call(f"Number of current positions held: {len(fakeOpenPositions)}"),
             mock.call("Current positions - (symbol: index position) fakeOpenPosition1: 3, fakeOpenPosition2: 6, fakeOpenPosition3: 7"),
-            mock.call(f"Number of positions that will be closed: {len(fakeSellOrders)}, total value: {sum(list(fakeSellOrders.values()))}"),
+            mock.call(f"Number of positions that will be closed: {len(fakeSellOrders)}"),
             mock.call("Sold 10 shares of fakeOpenPosition1 at 10"),
             mock.call("Sold 15 shares of fakeOpenPosition2 at 10"),
+            mock.call(f"Available funds for new investments: {fakeAvailableFunds}"),
             mock.call(f"Number of positions that will be opened: {len(fakeBuyOrders)}"),
             mock.call("Attempting to buy 10 shares of fakeBuyOrder1 at 10."),
             mock.call("Buy successful, total money spent: 100"),

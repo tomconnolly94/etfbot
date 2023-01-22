@@ -2,10 +2,10 @@
 
 # external dependencies
 import logging
-import math
-from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
 
 # internal dependencies
+from src.Interfaces.InvestingInterface import InvestingInterface
+from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
 from src.Controllers.StockChoiceController import StockChoiceController
 from src.Interfaces.AlpacaInterface import AlpacaInterface
 
@@ -23,7 +23,7 @@ class InvestmentController():
     def __init__(self: object):
         # class fields
         self._stockChoiceController = StockChoiceController()
-        self._alpacaInterface = AlpacaInterface()
+        self._investingInterface: InvestingInterface = AlpacaInterface()
 
 
     """
@@ -33,7 +33,7 @@ class InvestmentController():
     def rebalanceInvestments(self):
 
         # get current positions
-        currentPositions = self._alpacaInterface.getOpenPositions()
+        currentPositions: 'dict[str, int]' = self._investingInterface.getOpenPositions()
 
         logging.info(f"Number of current positions held: {len(currentPositions)}")
         logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
@@ -41,18 +41,20 @@ class InvestmentController():
         stockChoiceStrategy: StockChoiceStrategy = self._stockChoiceController.getStockChoiceStrategy()
 
         # calculate positions to dump
-        positionsToSell: 'dict[str, int]' = stockChoiceStrategy.getSellOrders()
-        valueOfPositionsToSell = sum(positionsToSell.values())
-        logging.info(f"Number of positions that will be closed: {len(positionsToSell)}, total value: {valueOfPositionsToSell}")
+        stockSymbolsToSell: 'list[str]' = stockChoiceStrategy.getSellOrders()
+        logging.info(f"Number of positions that will be closed: {len(stockSymbolsToSell)}")
         
         # make sales
-        for positionKey, positionQuantity in positionsToSell.items():
-            self._alpacaInterface.sellStock(positionKey, positionQuantity)
-            logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {self._getValueOfStock(positionKey)}")
+        for stockSymbol in stockSymbolsToSell:
+            positionQuantity = currentPositions[stockSymbol]
+            self._investingInterface.sellStock(stockSymbol, currentPositions[stockSymbol])
+            logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {stockSymbol} at {self._getValueOfStock(stockSymbol)}")
 
         # evaluate remaining funds
-        liquidFunds = self._alpacaInterface.getAvailableFunds()
+        liquidFunds = self._investingInterface.getAvailableFunds()
         positionsToBuy: 'dict[str, int]' = stockChoiceStrategy.getBuyOrders(liquidFunds)
+
+        logging.info(f"Available funds for new investments: {liquidFunds}")
         logging.info(f"Number of positions that will be opened: {len(positionsToBuy)}")
         moneySpent = 0
 
@@ -62,30 +64,16 @@ class InvestmentController():
             tradeValue = stockValue * positionQuantity
 
             logging.info(f"Attempting to buy {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {stockValue}.")
-            self._alpacaInterface.buyStock(positionKey, positionQuantity)
+            self._investingInterface.buyStock(positionKey, positionQuantity)
             moneySpent += tradeValue
             logging.info(f"Buy successful, total money spent: {moneySpent}")
-
-
-    """
-    `_getIdealPositions`:   returns a list (symbols and quantities) of the ideal stocks 
-                            to invest in based on the portfolio value
-    """
-    def _getIdealPositions(self: object) -> 'dict[str, int]':
-        liquidFunds = self._alpacaInterface.getAvailableFunds()
-        totalBuyingPower = self._alpacaInterface.getPortfolioValue() + liquidFunds
-        
-        logging.info(f"Total buying power: {totalBuyingPower}")
-        logging.info(f"Total liquid funds: {liquidFunds}")
-        allStockOrders = self._stockChoiceController.getStockOrderNumbers(totalBuyingPower)
-        return allStockOrders
 
 
     """
     `_getPositionInIndex`: returns the position of a stock in the index by symbol
     """
     def _getPositionInIndex(self: object, stockDataSymbol: str):
-        for index, cachedStock in enumerate(self._alpacaInterface.getStockCache()):
+        for index, cachedStock in enumerate(self._investingInterface.getStockCache()):
             if cachedStock.symbol == stockDataSymbol:
                 return index
         return None
@@ -103,7 +91,7 @@ class InvestmentController():
     `_getValueOfStock`: returns the price of a stock from the `StockData` cache
     """
     def _getValueOfStock(self: object, stockSymbol: str) -> float:
-        for stock in self._alpacaInterface.getStockCache():
+        for stock in self._investingInterface.getStockCache():
             if stock.symbol == stockSymbol:
                 return stock.price
         return None
