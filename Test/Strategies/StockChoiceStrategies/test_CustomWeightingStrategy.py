@@ -26,9 +26,9 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         
         return stockData
 
-    @mock.patch("src.Interfaces.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getBuyingQuantities")
-    @mock.patch("src.Interfaces.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._generateStockWeightsBasedOnValue")
-    @mock.patch("src.Interfaces.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getStockRangeIdeal")
+    @mock.patch("src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getBuyingQuantities")
+    @mock.patch("src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._generateStockWeightsBasedOnValue")
+    @mock.patch("src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getStockRangeIdeal")
     def test_getStockOrderNumbers(self, _getStockRangeIdealMock, _generateStockWeightsBasedOnValueMock, _getBuyingQuantitiesMock):
         
         # configure fake data
@@ -43,7 +43,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         _getBuyingQuantitiesMock.return_value = fakeStockOrderNumbers
 
         # run testable function
-        actualStockOrderNumbers = CustomWeightingStrategy().getStockOrderNumbers(fakeAvailableFunds)
+        actualStockOrderNumbers = CustomWeightingStrategy().getBuyOrders(fakeAvailableFunds)
 
         # asserts
         self.assertEquals(fakeStockOrderNumbers, actualStockOrderNumbers)

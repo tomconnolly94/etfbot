@@ -53,7 +53,7 @@ class TestInvestmentController(unittest.TestCase):
 
         # asserts
         getOpenPositionsMock.assert_called()
-        self.assertEquals(8, loggingMock.call_count)
+        self.assertEquals(10, loggingMock.call_count)
         getAvailableFundsMock.assert_called()
 
         sellStockMock.assert_has_calls([ mock.call(key, value) for key, value in fakeOpenPositions.items() ])
@@ -73,8 +73,10 @@ class TestInvestmentController(unittest.TestCase):
             mock.call(f"Number of positions that should be opened: {len(idealPositions)}"),
             mock.call("Sold 10 shares of fakeOpenPosition1 at 10"),
             mock.call("Sold 15 shares of fakeOpenPosition2 at 10"),
-            mock.call("Bought 5 shares of idealPosition1 at 10. Money spent: 50"),
-            mock.call("Bought 7 shares of idealPosition2 at 10. Money spent: 120"),
+            mock.call("Attempting to buy 5 shares of idealPosition1 at 10."),
+            mock.call("Buy successful, total money spent: 50"),
+            mock.call("Attempting to buy 7 shares of idealPosition2 at 10."),
+            mock.call("Buy successful, total money spent: 120")
         ])
 
 

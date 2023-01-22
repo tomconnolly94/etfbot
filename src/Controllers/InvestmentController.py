@@ -67,7 +67,7 @@ class InvestmentController():
             if tradeValue == 0: continue # check if anything will be bought
             if tradeValue > moneyAvailable: break # check if purchasing this stock would overspend funds
 
-            logging.info(f"Atempting to buy {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {stockValue}.")
+            logging.info(f"Attempting to buy {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {positionKey} at {stockValue}.")
 
             self._alpacaInterface.buyStock(positionKey, positionQuantity)
             moneyAvailable -= tradeValue

@@ -39,6 +39,18 @@ class CustomWeightingStrategy(StockChoiceStrategy):
 
 
     """
+    `getSellOrders`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
+    test: TestStockChoiceController.test_getSellOrders
+    """
+    def getSellOrders(self: object) -> 'dict[str, int]':
+        stockCurrentlyOwned: 'dict[str, int]' = self._alpacaInterface.getOpenPositions()
+        fullStockRange: 'list[StockData]' = self._alpacaInterface.getStockCache()
+
+        return [ stockSymbol for stockSymbol in list(stockCurrentlyOwned.keys())
+            if self.getPositionInStockDataList(stockSymbol, fullStockRange) > self._idealStockRangeIndexEnd]
+
+    
+    """
     `_getStockRangeIdeal`:  returns a limited list (StockData) of the ideal stocks to 
                             invest in
     """
