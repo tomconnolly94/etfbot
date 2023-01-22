@@ -12,6 +12,7 @@ from src.Controllers.InvestmentController import InvestmentController
 
 class TestInvestmentController(unittest.TestCase):
 
+    @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.openOrdersExist")
     @mock.patch("src.Controllers.InvestmentController.InvestmentController._getValueOfStock")
     @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.buyStock")
     @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.sellStock")
@@ -28,7 +29,8 @@ class TestInvestmentController(unittest.TestCase):
         getAvailableFundsMock,
         sellStockMock,
         buyStockMock,
-        _getValueOfStockMock
+        _getValueOfStockMock,
+        openOrdersExistMock
         ):
 
         # configure fake data
@@ -67,12 +69,14 @@ class TestInvestmentController(unittest.TestCase):
         getStockChoiceStrategyMock.return_value = FakeStockChoiceStrategy(fakeBuyOrders, fakeSellOrders)
         getAvailableFundsMock.return_value = fakeAvailableFunds
         _getValueOfStockMock.return_value = 10
+        openOrdersExistMock.return_value = False
 
         # run testable function
         InvestmentController().rebalanceInvestments()
 
         # asserts
         getOpenPositionsMock.assert_called()
+        openOrdersExistMock.assert_called()
         self.assertEquals(11, loggingMock.call_count)
         getAvailableFundsMock.assert_called()
 

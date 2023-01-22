@@ -60,7 +60,7 @@ class AlpacaInterface(InvestingInterface):
     test: None
     """
     def getAvailableFunds(self) -> float:
-        return float(self._getAlpacaAccount().cash)
+        return float(self._getAlpacaAccount().non_marginable_buying_power)
 
 
     """
@@ -90,6 +90,9 @@ class AlpacaInterface(InvestingInterface):
         stockSnapShots: dict = self.api.get_snapshots(stockSymbols)
         return [ StockData(symbol, snapshot.latest_trade.p) for symbol, snapshot in stockSnapShots.items() ]
 
+
+    def openOrdersExist(self):
+        return len(list(self.api.list_orders(status="open", limit=500)))
 
     """
     `_submitOrder`: submits an order to the alpaca api to buy/sell 

@@ -38,6 +38,10 @@ class InvestmentController():
         logging.info(f"Number of current positions held: {len(currentPositions)}")
         logging.info(f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}")
 
+        if self._investingInterface.openOrdersExist():
+            logging.info(f"Open orders exist, no new trading will occur until these orders have been filled.")
+            return
+
         stockChoiceStrategy: StockChoiceStrategy = self._stockChoiceController.getStockChoiceStrategy()
 
         # calculate positions to dump
