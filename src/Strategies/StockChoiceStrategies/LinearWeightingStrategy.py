@@ -23,6 +23,8 @@ class LinearWeightingStrategy(StockChoiceStrategy):
         self._idealStockRangeIndexEnd = 400
         self._divisionWeights = [32, 22, 14, 10, 8, 6, 4, 2, 1.5, .5]
         self._alpacaInterface = AlpacaInterface()
+        if not hasattr(self, '_reverseStockDataList'):
+            self._reverseStockDataList = False
 
 
     """
@@ -31,6 +33,8 @@ class LinearWeightingStrategy(StockChoiceStrategy):
     """
     def getBuyOrders(self: object, availableFunds: int) -> 'dict[str, int]':
         stockDataList = self._getStockRangeIdeal()
+        if self._reverseStockDataList:
+            stockDataList.reverse()
         return self._getBuyingQuantities(availableFunds, stockDataList)
 
 

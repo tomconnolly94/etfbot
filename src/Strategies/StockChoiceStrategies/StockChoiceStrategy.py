@@ -14,7 +14,7 @@ This is a an 'interface' for all stock choice strategies
 class StockChoiceStrategy(ABC):
 
     @abstractmethod
-    def __init__():
+    def __init__(self):
         pass
 
 

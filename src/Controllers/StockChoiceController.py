@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
 # external dependencies
+from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
 from src.Strategies.StockChoiceStrategies.CustomWeightingStrategy import CustomWeightingStrategy
-from src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import LinearWeightingStrategy
+from src.Strategies.StockChoiceStrategies.StockChoiceStrategyEnum import StockChoiceStrategyEnum
+from src.Strategies.StockChoiceStrategies.LinearWeightingStrategyCheapFirst import LinearWeightingStrategyCheapFirst
+from src.Strategies.StockChoiceStrategies.LinearWeightingStrategyExpensiveFirst import LinearWeightingStrategyExpensiveFirst
 
 # internal dependencies
 
@@ -14,9 +17,14 @@ This is a class to allow the software to change its stock choice strategy
 """
 class StockChoiceController():
 
-    def __init__(self: object):
-        # self._stockChoiceStrategy = CustomWightingStrategy()
-        self._stockChoiceStrategy = LinearWeightingStrategy()
+    stockChoiceStrategyMap: 'dict[StockChoiceStrategyEnum, StockChoiceStrategy]' = {
+        StockChoiceStrategyEnum.LinearWeightingCheapFirst: LinearWeightingStrategyCheapFirst,
+        StockChoiceStrategyEnum.LinearWeightingExpensiveFirst: LinearWeightingStrategyExpensiveFirst,
+        StockChoiceStrategyEnum.CustomWeighting: CustomWeightingStrategy
+    }
+
+    def __init__(self: object, stockChoiceStrategy: StockChoiceStrategyEnum):
+        self._stockChoiceStrategy = self.stockChoiceStrategyMap[stockChoiceStrategy]()
         pass
 
     def getStockChoiceStrategy(self: object):

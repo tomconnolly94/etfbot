@@ -8,6 +8,7 @@ from src.Interfaces.InvestingInterface import InvestingInterface
 from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
 from src.Controllers.StockChoiceController import StockChoiceController
 from src.Interfaces.AlpacaInterface import AlpacaInterface
+from src.Strategies.StockChoiceStrategies.StockChoiceStrategyEnum import StockChoiceStrategyEnum
 
 """
 InvestmentController
@@ -22,7 +23,7 @@ class InvestmentController():
     """
     def __init__(self: object):
         # class fields
-        self._stockChoiceController = StockChoiceController()
+        self._stockChoiceController = StockChoiceController(StockChoiceStrategyEnum.LinearWeightingCheapFirst)
         self._investingInterface: InvestingInterface = AlpacaInterface()
 
 
