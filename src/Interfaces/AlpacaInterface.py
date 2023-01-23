@@ -4,6 +4,8 @@
 import alpaca_trade_api
 from alpaca_trade_api.entity import Account
 import os
+import logging
+import json
 
 # internal dependencies
 from src.Types.StockExchange import StockExchange
@@ -60,7 +62,7 @@ class AlpacaInterface(InvestingInterface):
     test: None
     """
     def getAvailableFunds(self) -> float:
-        return float(self._getAlpacaAccount().non_marginable_buying_power)
+        return float(self._getAlpacaAccount().cash)
 
 
     """
