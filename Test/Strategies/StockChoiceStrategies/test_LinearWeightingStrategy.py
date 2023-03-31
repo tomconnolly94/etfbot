@@ -26,39 +26,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
                 stockData.append(StockData(item["symbol"], item["price"]))
         
         return stockData
-
-
-    def test__getBuyingQuantities(self):
-        linearWeightingStrategy = LinearWeightingStrategy()
-
-        # inputs 
-        funds = 103
-        stockDataList = sorted([
-            StockData("A", 10),
-            StockData("B", 10),
-            StockData("C", 5),
-            StockData("D", 5),
-            StockData("E", 5),
-            StockData("F", 5),
-            StockData("G", 5),
-            StockData("H", 5),
-            StockData("I", 5),
-            StockData("J", 5)
-        ], key=lambda stockData: -stockData.price)
-
-        numberOfSharesToBuy = linearWeightingStrategy._getBuyingQuantities(funds, stockDataList)
-
-        self.assertEquals(2, numberOfSharesToBuy["A"])
-        self.assertEquals(2, numberOfSharesToBuy["B"])
-        self.assertEquals(2, numberOfSharesToBuy["C"])
-        self.assertEquals(2, numberOfSharesToBuy["D"])
-        self.assertEquals(2, numberOfSharesToBuy["E"])
-        self.assertEquals(2, numberOfSharesToBuy["F"])
-        self.assertEquals(1, numberOfSharesToBuy["G"])
-        self.assertEquals(1, numberOfSharesToBuy["H"])
-        self.assertEquals(1, numberOfSharesToBuy["I"])
-        self.assertEquals(1, numberOfSharesToBuy["J"])
-
+    
 
     @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.getStockCache")
     @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.getOpenPositions")
@@ -93,6 +61,71 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         self.assertEqual(1, len(positionsToSell))
         self.assertTrue("F" in positionsToSell)
+
+
+    def test__reorderStockDataListBasedOnExistingPositions(self):
+        linearWeightingStrategy = LinearWeightingStrategy()
+
+        # inputs
+        stockDataList = [
+            StockData("stock1", 1),
+            StockData("stock2", 2),
+            StockData("stock3", 3)
+        ]
+        existingPositions = {
+            "stock1": 3,
+            "stock3": 1
+        }
+
+        # testable function
+        orderedStockDataList: 'list[StockData]' = linearWeightingStrategy.reorderStockDataListBasedOnExistingPositions(stockDataList, existingPositions)
+
+        expectedOrderedStockDataList = [
+            StockData("stock2", 2),
+            StockData("stock3", 3),
+            StockData("stock1", 1)
+        ]
+
+        # asserts
+        self.assertEqual(len(expectedOrderedStockDataList), len(orderedStockDataList))
+
+        for i, expectedOrderedStockData in enumerate(expectedOrderedStockDataList):
+            self.assertEqual(expectedOrderedStockData.symbol, orderedStockDataList[i].symbol)
+            self.assertEqual(expectedOrderedStockData.price, orderedStockDataList[i].price)
+
+
+
+
+    def test__getBuyingQuantities(self):
+        linearWeightingStrategy = LinearWeightingStrategy()
+
+        # inputs 
+        funds = 103
+        stockDataList = sorted([
+            StockData("A", 10),
+            StockData("B", 10),
+            StockData("C", 5),
+            StockData("D", 5),
+            StockData("E", 5),
+            StockData("F", 5),
+            StockData("G", 5),
+            StockData("H", 5),
+            StockData("I", 5),
+            StockData("J", 5)
+        ], key=lambda stockData: -stockData.price)
+
+        numberOfSharesToBuy = linearWeightingStrategy._getBuyingQuantities(funds, stockDataList)
+
+        self.assertEquals(2, numberOfSharesToBuy["A"])
+        self.assertEquals(2, numberOfSharesToBuy["B"])
+        self.assertEquals(2, numberOfSharesToBuy["C"])
+        self.assertEquals(2, numberOfSharesToBuy["D"])
+        self.assertEquals(2, numberOfSharesToBuy["E"])
+        self.assertEquals(2, numberOfSharesToBuy["F"])
+        self.assertEquals(1, numberOfSharesToBuy["G"])
+        self.assertEquals(1, numberOfSharesToBuy["H"])
+        self.assertEquals(1, numberOfSharesToBuy["I"])
+        self.assertEquals(1, numberOfSharesToBuy["J"])
 
 
 if __name__ == '__main__':

@@ -53,11 +53,12 @@ class InvestmentController():
         for stockSymbol in stockSymbolsToSell:
             positionQuantity = currentPositions[stockSymbol]
             self._investingInterface.sellStock(stockSymbol, currentPositions[stockSymbol])
+            del currentPositions[stockSymbol]
             logging.info(f"Sold {positionQuantity} share{'s' if positionQuantity > 1 else ''} of {stockSymbol} at {self._getValueOfStock(stockSymbol)}")
 
         # evaluate remaining funds
         liquidFunds = self._investingInterface.getAvailableFunds()
-        positionsToBuy: 'dict[str, int]' = stockChoiceStrategy.getBuyOrders(liquidFunds)
+        positionsToBuy: 'dict[str, int]' = stockChoiceStrategy.getBuyOrders(liquidFunds, currentPositions)
 
         logging.info(f"Available funds for new investments: {liquidFunds}")
         logging.info(f"Number of positions that will be opened: {len(positionsToBuy)}")
