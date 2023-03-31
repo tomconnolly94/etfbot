@@ -31,10 +31,11 @@ class LinearWeightingStrategy(StockChoiceStrategy):
     `getBuyOrders`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
     test: LinearWeightingStrategy.test_getBuyOrders
     """
-    def getBuyOrders(self: object, availableFunds: int) -> 'dict[str, int]':
+    def getBuyOrders(self: object, availableFunds: int, existingPositions: 'dict[str, int]') -> 'dict[str, int]':
         stockDataList = self._getStockRangeIdeal()
         if self._reverseStockDataList:
             stockDataList.reverse()
+        stockDataList = self._reorderStockDataListBasedOnExistingPositions(stockDataList, existingPositions)
         return self._getBuyingQuantities(availableFunds, stockDataList)
 
 
@@ -60,6 +61,39 @@ class LinearWeightingStrategy(StockChoiceStrategy):
             index += 1
         return 999
         
+    
+    def _reorderStockDataListBasedOnExistingPositions(self, stockDataList: 'list[StockData]', existingPositions: 'dict[str, int]'):
+
+        # sortedSymbols = sorted(existingPositions.keys(), key=lambda k: existingPositions[k])
+
+        # return sortedSymbols
+        
+        largestExistingPositionSize: int = 0
+        positionSizeMap: 'dict[int, list[StockData]]' = {}
+        reorderedStockList: 'list[StockData]' = []
+
+        for stockData in stockDataList:
+
+            positionSize = 0
+            if stockData.symbol not in existingPositions:
+                positionSize = 0
+            else:
+                positionSize = existingPositions[stockData.symbol]
+
+            if positionSize > largestExistingPositionSize:
+                largestExistingPositionSize = positionSize
+
+            if positionSize not in positionSizeMap:
+                positionSizeMap[positionSize] = []
+
+            positionSizeMap[positionSize].append(stockData)
+        
+        # concat lists in order of their position size
+        for i in range(largestExistingPositionSize + 1):
+            if i not in positionSizeMap: continue
+            reorderedStockList += positionSizeMap[i]
+
+        return reorderedStockList
 
 
     """
