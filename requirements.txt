@@ -1,6 +1,7 @@
 abcplus==0.1.0
 aiohttp==3.7.4
 alpaca-trade-api==1.5.0
+apsw==3.41.2.0
 async-timeout==3.0.1
 attrs==21.4.0
 beautifulsoup4==4.10.0
