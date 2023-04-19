@@ -23,6 +23,7 @@ class LinearWeightingStrategy(StockChoiceStrategy):
         self._idealStockRangeIndexEnd = 400
         self._divisionWeights = [32, 22, 14, 10, 8, 6, 4, 2, 1.5, .5]
         self._alpacaInterface = AlpacaInterface()
+        super().__init__(self._alpacaInterface)
         if not hasattr(self, '_reverseStockDataList'):
             self._reverseStockDataList = False
 
