@@ -9,7 +9,13 @@ git pull
 # move to project root
 cd $SCRIPTDIR/..
 
-# make sure all dependencies are installed 
-pip -r requirements.txt
+# activate virtualenv
+source venv/bin/activate
 
+# make sure all dependencies are installed 
+pip install -r requirements.txt
+
+# cleanup
+deactivate
 cd -
+
