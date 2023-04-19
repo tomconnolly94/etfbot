@@ -34,7 +34,10 @@ def main():
     # read program config
     
 
-    # run program
-    InvestmentController().rebalanceInvestments()
+    # run program with general error handling to prevent crashes
+    try:
+        InvestmentController().rebalanceInvestments()
+    except Exception as e:
+        logging.error(e)
 
 main()
