@@ -5,9 +5,10 @@ import itertools
 import unittest
 from unittest import mock
 import matplotlib.pyplot as plt
+plt.rcdefaults()
 
 # internal dependencies
-from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy; plt.rcdefaults()
+from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
 from src.Controllers.InvestmentController import InvestmentController
 
 class TestInvestmentController(unittest.TestCase):
@@ -56,7 +57,7 @@ class TestInvestmentController(unittest.TestCase):
                 self.buyOrders = buyOrders
                 self.sellOrders = sellOrders
 
-            def getBuyOrders(self, availableFunds):
+            def getBuyOrders(self, availableFunds, existingPositions: 'dict[str, int]'):
                 return self.buyOrders
 
             def getSellOrders(self):

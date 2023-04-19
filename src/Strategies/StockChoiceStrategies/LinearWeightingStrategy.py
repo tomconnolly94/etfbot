@@ -98,10 +98,11 @@ class LinearWeightingStrategy(StockChoiceStrategy):
 
     """
     `_getStockRangeIdeal`:  returns a limited list (StockData) of the ideal stocks to 
-                            invest in
+                            invest in based on the filter function provided
     """
     def _getStockRangeIdeal(self: object) -> 'list[StockData]':
-        return self._alpacaInterface.getStockCache()[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
+        filterFunction = lambda stockDataList : stockDataList[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
+        return super()._getStockRange(filterFunction)
 
 
     def _getBuyingQuantities(self: object, funds: float, stockDataList: 'list[StockData]') -> 'dict[str, int]':

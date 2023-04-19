@@ -2,8 +2,12 @@
 
 # external dependencies
 from abc import ABC, abstractmethod
+from typing import Callable, List
 
 # internal dependencies
+from src.Types.StockData import StockData
+from src.Interfaces.DatabaseInterface import DatabaseInterface
+
 
 """
 StockChoiceStrategy
@@ -13,8 +17,9 @@ This is a an 'interface' for all stock choice strategies
 """
 class StockChoiceStrategy(ABC):
 
-    @abstractmethod
-    def __init__(self):
+    def __init__(self, stockListInterface):
+        if stockListInterface:
+            self._stockListInterface = stockListInterface
         pass
 
 
@@ -22,8 +27,9 @@ class StockChoiceStrategy(ABC):
     `getBuyOrders`: get numbers of each stock to be ordered according to the strategy
     """
     @abstractmethod
-    def getBuyOrders(self, quantity: int) -> 'dict[str, int]':
+    def getBuyOrders(self, quantity: int, existingPositions: 'dict[str, int]') -> 'dict[str, int]':
         pass
+
 
     """
     `getSellOrders`: get numbers of each stock to be ordered according to the strategy
@@ -31,3 +37,15 @@ class StockChoiceStrategy(ABC):
     @abstractmethod
     def getSellOrders(self, quantity: int) -> 'list[str]':
         pass
+
+
+    """
+    `getStockRange`: gets a full list of stock on exchange and applies the filterfunction
+                    returning the result
+    """
+    def _getStockRange(self, filterFunction: Callable[[List[StockData]], List[StockData]]) -> List[StockData]:
+        filteredStockList = filterFunction(self._stockListInterface.getStockCache())
+        excludedStockSymbolList = DatabaseInterface().getExcludedStockSymbols()
+        filteredStockList = [ stock for stock in filteredStockList if stock.symbol not in excludedStockSymbolList ]
+        return filteredStockList
+

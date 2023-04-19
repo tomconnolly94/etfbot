@@ -26,13 +26,14 @@ class CustomWeightingStrategy(StockChoiceStrategy):
         self._idealStockRangeIndexEnd = 400
         self._divisionWeights = [32, 22, 14, 10, 8, 6, 4, 2, 1.5, .5]
         self._alpacaInterface = AlpacaInterface()
+        super().__init__(self._alpacaInterface)
 
 
     """
     `getStockOrderNumbers`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
     test: TestStockChoiceController.test_getStockOrderNumbers
     """
-    def getBuyOrders(self: object, availableFunds: int) -> 'dict[str, int]':
+    def getBuyOrders(self: object, availableFunds: int, existingPositions: 'dict[str, int]') -> 'dict[str, int]':
         stockDataList = self._getStockRangeIdeal()
         stockWeights = self._generateStockWeightsBasedOnValue(stockDataList)
         return self._getBuyingQuantities(availableFunds, stockWeights)
@@ -55,7 +56,8 @@ class CustomWeightingStrategy(StockChoiceStrategy):
                             invest in
     """
     def _getStockRangeIdeal(self: object) -> 'list[StockData]':
-        return self._alpacaInterface.getStockCache()[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
+        filterFunction = lambda stockDataList : stockDataList[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
+        return super()._getStockRange(filterFunction)
 
 
     """
