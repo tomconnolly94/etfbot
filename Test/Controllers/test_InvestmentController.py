@@ -40,6 +40,10 @@ class TestInvestmentController(unittest.TestCase):
             "fakeOpenPosition2": 15,
             "fakeOpenPosition3": 20
         }
+        # fakeOpenPositionsOriginal is necesary for comparison purposes as fakeOpenPositions is mutable and changed 
+        # during `InvestmentController().rebalanceInvestments()`
+        fakeOpenPositionsOriginal = fakeOpenPositions.copy()
+
         fakePositionsInIndex = [ 3, 6, 7 ]
         fakeAvailableFunds = 100
         fakeBuyOrders = {
@@ -82,8 +86,8 @@ class TestInvestmentController(unittest.TestCase):
         getAvailableFundsMock.assert_called()
 
         sellStockMock.assert_has_calls([ 
-            mock.call(list(fakeOpenPositions.keys())[0], list(fakeOpenPositions.values())[0]), 
-            mock.call(list(fakeOpenPositions.keys())[1], list(fakeOpenPositions.values())[1])
+            mock.call(list(fakeOpenPositionsOriginal.keys())[0], list(fakeOpenPositionsOriginal.values())[0]), 
+            mock.call(list(fakeOpenPositionsOriginal.keys())[1], list(fakeOpenPositionsOriginal.values())[1])
         ])
         buyStockMock.assert_has_calls([mock.call(key, value) for key, value in fakeBuyOrders.items() ])
         self.assertEquals(4, _getValueOfStockMock.call_count)
@@ -95,7 +99,7 @@ class TestInvestmentController(unittest.TestCase):
         ])
 
         loggingMock.assert_has_calls([
-            mock.call(f"Number of current positions held: {len(fakeOpenPositions)}"),
+            mock.call(f"Number of current positions held: {len(fakeOpenPositionsOriginal)}"),
             mock.call("Current positions - (symbol: index position) fakeOpenPosition1: 3, fakeOpenPosition2: 6, fakeOpenPosition3: 7"),
             mock.call(f"Number of positions that will be closed: {len(fakeSellOrders)}"),
             mock.call("Sold 10 shares of fakeOpenPosition1 at 10"),

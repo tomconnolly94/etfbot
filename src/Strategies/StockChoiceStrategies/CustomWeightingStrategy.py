@@ -33,7 +33,7 @@ class CustomWeightingStrategy(StockChoiceStrategy):
     `getStockOrderNumbers`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
     test: TestStockChoiceController.test_getStockOrderNumbers
     """
-    def getBuyOrders(self: object, availableFunds: int, existingPositions: 'dict[str, int]') -> 'dict[str, int]':
+    def getBuyOrders(self: object, availableFunds: int,) -> 'dict[str, int]':
         stockDataList = self._getStockRangeIdeal()
         stockWeights = self._generateStockWeightsBasedOnValue(stockDataList)
         return self._getBuyingQuantities(availableFunds, stockWeights)

@@ -78,7 +78,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         }
 
         # testable function
-        orderedStockDataList: 'list[StockData]' = linearWeightingStrategy.reorderStockDataListBasedOnExistingPositions(stockDataList, existingPositions)
+        orderedStockDataList: 'list[StockData]' = linearWeightingStrategy._reorderStockDataListBasedOnExistingPositions(stockDataList, existingPositions)
 
         expectedOrderedStockDataList = [
             StockData("stock2", 2),
