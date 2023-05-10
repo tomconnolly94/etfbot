@@ -1,0 +1,12 @@
+{
+    "all": [
+    ],
+    "index": [
+        "node_modules/jquery/dist/jquery.js",
+        "node_modules/axios/dist/axios.js",
+        "node_modules/vue/dist/vue.js",
+        "node_modules/bootstrap/dist/js/bootstrap.js",
+        "node_modules/chart.js/dist/chart.umd.js",
+        "public/js/index.js"
+    ]
+}

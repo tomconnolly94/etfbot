@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Etfbot control panel</title>
+	<meta charset=utf-8>
+	<link rel="stylesheet" href="/public/css/index.css">
+	<link rel="icon" href="/favicon.ico">
+
+</head>
+
+<body>
+	<div id="titlePanel">
+		<h1>Etfbot control panel</h1>
+	</div>
+
+	<div id="pageContent" class="container">
+		<div class="row">
+			<div class="col-lg-8">
+				<div id="displayPanel" class="panel">
+					<h2>Stock performance:</h2>
+					<canvas id="performanceChart"></canvas>
+				</div>
+			</div>
+
+			<div class="col-lg-4">
+				<div id="triggerPanel" class="container panel panel-default">
+					<div class="row panel-body">
+						<div :class="spinnerParentClass">
+							<button class="btn main-button" id="runInvestmentBalancerButton" type="button" @click="runInvestmentBalancer">Run investment balancer</button>
+							
+							<span class="loader" v-if="running"></span>
+						</div>
+						<div class="col-sm">
+							<p id="runInvestmentBalancerPanel">{{ responseMessage }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- script references -->
+	<script type="text/javascript" src=/public/js/index.js></script>
+</body>
+
+</html>
