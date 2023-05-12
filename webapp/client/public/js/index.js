@@ -31,23 +31,38 @@ new Vue({
 	}
 });
 
+function getData(){
+	axios.get(`/getInvestmentPerformanceData`).then((response) => {
+		buildChart(response.data);
+	})
+}
+
 // translate this function to be vue compatible
-function buildChart(){
+function buildChart(data){
 
 	const ctx = document.getElementById('performanceChart');
-	const labels = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"]
-	const data = {
+	const labels = [];
+	const dataKeys = Object.keys(data["spy500"]);
+	
+	for(let i = 0; i < dataKeys.length; i++)
+	{
+		let dateParts = new Date(dataKeys[i]*1000).toUTCString().split(" ");
+		let date = `${dateParts[1]} ${dateParts[2]} ${dateParts[3]}`
+		labels.push(date);
+	}
+
+	const graphData = {
 		labels: labels,
 		datasets: [{
 			label: 'My Stock Portfolio',
-			data: [65, 59, 80, 81, 56, 55, 40],
+			data: Object.values(data["portfolio"]),
 			fill: false,
 			borderColor: 'rgb(0, 255, 0)',
 			tension: 0.1
 		},
 		{
 			label: 'SPY 500 performance',
-			data: [5, 17, 26, 21, 60, 85, 80],
+			data: Object.values(data["spy500"]),
 			fill: false,
 			borderColor: 'rgb(255, 0, 0)',
 			tension: 0.1
@@ -56,10 +71,10 @@ function buildChart(){
 
 	const config = {
 		type: 'line',
-		data: data,
+		data: graphData,
 	};
 
 	new Chart(ctx, config);
 }
 
-buildChart();
+getData();
