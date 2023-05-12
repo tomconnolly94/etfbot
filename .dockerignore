@@ -1,0 +1,7 @@
+venv/
+venv-dev/
+__pycache__/
+.env
+data
+logs
+webapp/.env

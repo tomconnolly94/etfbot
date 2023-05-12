@@ -1,0 +1,5 @@
+# etfbot: An automatic investment adjuster
+# (c) 2023 etfbot
+#
+# Runs etfbot at 1 week intervals
+0 0 * * 1 root cd /proj-dir/investmentapp; /usr/bin/python3 Main.py
