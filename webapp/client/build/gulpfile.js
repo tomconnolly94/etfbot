@@ -124,7 +124,10 @@ gulp.task('css', function(done) {
 			fs.rmSync(tmp_page_scss_config_folder, { recursive: true, force: true });
 		}
 		done();
-	});
+	}).catch(function () {
+		console.log("Promise.all(page_promises): Promise Rejected");
+		done();
+   });
 });
 
 
