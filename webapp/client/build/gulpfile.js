@@ -120,7 +120,8 @@ gulp.task('css', function(done) {
 
 	Promise.all(page_promises).then(function(values){
 		if(delete_tmp_folder){
-			fs.rmdirSync(tmp_page_scss_config_folder); //delete the tmp scss config folder
+			//fs.rmdirSync(tmp_page_scss_config_folder); //delete the tmp scss config folder
+			fs.rmSync(tmp_page_scss_config_folder, { recursive: true, force: true });
 		}
 		done();
 	});
