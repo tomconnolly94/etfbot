@@ -37,12 +37,40 @@ function getData(){
 	})
 }
 
+
+// perform very basic data validation
+function dataIsMalformed(data)
+{
+	let dataKeys = Object.keys(data);
+	let dataLength;
+
+	//assert all the lists in the data dict are the same length
+
+	for(let i = 0; i < dataKeys.length; i++)
+	{
+		if(!dataLength)
+		{
+			dataLength = data[dataKeys[i]].length; // init dataLength
+			continue;
+		}
+
+		currentDataItemLength = data[dataKeys[i]].length
+		if(currentDataItemLength != dataLength);
+		console.log(`Data is not uniform, one list has ${dataLength} elements, another has ${currentDataItemLength} elements`)
+		return true;
+	}
+	return false;
+}
+
 // translate this function to be vue compatible
 function buildChart(data){
 
 	const ctx = document.getElementById('performanceChart');
 	const labels = [];
-	const dataKeys = Object.keys(data["spy500"]);
+	const dataKeys = Object.keys(data["spy500Performance"]);
+
+	if(dataIsMalformed(data))
+		return;
 	
 	for(let i = 0; i < dataKeys.length; i++)
 	{
@@ -54,17 +82,24 @@ function buildChart(data){
 	const graphData = {
 		labels: labels,
 		datasets: [{
-			label: 'My Stock Portfolio',
-			data: Object.values(data["portfolio"]),
+			label: 'Current holdings',
+			data: Object.values(data["currentHoldingsPerformance"]),
 			fill: false,
 			borderColor: 'rgb(0, 255, 0)',
 			tension: 0.1
 		},
 		{
-			label: 'SPY 500 performance',
-			data: Object.values(data["spy500"]),
+			label: 'SPY 500',
+			data: Object.values(data["spy500Performance"]),
 			fill: false,
 			borderColor: 'rgb(255, 0, 0)',
+			tension: 0.1
+		},
+		{
+			label: 'Portfolio',
+			data: Object.values(data["portfolioPerformance"]),
+			fill: false,
+			borderColor: 'rgb(0, 0, 255)',
 			tension: 0.1
 		}]
 	};

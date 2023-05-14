@@ -5,7 +5,6 @@ import sys
 import os
 sys.path.append("..")
 sys.path.append("../investmentapp")
-print(sys.path)
 
 # internal dependencies
 from server.interfaces.StockPriceHistoryInterface import getPrices
@@ -25,7 +24,7 @@ def getSPY500Data():
     return _normaliseValues(getPrices("SPY"))
 
 
-def getPortfolioData():
+def getCurrentHoldingsPerformanceData():
     stockSymbolList = AlpacaInterface().getOpenPositions().keys()
     portfolioHistoryTotals = {}
 
@@ -42,15 +41,22 @@ def getPortfolioData():
 
             portfolioHistoryTotals[date] = price # initialise the dict on the first run
 
-    print(portfolioHistoryTotals)
-
     return _normaliseValues(portfolioHistoryTotals)
+
+
+def getPortfolioPerformanceData():
+
+    portfolioPerformanceData = AlpacaInterface().getLastYearPortfolioPerformance()
+    print(portfolioPerformanceData)
+
+    return _normaliseValues(portfolioPerformanceData)
 
 
 def getInvestmentData():
 
     data = {
-        "spy500": getSPY500Data(),
-        "portfolio": getPortfolioData()
+        "spy500Performance": getSPY500Data(),
+        "currentHoldingsPerformance": getCurrentHoldingsPerformanceData(),
+        "portfolioPerformance": getPortfolioPerformanceData()
     }
     return data

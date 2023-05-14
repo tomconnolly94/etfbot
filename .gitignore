@@ -49,7 +49,7 @@ Thumbs.db
 *.wmv
 
 .env
-.prodenv
 venv/
+.prodenv
 
 *.odg

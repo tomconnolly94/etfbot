@@ -16,7 +16,6 @@ app = Flask(__name__, template_folder="client")
 # load env file
 dotenv_path = join(dirname(__file__), '.env')
 investmentapp_dotenv_path = join("../investmentapp", '.env')
-print("investmentapp_dotenv_path", investmentapp_dotenv_path)
 load_dotenv(dotenv_path)
 load_dotenv(investmentapp_dotenv_path)
 

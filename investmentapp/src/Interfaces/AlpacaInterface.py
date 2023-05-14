@@ -96,6 +96,15 @@ class AlpacaInterface(InvestingInterface):
     def openOrdersExist(self):
         return len(list(self.api.list_orders(status="open", limit=500)))
 
+
+    def getLastYearPortfolioPerformance(self):
+        data = self.api.get_portfolio_history(period="1A", timeframe="1D")
+        outputDict = {}
+        for index, record in enumerate(data.equity):
+            outputDict[data.timestamp[index]] = record
+        return outputDict
+
+
     """
     `_submitOrder`: submits an order to the alpaca api to buy/sell 
     test: None
