@@ -64,7 +64,6 @@ class IGInterface():
             stop_distance=None,
             trailing_stop=None,
             trailing_stop_increment=None)
-        print(resp)
     
 
     """

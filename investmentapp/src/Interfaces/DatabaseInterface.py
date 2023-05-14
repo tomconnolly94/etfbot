@@ -50,7 +50,6 @@ class DatabaseInterface():
                  f"'{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.STOCK_EXCHANGE]}') "
                  f"VALUES('{symbol}', '{reason}', '{stockExchange}');"
         )
-        print(query)
         self.db_connection.execute(query)
 
 

@@ -67,7 +67,7 @@ function buildChart(data){
 
 	const ctx = document.getElementById('performanceChart');
 	const labels = [];
-	const dataKeys = Object.keys(data["spy500Performance"]);
+	const dataKeys = Object.keys(data["SPY500"]);
 
 	if(dataIsMalformed(data))
 		return;
@@ -83,21 +83,21 @@ function buildChart(data){
 		labels: labels,
 		datasets: [{
 			label: 'Current holdings',
-			data: Object.values(data["currentHoldingsPerformance"]),
+			data: Object.values(data["CurrentHoldings"]),
 			fill: false,
 			borderColor: 'rgb(0, 255, 0)',
 			tension: 0.1
 		},
 		{
 			label: 'SPY 500',
-			data: Object.values(data["spy500Performance"]),
+			data: Object.values(data["SPY500"]),
 			fill: false,
 			borderColor: 'rgb(255, 0, 0)',
 			tension: 0.1
 		},
 		{
 			label: 'Portfolio',
-			data: Object.values(data["portfolioPerformance"]),
+			data: Object.values(data["PortfolioPerformance"]),
 			fill: false,
 			borderColor: 'rgb(0, 0, 255)',
 			tension: 0.1

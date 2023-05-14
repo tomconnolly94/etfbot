@@ -2,13 +2,20 @@
 
 # external dependencies
 import sys
-import os
-sys.path.append("..")
-sys.path.append("../investmentapp")
+sys.path.append("..") # makes AlpacaInterface accessible
+sys.path.append("../investmentapp") # makes AlpacaInterface accessible
+from threading import Thread
+from enum import Enum
 
 # internal dependencies
 from server.interfaces.StockPriceHistoryInterface import getPrices
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
+
+
+class DataGrabbingSources(Enum):
+    SPY500 = 1, 
+    CurrentHoldings = 2,
+    PortfolioPerformance = 3
 
 
 def _normaliseValues(data):
@@ -20,11 +27,15 @@ def _normaliseValues(data):
     return normalisedDict
 
 
-def getSPY500Data():
+def _getSPY500Data():
     return _normaliseValues(getPrices("SPY"))
 
 
-def getCurrentHoldingsPerformanceData():
+def _getSPY500DataThreadWrapper(results, threadId):
+    results[threadId] = _getSPY500Data()
+
+
+def _getCurrentHoldingsPerformanceData():
     stockSymbolList = AlpacaInterface().getOpenPositions().keys()
     portfolioHistoryTotals = {}
 
@@ -44,19 +55,35 @@ def getCurrentHoldingsPerformanceData():
     return _normaliseValues(portfolioHistoryTotals)
 
 
-def getPortfolioPerformanceData():
+def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):
+    results[threadId] = _getCurrentHoldingsPerformanceData()
 
-    portfolioPerformanceData = AlpacaInterface().getLastYearPortfolioPerformance()
-    print(portfolioPerformanceData)
+def _getPortfolioPerformanceData():
+    return _normaliseValues(AlpacaInterface().getLastYearPortfolioPerformance())
 
-    return _normaliseValues(portfolioPerformanceData)
+def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
+    results[threadId] = _getPortfolioPerformanceData()
 
 
 def getInvestmentData():
-
-    data = {
-        "spy500Performance": getSPY500Data(),
-        "currentHoldingsPerformance": getCurrentHoldingsPerformanceData(),
-        "portfolioPerformance": getPortfolioPerformanceData()
+    threads = {}
+    results = {
+        DataGrabbingSources.SPY500: None,
+        DataGrabbingSources.CurrentHoldings: None,
+        DataGrabbingSources.PortfolioPerformance: None
     }
-    return data
+    dataGrabbingFunctions = {
+        DataGrabbingSources.SPY500: _getSPY500DataThreadWrapper, 
+        DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper, 
+        DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
+    }
+
+    for key, value in dataGrabbingFunctions.items():
+        threads[key] = Thread(target=value, args=(results, key))
+        threads[key].start()
+
+    for thread in threads.values():
+        thread.join()
+
+    return { key.name: value for key, value in results.items() }
+
