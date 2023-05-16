@@ -8,7 +8,7 @@ from threading import Thread
 from enum import Enum
 
 # internal dependencies
-from server.interfaces.StockPriceHistoryInterface import getPrices
+from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 
 
@@ -28,7 +28,8 @@ def _normaliseValues(data):
 
 
 def _getSPY500Data():
-    return _normaliseValues(getPrices("SPY"))
+    prices = getPricesForStockSymbols(["SPY"])
+    return _normaliseValues(prices[0])
 
 
 def _getSPY500DataThreadWrapper(results, threadId):
@@ -38,14 +39,15 @@ def _getSPY500DataThreadWrapper(results, threadId):
 def _getCurrentHoldingsPerformanceData():
     stockSymbolList = AlpacaInterface().getOpenPositions().keys()
     portfolioHistoryTotals = {}
+    
+    stockHistoryPrices = getPricesForStockSymbols(stockSymbolList)
 
-    for stockSymbol in stockSymbolList:
-        stockPrices: 'dict[int, float]' = getPrices(stockSymbol)
+    if not stockHistoryPrices:
+        return {}
 
-        if not stockPrices:
-            continue
-
-        for date, price in stockPrices.items():
+    # combine prices of all held stocks for each date 
+    for stock in stockHistoryPrices:
+        for date, price in stock.items():
             if date in portfolioHistoryTotals:
                 portfolioHistoryTotals[date] += price
                 continue
@@ -54,6 +56,7 @@ def _getCurrentHoldingsPerformanceData():
 
     return _normaliseValues(portfolioHistoryTotals)
 
+### wrapper functions to allow threading
 
 def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getCurrentHoldingsPerformanceData()
@@ -66,6 +69,7 @@ def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
 
 
 def getInvestmentData():
+
     threads = {}
     results = {
         DataGrabbingSources.SPY500: None,
@@ -78,12 +82,13 @@ def getInvestmentData():
         DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
     }
 
-    for key, value in dataGrabbingFunctions.items():
-        threads[key] = Thread(target=value, args=(results, key))
+    for key, wrapperFunction in dataGrabbingFunctions.items():
+        threads[key] = Thread(target=wrapperFunction, args=(results, key))
         threads[key].start()
 
     for thread in threads.values():
         thread.join()
 
     return { key.name: value for key, value in results.items() }
+
 
