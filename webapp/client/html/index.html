@@ -19,7 +19,9 @@
 			<div class="col-lg-8">
 				<div id="displayPanel" class="panel">
 					<h2>Stock performance:</h2>
-					<canvas id="performanceChart"></canvas>
+					<canvas id="monthPerformanceChart"></canvas>
+					<hr>
+					<canvas id="yearPerformanceChart"></canvas>
 				</div>
 			</div>
 
@@ -33,6 +35,13 @@
 						</div>
 						<div class="col-sm">
 							<p id="runInvestmentBalancerPanel">{{ responseMessage }}</p>
+						</div>
+					</div>
+					<div class="row panel-body">
+						<div class="col-sm-12" id="runInvestmentBalancerLogsPanel">
+							<p v-for="log in outputLogs">
+							  {{ log }}
+							</p>
 						</div>
 					</div>
 				</div>

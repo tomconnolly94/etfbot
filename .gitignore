@@ -53,3 +53,4 @@ venv/
 .prodenv
 
 *.odg
+dev_logs/

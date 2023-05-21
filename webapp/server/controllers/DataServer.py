@@ -6,6 +6,9 @@ sys.path.append("..") # makes AlpacaInterface accessible
 sys.path.append("../investmentapp") # makes AlpacaInterface accessible
 from threading import Thread
 from enum import Enum
+import os
+from os.path import dirname
+import subprocess
 
 # internal dependencies
 from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols
@@ -92,3 +95,25 @@ def getInvestmentData():
     return { key.name: value for key, value in results.items() }
 
 
+def runInvestmentBalancer():
+    investmentappDir = dirname(dirname(dirname(__file__))).replace(".", "") + os.getenv("INVESTMENTAPP_DIR")
+    print(f"Running {investmentappDir}/Main.py")
+    
+    try:
+        result = subprocess.run('venv/bin/python Main.py',
+            check=True,
+            capture_output=True,
+            shell=True, 
+            cwd=investmentappDir,
+            text=True)
+    except Exception as exception:
+        print(exception)
+        return False
+    
+    # collect all logs together
+    programOutputLogs = (result.stderr + result.stdout).split("\n")
+
+    for log in programOutputLogs:
+        print("investmentapp - ", log)
+
+    return programOutputLogs

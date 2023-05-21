@@ -18,6 +18,7 @@ new Vue({
 	data() {
 		return {
 			responseMessage: "",
+			outputLogs: "",
 			running: false,
 			startTime: null,
 			originalSpinnerParentClass: "col-sm-6 col-xl-4",
@@ -27,6 +28,31 @@ new Vue({
 	methods: {
 		runInvestmentBalancer: function (){
 			console.log("runInvestmentBalancer called.")
+
+			if (this.running){
+				return;
+			}
+
+			this.running = true;
+			this.startTime = new Date().toLocaleString();
+			this.spinnerParentClass = "col-sm-8"
+			this.responseMessage = "";
+			this.outputLogs = "";
+			vueComponent = this;
+
+			axios.get(`/runInvestmentBalancer`).then((response) => {
+				vueComponent.cleanUpInvestmentAppRun(true, response);
+			}).catch(function(error){
+				vueComponent.cleanUpInvestmentAppRun(false, error);
+			});
+		},
+		cleanUpInvestmentAppRun: function(success, response){
+			var successStr = success ? "successfully" : "unsuccessfully";
+			console.log(`runInvestmentApp finished ${successStr}.`);
+			this.responseMessage = `InvestmentApp run ${successStr} at ${vueComponent.startTime}`
+			this.outputLogs = response.data.logs;
+			this.running = false;
+			this.spinnerParentClass = this.originalSpinnerParentClass
 		}
 	}
 });
@@ -62,10 +88,15 @@ function dataIsMalformed(data)
 	return false;
 }
 
+function getFinalThirtyEntries(list){
+	return list.slice(list.length-30, list.length);
+}
+
 // translate this function to be vue compatible
 function buildChart(data){
 
-	const ctx = document.getElementById('performanceChart');
+	const yearPerformanceChartContainer = document.getElementById('yearPerformanceChart');
+	const monthPerformanceChartContainer = document.getElementById('monthPerformanceChart');
 	const labels = [];
 	const dataKeys = Object.keys(data["SPY500"]);
 
@@ -79,7 +110,7 @@ function buildChart(data){
 		labels.push(date);
 	}
 
-	const graphData = {
+	const yearGraphData = {
 		labels: labels,
 		datasets: [{
 			label: 'Current holdings',
@@ -104,12 +135,42 @@ function buildChart(data){
 		}]
 	};
 
-	const config = {
-		type: 'line',
-		data: graphData,
+	const monthGraphData = {
+		labels: getFinalThirtyEntries(labels),
+		datasets: [{
+			label: 'Current holdings',
+			data: getFinalThirtyEntries(Object.values(data["CurrentHoldings"])),
+			fill: false,
+			borderColor: 'rgb(0, 255, 0)',
+			tension: 0.1
+		},
+		{
+			label: 'SPY 500',
+			data: getFinalThirtyEntries(Object.values(data["SPY500"])),
+			fill: false,
+			borderColor: 'rgb(255, 0, 0)',
+			tension: 0.1
+		},
+		{
+			label: 'Portfolio',
+			data: getFinalThirtyEntries(Object.values(data["PortfolioPerformance"])),
+			fill: false,
+			borderColor: 'rgb(0, 0, 255)',
+			tension: 0.1
+		}]
 	};
 
-	new Chart(ctx, config);
+	const yearConfig = {
+		type: 'line',
+		data: yearGraphData,
+	};
+	const monthConfig = {
+		type: 'line',
+		data: monthGraphData,
+	};
+
+	new Chart(yearPerformanceChartContainer, yearConfig);
+	new Chart(monthPerformanceChartContainer, monthConfig);
 }
 
 getData();
