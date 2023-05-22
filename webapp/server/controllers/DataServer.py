@@ -97,8 +97,13 @@ def getInvestmentData():
 
 def runInvestmentBalancer():
     print("os.getenv('INVESTMENTAPP_DIR'): ", os.getenv('INVESTMENTAPP_DIR'))
+    print("__file__: ", __file__)
+    print("dirname(__file__): ", dirname(__file__))
+    print("dirname(dirname(__file__): ", dirname(dirname(__file__)))
     print("dirname(dirname(dirname(__file__))): ", dirname(dirname(dirname(__file__))))
+    print("dirname(dirname(dirname(__file__))).replace('.', ''): ", dirname(dirname(dirname(__file__))).replace('.', ''))
     investmentappDir = os.path.join(dirname(dirname(dirname(__file__))).replace('.', ''), os.getenv('INVESTMENTAPP_DIR'))
+    print("investmentappDir: ", investmentappDir)
     print(f"Running {investmentappDir}/Main.py")
     
     try:
