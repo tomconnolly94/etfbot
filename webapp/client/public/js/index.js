@@ -18,7 +18,7 @@ new Vue({
 	data() {
 		return {
 			responseMessage: "",
-			outputLogs: "",
+			outputLogs: [],
 			running: false,
 			startTime: null,
 			originalSpinnerParentClass: "col-sm-6 col-xl-4",
@@ -37,7 +37,7 @@ new Vue({
 			this.startTime = new Date().toLocaleString();
 			this.spinnerParentClass = "col-sm-8"
 			this.responseMessage = "";
-			this.outputLogs = "";
+			this.outputLogs = [];
 			vueComponent = this;
 
 			axios.get(`/runInvestmentBalancer`).then((response) => {
@@ -50,9 +50,10 @@ new Vue({
 			var successStr = success ? "successfully" : "unsuccessfully";
 			console.log(`runInvestmentApp finished ${successStr}.`);
 			this.responseMessage = `InvestmentApp run ${successStr} at ${vueComponent.startTime}`
-			this.outputLogs = response.data.logs;
 			this.running = false;
-			this.spinnerParentClass = this.originalSpinnerParentClass
+			this.spinnerParentClass = this.originalSpinnerParentClass;
+			if(response.data && response.data.logs)
+				this.outputLogs = response.data.logs;
 		}
 	}
 });
