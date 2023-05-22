@@ -96,7 +96,9 @@ def getInvestmentData():
 
 
 def runInvestmentBalancer():
-    investmentappDir = dirname(dirname(dirname(__file__))).replace(".", "") + os.getenv("INVESTMENTAPP_DIR")
+    print("os.getenv('INVESTMENTAPP_DIR'): ", os.getenv('INVESTMENTAPP_DIR'))
+    print("dirname(dirname(dirname(__file__))): ", dirname(dirname(dirname(__file__))))
+    investmentappDir = os.path.join(dirname(dirname(dirname(__file__))).replace('.', ''), os.getenv('INVESTMENTAPP_DIR'))
     print(f"Running {investmentappDir}/Main.py")
     
     try:
@@ -117,3 +119,9 @@ def runInvestmentBalancer():
         print("investmentapp - ", log)
 
     return programOutputLogs
+
+
+if __name__ == "__main__":
+    print(__file__)
+    print(dirname(dirname(dirname(__file__))))
+    print(dirname(dirname(dirname(__file__))).replace(".", ""))
