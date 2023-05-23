@@ -96,19 +96,13 @@ def getInvestmentData():
 
 
 def runInvestmentBalancer():
-    print("os.getenv('INVESTMENTAPP_DIR'): ", os.getenv('INVESTMENTAPP_DIR'))
-    print("__file__: ", __file__)
-    print("os.path.abspath(__file__): ", os.path.abspath(__file__))
-    print("dirname(os.path.abspath(__file__)): ", dirname(os.path.abspath(__file__)))
-    print("dirname(dirname(os.path.abspath(__file__)): ", dirname(dirname(os.path.abspath(__file__))))
-    print("dirname(dirname(dirname(os.path.abspath(__file__)))): ", dirname(dirname(dirname(os.path.abspath(__file__)))))
-    print("dirname(dirname(dirname(os.path.abspath(__file__)))).replace('.', ''): ", dirname(dirname(dirname(os.path.abspath(__file__)))).replace('.', ''))
     investmentappDir = os.path.join(dirname(dirname(dirname(os.path.abspath(__file__)))).replace('.', ''), os.getenv('INVESTMENTAPP_DIR'))
-    print("investmentappDir: ", investmentappDir)
-    print(f"Running {investmentappDir}/Main.py")
+    pythonExecutable = os.path.join(os.getenv('PYTHON_DIR') + "python3")
+
+    print(f"Running {pythonExecutable} {investmentappDir}/Main.py")
     
     try:
-        result = subprocess.run('venv/bin/python Main.py',
+        result = subprocess.run(f'{pythonExecutable} Main.py',
             check=True,
             capture_output=True,
             shell=True, 
