@@ -9,6 +9,7 @@ from enum import Enum
 import os
 from os.path import dirname
 import subprocess
+import glob
 
 # internal dependencies
 from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols
@@ -96,8 +97,9 @@ def getInvestmentData():
 
 
 def runInvestmentBalancer():
-    investmentappDir = os.path.join(dirname(dirname(dirname(os.path.abspath(__file__)))).replace('.', ''), os.getenv('INVESTMENTAPP_DIR'))
-    pythonExecutable = os.path.join(os.getenv('PYTHON_DIR') + "python3")
+    projectRoot = dirname(dirname(dirname(os.path.abspath(__file__)))).replace('.', '')
+    investmentappDir = os.path.join(projectRoot, os.getenv('INVESTMENTAPP_DIR'))
+    pythonExecutable = os.path.join(os.getenv('PYTHON_DIR') + "/python3")
 
     print(f"Running {pythonExecutable} {investmentappDir}/Main.py")
     
@@ -112,8 +114,21 @@ def runInvestmentBalancer():
         print(exception)
         return False
     
+    programOutputLogs = []
+    
     # collect all logs together
-    programOutputLogs = (result.stderr + result.stdout).split("\n")
+    if os.getenv("ENVIRONMENT") == "production":
+        # collect most recent log file from /var/log/etfbot
+        print(projectRoot)
+        print(os.path.join(projectRoot, os.getenv("INVESTMENT_APP_LOGS_DIR")))
+        list_of_files = glob.glob(os.path.join(projectRoot, os.getenv("INVESTMENT_APP_LOGS_DIR")) + "/*") # * means all if need specific format then *.csv
+        print(list_of_files)
+        latest_file = max(list_of_files, key=os.path.getctime)
+        print(f"Reading logs from: {latest_file}")
+        with open(latest_file) as file:
+            programOutputLogs = [line.rstrip() for line in file]
+    else:
+        programOutputLogs = (result.stderr + result.stdout).split("\n")
 
     for log in programOutputLogs:
         print("investmentapp - ", log)
