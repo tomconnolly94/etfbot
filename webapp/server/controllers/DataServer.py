@@ -99,7 +99,7 @@ def getInvestmentData():
 def runInvestmentBalancer():
     projectRoot = dirname(dirname(dirname(os.path.abspath(__file__)))).replace('.', '')
     investmentappDir = os.path.join(projectRoot, os.getenv('INVESTMENTAPP_DIR'))
-    pythonExecutable = os.path.join(os.getenv('PYTHON_DIR') + "/python3")
+    pythonExecutable = os.path.join(os.getenv('PYTHON_DIR'), "python3")
 
     print(f"Running {pythonExecutable} {investmentappDir}/Main.py")
     
