@@ -29,6 +29,8 @@ RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client
 RUN mkdir /var/log/etfbot
 RUN chmod 0666 /var/log/etfbot
 
+RUN service cron start
+RUN service cron enable
 
 # install the production env files
 COPY ./investmentapp/.prodenv $INVESTMENTAPPDIR/.env
