@@ -11,6 +11,9 @@ WORKDIR $PROJDIR
 # Copy the current directory contents into the container
 ADD . $PROJDIR
 
+# hack to jump over PEP668
+ENV PIP_BREAK_SYSTEM_PACKAGES 1
+
 # add python bins
 RUN apt-get update -y
 RUN apt-get -y install python3 python3-dev
