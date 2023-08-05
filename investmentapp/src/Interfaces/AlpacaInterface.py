@@ -2,7 +2,7 @@
 
 # external dependencies
 import alpaca_trade_api
-from alpaca_trade_api.entity import Account
+from alpaca_trade_api.entity import Account, PortfolioHistory
 import os
 import logging
 import json
@@ -98,10 +98,18 @@ class AlpacaInterface(InvestingInterface):
 
 
     def getLastYearPortfolioPerformance(self):
-        data = self.api.get_portfolio_history(period="1A", timeframe="1D")
         outputDict = {}
-        for index, record in enumerate(data.equity):
-            outputDict[data.timestamp[index]] = record
+        try:
+            data: PortfolioHistory = self.api.get_portfolio_history(period="1A", timeframe="1D")
+
+            for index, record in enumerate(data.equity):
+                outputDict[data.timestamp[index]] = record
+            f = open("dump.txt", "a")
+            f.write(json.dumps(outputDict))
+            f.close()
+        except Exception as e:
+            logging.error("EXCEPTION EXCEPTION")
+            logging.error(e)
         return outputDict
 
 

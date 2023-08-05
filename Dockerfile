@@ -13,7 +13,7 @@ ADD . $PROJDIR
 
 # add python bins
 RUN apt-get update -y
-RUN apt-get install -y python3
+RUN apt-get -y install python3 python3-dev
 RUN apt-get install -y python3-pip
 RUN apt-get install -y cron
 
@@ -30,7 +30,7 @@ RUN mkdir /var/log/etfbot
 RUN chmod 0666 /var/log/etfbot
 
 RUN service cron start
-RUN service cron enable
+#RUN service cron enable
 
 # install the production env files
 COPY ./investmentapp/.prodenv $INVESTMENTAPPDIR/.env

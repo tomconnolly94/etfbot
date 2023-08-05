@@ -10,6 +10,7 @@ import os
 from os.path import dirname
 import subprocess
 import glob
+import logging
 
 # internal dependencies
 from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols
@@ -23,11 +24,11 @@ class DataGrabbingSources(Enum):
 
 
 def _normaliseValues(data):
-    maxValue = max(data.values())
+    maxValue = max([ value for value in data.values() if value ])
     normalisedDict = {}
 
     for key, value in data.items():
-        normalisedDict[key] = value/maxValue
+        normalisedDict[key] = value/maxValue if value else None
     return normalisedDict
 
 
