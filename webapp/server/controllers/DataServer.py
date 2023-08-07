@@ -67,7 +67,8 @@ def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getCurrentHoldingsPerformanceData()
 
 def _getPortfolioPerformanceData():
-    return _normaliseValues(AlpacaInterface().getLastYearPortfolioPerformance())
+    portfolioPerformanceData = AlpacaInterface().getLastYearPortfolioPerformance()
+    return _normaliseValues(portfolioPerformanceData) if portfolioPerformanceData else {}
 
 def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getPortfolioPerformanceData()

@@ -1,30 +1,45 @@
 #!/usr/bin/python
 
 # external dependencies
-import alpaca_trade_api
-from alpaca_trade_api.entity import Account, PortfolioHistory
+from alpaca.data.historical.stock import StockHistoricalDataClient
+from alpaca.data.requests import StockBarsRequest
+from alpaca.data.timeframe import TimeFrame
+from alpaca.trading.client import TradingClient
+from alpaca.trading.requests import MarketOrderRequest, GetOrdersRequest, GetPortfolioHistoryRequest
+from alpaca.trading.enums import OrderSide, TimeInForce, QueryOrderStatus
+from alpaca.trading.models import TradeAccount, Position
+from alpaca.broker.client import BrokerClient
+from datetime import datetime
 import os
 import logging
-import json
 
 # internal dependencies
 from src.Types.StockExchange import StockExchange
 from src.Interfaces.InvestingInterface import InvestingInterface
 from src.Types.StockData import StockData
 from src.Interfaces.StockIndexDataInterface import StockIndexDataInterface
+from dateutil.relativedelta import relativedelta
 
 
 """
-AlpacaInterface
+AlpacaInterface v2
 
 This is a class to encapsulate all interactions between the software and the
 Alpaca API
+
+Github: https://github.com/alpacahq/alpaca-py
+API reference: https://alpaca.markets/docs/api-references/trading-api/
+Python sdk docs: https://alpaca.markets/docs/python-sdk/trading.html#trading
 """
 class AlpacaInterface(InvestingInterface):
 
     def __init__(self: object):
-        # instantiate REST API
-        self.api = alpaca_trade_api.REST(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"), os.getenv("ALPACA_TRADING_URL"), api_version='v2')
+
+        # no keys required for crypto data
+        self.historicalDataAPI = StockHistoricalDataClient(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"))
+        self.tradingAPI = TradingClient(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"))
+        self.brokerAPI = BrokerClient(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"))
+      
         self.devMode = os.getenv("TRADING_DEV_MODE", 'False').lower() == "true"
 
         self._sortedFullStockCache = []
@@ -46,67 +61,72 @@ class AlpacaInterface(InvestingInterface):
     test: None
     """
     def buyStock(self, stockSymbol: str, quantity: int) -> None:
-        self._submitOrder(stockSymbol, quantity, "buy")
-    
+        self._submitOrder(stockSymbol, quantity, OrderSide.BUY)
+
 
     """
-    `sellStock`: sell `quantity` number of `stockSymbol`
-    test: None
+    `sellStock`: execute sell trade of stock `stockSymbol` for `quantity` units
     """
     def sellStock(self, stockSymbol: str, quantity: int) -> None:
-        self._submitOrder(stockSymbol, quantity, "sell")
+        self._submitOrder(stockSymbol, quantity, OrderSide.SELL)
 
 
     """
-    `getAvailableFunds`: returns the uninvested money associated with the account
-    test: None
+    `getAvailableFunds`: return any uninvested funds 
     """
-    def getAvailableFunds(self) -> float:
+    def getAvailableFunds(self: object) -> float:
         return float(self._getAlpacaAccount().cash)
 
 
     """
-    `getPortfolioValue`: returns the current value of the open positions for the account
-    test: None
+    `getPortfolioValue`: return the value of stocks + uninvested funds
     """
-    def getPortfolioValue(self) -> float:
+    def getPortfolioValue(self: object) -> float:
         return float(self._getAlpacaAccount().equity)
 
 
     """
-    `getOpenPositions`: returns a dictionary of stock symbols mapped to quantities representing
-    test: None
-                        the open positions held on the account
+    `getOpenPositions`: return all positions currently held 
     """
     def getOpenPositions(self: object) -> 'dict[str, int]':
-        positions = self.api.list_positions()
+        positions: "list[Position]" = self.tradingAPI.get_all_positions()
         return { position.symbol: int(position.qty) for position in positions }
 
 
     """
-    `getStockDataList`: returns a list of 'StockData` objects with prices based on the provided
-    test: None
-                        list of stock symbols
+    `getStockDataList`: return stock data on each stockSymbol in `stockSymbols`
     """
     def getStockDataList(self: object, stockSymbols: 'list[str]') -> 'list[StockData]':
-        stockSnapShots: dict = self.api.get_snapshots(stockSymbols)
-        return [ StockData(symbol, snapshot.latest_trade.p) for symbol, snapshot in stockSnapShots.items() ]
+        request_params = StockBarsRequest(
+                symbol_or_symbols=stockSymbols,
+                timeframe=TimeFrame.Day,
+                start=datetime.now() - relativedelta(years=3),
+                end=datetime.now()
+            )
+        data = self.tradingAPI.get_stock_bars(request_params)
+        return [ StockData(symbol, snapshot["close"]) for symbol, snapshot in data.items() ]
+
 
 
     def openOrdersExist(self):
-        return len(list(self.api.list_orders(status="open", limit=500)))
+        request_params = GetOrdersRequest(status=QueryOrderStatus.OPEN, limit=500)
+        return len(list(trading_client.get_orders(filter=request_params)))
 
 
     def getLastYearPortfolioPerformance(self):
         outputDict = {}
         try:
-            data: PortfolioHistory = self.api.get_portfolio_history(period="1A", timeframe="1D")
+            
+            request_params = GetPortfolioHistoryRequest(
+                period="1A",
+                timeframe="1D"
+            )
+            
+            data = self.brokerAPI.get_portfolio_history_for_account(history_filter=request_params, account_id=os.getenv("ALPACA_ACCOUNT_ID"))
 
             for index, record in enumerate(data.equity):
                 outputDict[data.timestamp[index]] = record
-            f = open("dump.txt", "a")
-            f.write(json.dumps(outputDict))
-            f.close()
+
         except Exception as e:
             logging.error("EXCEPTION EXCEPTION")
             logging.error(e)
@@ -117,18 +137,60 @@ class AlpacaInterface(InvestingInterface):
     `_submitOrder`: submits an order to the alpaca api to buy/sell 
     test: None
     """
-    def _submitOrder(self, stockSymbol, quantity, order) -> None:
-        if self.devMode: return
-        self.api.submit_order(
-            symbol=stockSymbol, 
-            qty=quantity, 
-            side=order
-        )
+    def _submitOrder(self, stockSymbol, quantity, order: OrderSide) -> None:
+        # preparing order data
+        market_order_data = MarketOrderRequest(
+                            symbol=stockSymbol,
+                            qty=quantity,
+                            side=order,
+                            time_in_force=TimeInForce.DAY
+                        )
+
+        # Market order
+        self.tradingAPI.submit_order(order_data=market_order_data)
 
 
     """
     `_getAlpacaAccount`: returns information about the alpaca account associated with the details above
     test: None
     """
-    def _getAlpacaAccount(self) -> Account:
-        return self.api.get_account()
+    def _getAlpacaAccount(self) -> TradeAccount:
+        return self.tradingAPI.get_account()
+
+
+
+
+if __name__ == "__main__":
+
+    # no keys required for crypto data
+    client = StockHistoricalDataClient("PKU60BA6H93KCR7YKEL1", "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm")
+
+    request_params = StockBarsRequest(
+                        symbol_or_symbols=["SPY","AAPL"],
+                        timeframe=TimeFrame.Day,
+                        start=datetime(2022, 9, 1),
+                        end=datetime(2022, 9, 3)
+                 )
+
+    bars = client.get_stock_bars(request_params)
+
+    # convert to dataframe
+    print(bars.df)
+
+    # access bars as list - important to note that you must access by symbol key
+    # even for a single symbol request - models are agnostic to number of symbols
+    print(bars["SPY"])
+    trading_client = TradingClient("PKU60BA6H93KCR7YKEL1", "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm")
+    brokerClient = BrokerClient("PKU60BA6H93KCR7YKEL1", "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm", api_version="v2")
+
+
+    request_params = GetPortfolioHistoryRequest(
+        period="1A",
+        timeframe="1D"
+    )
+    
+    print(trading_client.get_account())
+    data = brokerClient.get_portfolio_history_for_account(account_id="1a859566-ce53-4e12-8a5b-5691623b4c80", history_filter=request_params)
+
+
+    print(data)
