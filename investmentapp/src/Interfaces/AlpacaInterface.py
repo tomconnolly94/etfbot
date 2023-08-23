@@ -98,19 +98,20 @@ class AlpacaInterface(InvestingInterface):
     """
     def getStockDataList(self: object, stockSymbols: 'list[str]') -> 'list[StockData]':
         request_params = StockBarsRequest(
-                symbol_or_symbols=stockSymbols,
-                timeframe=TimeFrame.Day,
-                start=datetime.now() - relativedelta(years=3),
-                end=datetime.now()
-            )
-        data = self.tradingAPI.get_stock_bars(request_params)
-        return [ StockData(symbol, snapshot["close"]) for symbol, snapshot in data.items() ]
+            symbol_or_symbols=stockSymbols,
+            timeframe=TimeFrame.Day,
+            start=datetime.now() - relativedelta(days=2),
+            end=datetime.now() - relativedelta(days=1)
+        )
+        data = dict(self.historicalDataAPI.get_stock_bars(request_params))
+        stockDataList = data["data"]
+        return [ StockData(symbol, stockData[0].close) for symbol, stockData in stockDataList.items() ]
 
 
 
     def openOrdersExist(self):
         request_params = GetOrdersRequest(status=QueryOrderStatus.OPEN, limit=500)
-        return len(list(trading_client.get_orders(filter=request_params)))
+        return len(list(self.tradingAPI.get_orders(filter=request_params)))
 
 
     def getLastYearPortfolioPerformance(self):
@@ -128,7 +129,6 @@ class AlpacaInterface(InvestingInterface):
                 outputDict[data.timestamp[index]] = record
 
         except Exception as e:
-            logging.error("EXCEPTION EXCEPTION")
             logging.error(e)
         return outputDict
 
