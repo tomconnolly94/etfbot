@@ -12,6 +12,7 @@ Vue.prototype.$bus = new Vue();
 
 // const vars
 var homeUrl = "/"
+var charts = [];
 
 new Vue({
 	el: '#triggerPanel',
@@ -54,6 +55,8 @@ new Vue({
 			this.spinnerParentClass = this.originalSpinnerParentClass;
 			if(response.data && response.data.logs)
 				this.outputLogs = response.data.logs;
+			if(success)
+				getData();
 		}
 	}
 });
@@ -69,28 +72,47 @@ function getData(){
 function dataIsMalformed(data)
 {
 	let dataKeys = Object.keys(data);
-	let dataLength;
+	if(dataKeys.length == 0)
+	{
+		console.log(`Data is malformed, no object keys found in ${JSON.stringify(data)}.`)
+		return true;
+	}
+	let dataSetsLengths = [];
 
 	//assert all the lists in the data dict are the same length
 
 	for(let i = 0; i < dataKeys.length; i++)
 	{
-		if(!dataLength)
-		{
-			dataLength = data[dataKeys[i]].length; // init dataLength
-			continue;
-		}
-
-		currentDataItemLength = data[dataKeys[i]].length
-		if(currentDataItemLength != dataLength);
-		console.log(`Data is not uniform, one list has ${dataLength} elements, another has ${currentDataItemLength} elements`)
-		return true;
+		if(data[dataKeys[i] != null])
+			dataSetsLengths.push(data[dataKeys[i]].length);
 	}
+
+	let prevDataSetLength = dataSetsLengths[0];
+	for(let i = 0; i < dataSetsLengths.length; i++)
+	{
+		if(prevDataSetLength != dataSetsLengths[i])
+		{
+			console.log(`Data is not uniform, some datasets in ${JSON.stringify(data)} were not the same length.`)
+			return true;
+		}
+	}
+
 	return false;
 }
 
 function getFinalThirtyEntries(list){
 	return list.slice(list.length-30, list.length);
+}
+
+function formatGraphData(label, data, dataFunction, fill, borderColor, tension)
+{
+	return {
+		label: label,
+		data: dataFunction ? dataFunction(data) : data,
+		fill: fill,
+		borderColor:borderColor,
+		tension: tension
+	};
 }
 
 // translate this function to be vue compatible
@@ -110,55 +132,22 @@ function buildChart(data){
 		let date = `${dateParts[1]} ${dateParts[2]} ${dateParts[3]}`
 		labels.push(date);
 	}
-
 	const yearGraphData = {
 		labels: labels,
-		datasets: [{
-			label: 'Current holdings',
-			data: Object.values(data["CurrentHoldings"]),
-			fill: false,
-			borderColor: 'rgb(0, 255, 0)',
-			tension: 0.1
-		},
-		{
-			label: 'SPY 500',
-			data: Object.values(data["SPY500"]),
-			fill: false,
-			borderColor: 'rgb(255, 0, 0)',
-			tension: 0.1
-		},
-		{
-			label: 'Portfolio',
-			data: Object.values(data["PortfolioPerformance"]),
-			fill: false,
-			borderColor: 'rgb(0, 0, 255)',
-			tension: 0.1
-		}]
+		datasets: [
+			data["CurrentHoldings"] ? formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]), null, false, 'rgb(0, 255, 0)', 0.1) : {},
+			data["SPY500"] ? formatGraphData('SPY 500', Object.values(data["SPY500"]), null, false, 'rgb(255, 0, 0)', 0.1) : {},
+			data["PortfolioPerformance"] ? formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]), null, false, 'rgb(0, 0, 255)', 0.1) : {}
+		]
 	};
 
 	const monthGraphData = {
 		labels: getFinalThirtyEntries(labels),
-		datasets: [{
-			label: 'Current holdings',
-			data: getFinalThirtyEntries(Object.values(data["CurrentHoldings"])),
-			fill: false,
-			borderColor: 'rgb(0, 255, 0)',
-			tension: 0.1
-		},
-		{
-			label: 'SPY 500',
-			data: getFinalThirtyEntries(Object.values(data["SPY500"])),
-			fill: false,
-			borderColor: 'rgb(255, 0, 0)',
-			tension: 0.1
-		},
-		{
-			label: 'Portfolio',
-			data: getFinalThirtyEntries(Object.values(data["PortfolioPerformance"])),
-			fill: false,
-			borderColor: 'rgb(0, 0, 255)',
-			tension: 0.1
-		}]
+		datasets: [
+			data["CurrentHoldings"] ? formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]), getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1) : {},
+			data["SPY500"] ? formatGraphData('SPY 500', Object.values(data["SPY500"]), getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1) : {},
+			data["PortfolioPerformance"] ? formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]), getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1) : {}
+		]
 	};
 
 	const yearConfig = {
@@ -170,8 +159,13 @@ function buildChart(data){
 		data: monthGraphData,
 	};
 
-	new Chart(yearPerformanceChartContainer, yearConfig);
-	new Chart(monthPerformanceChartContainer, monthConfig);
+
+	charts.forEach(function(chart){
+		chart.destroy();
+	});    
+
+	charts.push(new Chart(yearPerformanceChartContainer, yearConfig));
+	charts.push(new Chart(monthPerformanceChartContainer, monthConfig));
 }
 
 getData();

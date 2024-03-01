@@ -115,8 +115,17 @@ class LinearWeightingStrategy(StockChoiceStrategy):
             ordersAddedOnThisLoop = 0
 
             for stock in stockDataList:
+                logging.debug(f"stock: {stock.symbol}: {stock.price}")
+                logging.debug(f"funds: {funds}")
+
+                
 
                 if funds < stock.price: continue
+
+                logging.debug(f"funds > stock.price")
+
+                # import sys
+                # sys.exit()
 
                 if stock.symbol not in buyingQuantities:
                     buyingQuantities[stock.symbol] = 1

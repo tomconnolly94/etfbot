@@ -21,7 +21,7 @@ class IGInterface():
     def __init__(self: object):
         # instantiate REST API
         #self.api = IGService(os.getenv("IG_TRADING_USERNAME"), os.getenv("IG_TRADING_PASSWORD"), os.getenv("IG_TRADING_API_KEY"))
-        self.api = IGService("tconnolly94", "1j9W3niN3k6c7vDP9f2K", "73b400a08d46a714755198e65614887ef6b40270")
+        self.api = IGService("tconnolly94", "1j9W3niN3k6c7vDP9f2K", "73b400a08d46a714755198e65614887ef6b40270", "DEMO")
         self.api.create_session()
     
 

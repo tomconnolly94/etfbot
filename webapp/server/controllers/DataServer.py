@@ -51,13 +51,22 @@ def _getCurrentHoldingsPerformanceData():
         return {}
 
     # combine prices of all held stocks for each date 
-    for stock in stockHistoryPrices:
+    for index, stock in enumerate(stockHistoryPrices):
         for date, price in stock.items():
-            if date in portfolioHistoryTotals:
+            # if date > 1697808600:
+            #     logging.info(f"date: {portfolioHistoryTotals}")
+            #     logging.info(f"date: {date}")
+            #     logging.info(f"price: {price}")
+
+            if not price:
+                logging.error(f"Problem: could not retrieve price data for a stock: maybe stock: {list(stockSymbolList)[index]}, index: {index}, date: {date}, price: {price}")
+                # logging.error(stock)
+            
+            if date in portfolioHistoryTotals and price:
                 portfolioHistoryTotals[date] += price
                 continue
 
-            portfolioHistoryTotals[date] = price # initialise the dict on the first run
+            portfolioHistoryTotals[date] = price if price else 0 # initialise the dict on the first run
 
     return _normaliseValues(portfolioHistoryTotals)
 
@@ -121,19 +130,12 @@ def runInvestmentBalancer():
     # collect all logs together
     if os.getenv("ENVIRONMENT") == "production":
         # collect most recent log file from /var/log/etfbot
-        print(projectRoot)
-        print(os.path.join(projectRoot, os.getenv("INVESTMENT_APP_LOGS_DIR")))
         list_of_files = glob.glob(os.path.join(projectRoot, os.getenv("INVESTMENT_APP_LOGS_DIR")) + "/*") # * means all if need specific format then *.csv
-        print(list_of_files)
         latest_file = max(list_of_files, key=os.path.getctime)
-        print(f"Reading logs from: {latest_file}")
         with open(latest_file) as file:
             programOutputLogs = [line.rstrip() for line in file]
     else:
         programOutputLogs = (result.stderr + result.stdout).split("\n")
-
-    for log in programOutputLogs:
-        print("investmentapp - ", log)
 
     return programOutputLogs
 

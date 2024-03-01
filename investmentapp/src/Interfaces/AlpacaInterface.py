@@ -2,7 +2,7 @@
 
 # external dependencies
 from alpaca.data.historical.stock import StockHistoricalDataClient
-from alpaca.data.requests import StockBarsRequest
+from alpaca.data.requests import StockBarsRequest, StockLatestQuoteRequest
 from alpaca.data.timeframe import TimeFrame
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import MarketOrderRequest, GetOrdersRequest, GetPortfolioHistoryRequest
@@ -36,9 +36,15 @@ class AlpacaInterface(InvestingInterface):
     def __init__(self: object):
 
         # no keys required for crypto data
-        self.historicalDataAPI = StockHistoricalDataClient(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"))
-        self.tradingAPI = TradingClient(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"))
-        self.brokerAPI = BrokerClient(os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY"))
+        self.historicalDataAPI = StockHistoricalDataClient(os.getenv("ALPACA_TRADING_KEY_ID"), 
+                                                            os.getenv("ALPACA_TRADING_SECRET_KEY"))
+        self.tradingAPI = TradingClient(os.getenv("ALPACA_TRADING_KEY_ID"), 
+                                        os.getenv("ALPACA_TRADING_SECRET_KEY"), 
+                                        paper=True)
+        self.brokerAPI = BrokerClient(api_key=os.getenv("ALPACA_TRADING_KEY_ID"),
+                                      secret_key=os.getenv("ALPACA_TRADING_SECRET_KEY"), 
+                                      api_version="v2",
+                                      url_override=os.getenv("ALPACA_TRADING_URL"))
       
         self.devMode = os.getenv("TRADING_DEV_MODE", 'False').lower() == "true"
 
@@ -53,6 +59,7 @@ class AlpacaInterface(InvestingInterface):
         if not self._sortedFullStockCache:
             indexSymbols = self._stockIndexDataInterface.getIndexSymbols(StockExchange.SP500)
             self._sortedFullStockCache = sorted(self.getStockDataList(indexSymbols), key=lambda x: x.price, reverse=True)
+            #logging.debug(f"self._sortedFullStockCache: {self._sortedFullStockCache}")
         return self._sortedFullStockCache
 
 
@@ -75,6 +82,8 @@ class AlpacaInterface(InvestingInterface):
     `getAvailableFunds`: return any uninvested funds 
     """
     def getAvailableFunds(self: object) -> float:
+        logging.info("self._getAlpacaAccount()")
+        logging.info(self._getAlpacaAccount())
         return float(self._getAlpacaAccount().cash)
 
 
@@ -97,15 +106,13 @@ class AlpacaInterface(InvestingInterface):
     `getStockDataList`: return stock data on each stockSymbol in `stockSymbols`
     """
     def getStockDataList(self: object, stockSymbols: 'list[str]') -> 'list[StockData]':
-        request_params = StockBarsRequest(
-            symbol_or_symbols=stockSymbols,
-            timeframe=TimeFrame.Day,
-            start=datetime.now() - relativedelta(days=2),
-            end=datetime.now() - relativedelta(days=1)
-        )
-        data = dict(self.historicalDataAPI.get_stock_bars(request_params))
-        stockDataList = data["data"]
-        return [ StockData(symbol, stockData[0].close) for symbol, stockData in stockDataList.items() ]
+        request = StockLatestQuoteRequest(symbol_or_symbols=stockSymbols)
+        stockDataList = self.historicalDataAPI.get_stock_latest_quote(request)
+        logging.debug(f"len(stockDataList): {len(stockDataList)}")
+        # for symbol, stockData in stockDataList.items():
+        #     logging.debug(f"{symbol}: {stockData}")
+
+        return [ StockData(symbol, stockData.bid_price) for symbol, stockData in stockDataList.items() ]
 
 
 
@@ -116,20 +123,26 @@ class AlpacaInterface(InvestingInterface):
 
     def getLastYearPortfolioPerformance(self):
         outputDict = {}
-        try:
+        if True:
+        #try:
             
             request_params = GetPortfolioHistoryRequest(
                 period="1A",
-                timeframe="1D"
+                timeframe="1D",
+                date_end=datetime.now() - relativedelta(days=3)
             )
+            logging.info("getLastYearPortfolioPerformance start")
             
-            data = self.brokerAPI.get_portfolio_history_for_account(history_filter=request_params, account_id=os.getenv("ALPACA_ACCOUNT_ID"))
+            account_id = self._getAlpacaAccount().id
+            data = self.brokerAPI.get_portfolio_history_for_account(account_id=account_id, history_filter=request_params)
 
+            logging.info("getLastYearPortfolioPerformance end")
+            
             for index, record in enumerate(data.equity):
                 outputDict[data.timestamp[index]] = record
 
-        except Exception as e:
-            logging.error(e)
+        # except Exception as e:
+        #     logging.error(e)
         return outputDict
 
 
@@ -174,12 +187,8 @@ if __name__ == "__main__":
 
     bars = client.get_stock_bars(request_params)
 
-    # convert to dataframe
-    print(bars.df)
-
     # access bars as list - important to note that you must access by symbol key
     # even for a single symbol request - models are agnostic to number of symbols
-    print(bars["SPY"])
     trading_client = TradingClient("PKU60BA6H93KCR7YKEL1", "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm")
     brokerClient = BrokerClient("PKU60BA6H93KCR7YKEL1", "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm", api_version="v2")
 
@@ -189,8 +198,4 @@ if __name__ == "__main__":
         timeframe="1D"
     )
     
-    print(trading_client.get_account())
     data = brokerClient.get_portfolio_history_for_account(account_id="1a859566-ce53-4e12-8a5b-5691623b4c80", history_filter=request_params)
-
-
-    print(data)

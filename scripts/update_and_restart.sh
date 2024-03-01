@@ -16,7 +16,7 @@ docker container prune -f
 cd $SCRIPTDIR/..
 
 # rebuild and restart containers in daemon mode
-docker build -t etfbot .
+docker build --no-cache -t etfbot .
 docker run -p 8080:8080 --name etfbot -d etfbot:latest
 
 cd -

@@ -4,6 +4,7 @@
 import datetime
 import aiohttp
 import asyncio
+import logging
 
 # internal dependencies
 
@@ -25,6 +26,10 @@ def _parsePriceData(priceData):
 
         for index, label in enumerate(labels):
             dataDict[label] = values[index]
+            if not values[index]:
+                logging.error("")
+                logging.error(priceData["chart"]["result"][0]["meta"]["symbol"])
+                logging.error("")
         return dataDict
     except KeyError as exception:
         symbol = baseObject["meta"]["symbol"]
@@ -71,7 +76,8 @@ async def _getPriceDataForUrlList(urls):
 
 
 def getPricesForStockSymbols(symbols):
-    try: 
+    try:
+        logging.info(_buildGetPricesUrls(symbols))
         return asyncio.run(_getPriceDataForUrlList(_buildGetPricesUrls(symbols)))
     except Exception as exception:
         print(exception)

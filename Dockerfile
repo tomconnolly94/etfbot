@@ -19,9 +19,11 @@ RUN apt-get update -y
 RUN apt-get -y install python3 python3-dev
 RUN apt-get install -y python3-pip
 RUN apt-get install -y cron
+RUN apt install libffi-dev
 
 # Install the dependencies
 RUN pip3 install -r $WEBAPPDIR/requirements.txt
+RUN pip3 install -r $INVESTMENTAPPDIR/requirements.txt
 RUN npm install --prefix $WEBAPPDIR/client
 
 # run frontend static file build

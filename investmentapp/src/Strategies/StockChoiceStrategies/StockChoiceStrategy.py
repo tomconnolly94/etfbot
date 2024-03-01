@@ -3,6 +3,7 @@
 # external dependencies
 from abc import ABC, abstractmethod
 from typing import Callable, List
+import logging
 
 # internal dependencies
 from src.Types.StockData import StockData

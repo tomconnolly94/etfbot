@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from os.path import join, dirname
 import json
 import os
+from server.controllers import LoggingController
+import logging
 
 # internal dependencies
 from server.controllers.PageServer import serveIndex
@@ -19,6 +21,11 @@ dotenv_path = join(dirname(__file__), '.env')
 investmentapp_dotenv_path = join("../investmentapp", '.env')
 load_dotenv(dotenv_path)
 load_dotenv(investmentapp_dotenv_path)
+
+
+LoggingController.initLogging()
+
+logging.info(f"Program started.")
 
 def getResponse(errorCode, message, mimetype="text/html"):
     return Response(message, status=errorCode, mimetype=mimetype) 
@@ -48,7 +55,7 @@ def mediaGrab():
             "message": "investment app run successful",
             "logs": logs
         }
-        print(returnData)
+        logging.info(returnData)
         return getResponse(200, json.dumps(returnData), "application/json") 
     else:
         return getResponse(500, "investment app run failed") 

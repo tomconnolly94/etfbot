@@ -5,7 +5,7 @@ import json
 import time
 import unittest
 from unittest import mock
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 from src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import LinearWeightingStrategy
 import random
