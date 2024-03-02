@@ -3,3 +3,6 @@
 #
 # Runs etfbot at 1 week intervals
 0 0 * * 1 root cd /proj-dir/investmentapp; /usr/bin/python3 Main.py
+
+# Runs CreatePortfolioValueEntry every day at midnight UTC
+0 0 * * * root cd /proj-dir/investmentapp; /usr/bin/python3 CreatePortfolioValueEntry.py
