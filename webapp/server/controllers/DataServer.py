@@ -33,8 +33,17 @@ def _normaliseValues(data):
 
 
 def _getSPY500Data():
-    prices = getPricesForStockSymbols(["SPY"])
-    return _normaliseValues(prices[0])
+    prices = getPricesForStockSymbols(["SPY"])[0]
+
+    sortedDates = sorted(prices.keys())
+    startValue = prices[sortedDates[0]]
+    endValue = prices[sortedDates[len(prices) - 1]]
+
+    return {
+        "startValue": startValue,
+        "endValue": endValue,
+        "values": _normaliseValues(prices)
+    }
 
 
 def _getSPY500DataThreadWrapper(results, threadId):
@@ -53,14 +62,9 @@ def _getCurrentHoldingsPerformanceData():
     # combine prices of all held stocks for each date 
     for index, stock in enumerate(stockHistoryPrices):
         for date, price in stock.items():
-            # if date > 1697808600:
-            #     logging.info(f"date: {portfolioHistoryTotals}")
-            #     logging.info(f"date: {date}")
-            #     logging.info(f"price: {price}")
 
             if not price:
                 logging.error(f"Problem: could not retrieve price data for a stock: maybe stock: {list(stockSymbolList)[index]}, index: {index}, date: {date}, price: {price}")
-                # logging.error(stock)
             
             if date in portfolioHistoryTotals and price:
                 portfolioHistoryTotals[date] += price
@@ -68,7 +72,15 @@ def _getCurrentHoldingsPerformanceData():
 
             portfolioHistoryTotals[date] = price if price else 0 # initialise the dict on the first run
 
-    return _normaliseValues(portfolioHistoryTotals)
+    sortedDates = sorted(portfolioHistoryTotals.keys())
+    startValue = portfolioHistoryTotals[sortedDates[0]]
+    endValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 1]]
+    
+    return {
+        "startValue": startValue,
+        "endValue": endValue,
+        "values": _normaliseValues(portfolioHistoryTotals)
+    }
 
 ### wrapper functions to allow threading
 
@@ -77,7 +89,19 @@ def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):
 
 def _getPortfolioPerformanceData():
     portfolioPerformanceData = AlpacaInterface().getLastYearPortfolioPerformance()
-    return _normaliseValues(portfolioPerformanceData) if portfolioPerformanceData else {}
+
+    if not portfolioPerformanceData:
+        return {}
+
+    sortedDates = sorted(portfolioPerformanceData.keys())
+    startValue = portfolioPerformanceData[sortedDates[0]]
+    endValue = portfolioPerformanceData[sortedDates[len(portfolioPerformanceData) - 1]]
+
+    return {
+        "startValue": startValue,
+        "endValue": endValue,
+        "values": _normaliseValues(portfolioPerformanceData)
+    }
 
 def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getPortfolioPerformanceData()
@@ -104,7 +128,16 @@ def getInvestmentData():
     for thread in threads.values():
         thread.join()
 
-    return { key.name: value for key, value in results.items() }
+    returnableResults = {}
+
+    for key, value in results.items():
+        if value is None:
+            logging.warn(f"Source: {key} was removed as it's result was calculated as: {value}")
+            continue
+        returnableResults[key.name] = value
+
+
+    return returnableResults
 
 
 def runInvestmentBalancer():

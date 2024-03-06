@@ -80,11 +80,26 @@ function dataIsMalformed(data)
 	let dataSetsLengths = [];
 
 	//assert all the lists in the data dict are the same length
-
 	for(let i = 0; i < dataKeys.length; i++)
 	{
-		if(data[dataKeys[i] != null])
-			dataSetsLengths.push(data[dataKeys[i]].length);
+		let dataPack = data[dataKeys[i]];
+
+		if(typeof dataPack != 'object')
+		{
+			console.log(`${dataPack} is not an object`)
+			return true;
+		}
+
+		let dataPackValues = data[dataKeys[i]]["values"];
+
+		if(typeof dataPackValues != 'object')
+		{
+			console.log(`${dataPackValues} is not an object`)
+			return true;
+		}
+
+		if(dataPackValues != null)
+			dataSetsLengths.push(dataPackValues.length);
 	}
 
 	let prevDataSetLength = dataSetsLengths[0];
@@ -121,7 +136,7 @@ function buildChart(data){
 	const yearPerformanceChartContainer = document.getElementById('yearPerformanceChart');
 	const monthPerformanceChartContainer = document.getElementById('monthPerformanceChart');
 	const labels = [];
-	const dataKeys = Object.keys(data["SPY500"]);
+	const dataKeys = Object.keys(data["SPY500"]["values"]); // SPY500 is the most consistently available data
 
 	if(dataIsMalformed(data))
 		return;
@@ -135,18 +150,18 @@ function buildChart(data){
 	const yearGraphData = {
 		labels: labels,
 		datasets: [
-			data["CurrentHoldings"] ? formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]), null, false, 'rgb(0, 255, 0)', 0.1) : {},
-			data["SPY500"] ? formatGraphData('SPY 500', Object.values(data["SPY500"]), null, false, 'rgb(255, 0, 0)', 0.1) : {},
-			data["PortfolioPerformance"] ? formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]), null, false, 'rgb(0, 0, 255)', 0.1) : {}
+			data["CurrentHoldings"] ? formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]["values"]), null, false, 'rgb(0, 255, 0)', 0.1) : {},
+			data["SPY500"] ? formatGraphData('SPY 500', Object.values(data["SPY500"]["values"]), null, false, 'rgb(255, 0, 0)', 0.1) : {},
+			data["PortfolioPerformance"] ? formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]["values"]), null, false, 'rgb(0, 0, 255)', 0.1) : {}
 		]
 	};
 
 	const monthGraphData = {
 		labels: getFinalThirtyEntries(labels),
 		datasets: [
-			data["CurrentHoldings"] ? formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]), getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1) : {},
-			data["SPY500"] ? formatGraphData('SPY 500', Object.values(data["SPY500"]), getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1) : {},
-			data["PortfolioPerformance"] ? formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]), getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1) : {}
+			data["CurrentHoldings"] ? formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]["values"]), getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1) : {},
+			data["SPY500"] ? formatGraphData('SPY 500', Object.values(data["SPY500"]["values"]), getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1) : {},
+			data["PortfolioPerformance"] ? formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]["values"]), getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1) : {}
 		]
 	};
 
