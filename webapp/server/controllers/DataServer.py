@@ -53,7 +53,6 @@ def _getSPY500DataThreadWrapper(results, threadId):
 def _getCurrentHoldingsPerformanceData():
     stockSymbolList = AlpacaInterface().getOpenPositions().keys()
     portfolioHistoryTotals = {}
-    
     stockHistoryPrices = getPricesForStockSymbols(stockSymbolList)
 
     if not stockHistoryPrices:
@@ -71,6 +70,7 @@ def _getCurrentHoldingsPerformanceData():
                 continue
 
             portfolioHistoryTotals[date] = price if price else 0 # initialise the dict on the first run
+            
 
     sortedDates = sorted(portfolioHistoryTotals.keys())
     startValue = portfolioHistoryTotals[sortedDates[0]]
