@@ -1,5 +1,5 @@
 # Use the node base image
-FROM node:slim
+FROM node:21
 
 ARG PROJDIR=/proj-dir
 ARG WEBAPPDIR=$PROJDIR/webapp
@@ -16,14 +16,12 @@ ENV PIP_BREAK_SYSTEM_PACKAGES 1
 
 # add python bins
 RUN apt-get update -y
-RUN apt-get -y install python3 python3-dev
-RUN apt-get install -y python3-pip
-RUN apt-get install -y cron
-RUN apt install libffi-dev
+RUN apt-get -y install python3 python3-dev python3-pip cron libffi-dev cmake
 
 # Install the dependencies
-RUN pip3 install -r $WEBAPPDIR/requirements.txt
-RUN pip3 install -r $INVESTMENTAPPDIR/requirements.txt
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install -r $WEBAPPDIR/requirements.txt
+RUN pip install -r $INVESTMENTAPPDIR/requirements.txt
 RUN npm install --prefix $WEBAPPDIR/client
 
 # run frontend static file build
