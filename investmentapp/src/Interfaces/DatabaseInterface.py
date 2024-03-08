@@ -32,7 +32,6 @@ class DatabaseInterface():
     def __init__(self: object):
         # Open existing read-write (exception if it doesn't exist)
         dbFile = f"{os.getenv('DB_DIR')}/etfbot.db"
-        print(dbFile)
         self.db_connection = apsw.Connection(f"{os.getenv('DB_DIR')}/etfbot.db", flags=apsw.SQLITE_OPEN_READWRITE)
 
         # table names

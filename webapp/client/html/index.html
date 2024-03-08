@@ -19,9 +19,25 @@
 			<div class="col-lg-8">
 				<div id="displayPanel" class="panel">
 					<h2>Stock performance:</h2>
-					<canvas id="monthPerformanceChart"></canvas>
+					<div id="monthPerformanceChartContainer">
+						<canvas id="monthPerformanceChart"></canvas>
+						<ul class="dataPanel">
+							<!-- <p>{{ monthPerformanceChartDataPanelMessage }}</p> -->
+							<li v-for="message in monthPerformanceChartDataPanelMessages">
+								{{ message }}
+							</li>
+						</ul>
+					</div>
 					<hr>
-					<canvas id="yearPerformanceChart"></canvas>
+					<div id="yearPerformanceChartContainer">
+						<canvas id="yearPerformanceChart"></canvas>
+						<ul class="dataPanel">
+							<!-- {{ yearPerformanceChartDataPanelMessage }} -->
+							<li v-for="message in yearPerformanceChartDataPanelMessages">
+								{{ message }}
+							</li>
+						</ul>
+					</div>
 				</div>
 			</div>
 

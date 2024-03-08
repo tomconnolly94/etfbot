@@ -61,126 +61,154 @@ new Vue({
 	}
 });
 
-function getData(){
-	axios.get(`/getInvestmentPerformanceData`).then((response) => {
-		buildChart(response.data);
-	})
-}
 
-
-// perform very basic data validation
-function dataIsMalformed(data)
-{
-	let dataKeys = Object.keys(data);
-	if(dataKeys.length == 0)
-	{
-		console.log(`Data is malformed, no object keys found in ${JSON.stringify(data)}.`)
-		return true;
-	}
-	let dataSetsLengths = [];
-
-	//assert all the lists in the data dict are the same length
-	for(let i = 0; i < dataKeys.length; i++)
-	{
-		let dataPack = data[dataKeys[i]];
-
-		if(typeof dataPack != 'object')
-		{
-			console.log(`${dataPack} is not an object`)
-			return true;
+new Vue({
+	el: '#displayPanel',
+	data() {
+		return {
+			monthPerformanceChartDataPanelMessages: [],
+			yearPerformanceChartDataPanelMessages: []
 		}
-
-		let dataPackValues = data[dataKeys[i]]["values"];
-
-		if(typeof dataPackValues != 'object')
+	},
+	methods: {
+		dataIsMalformed: function(data) // perform very basic data validation
 		{
-			console.log(`${dataPackValues} is not an object`)
-			return true;
-		}
-
-		if(dataPackValues != null)
-			dataSetsLengths.push(dataPackValues.length);
-	}
-
-	let prevDataSetLength = dataSetsLengths[0];
-	for(let i = 0; i < dataSetsLengths.length; i++)
-	{
-		if(prevDataSetLength != dataSetsLengths[i])
+			let dataKeys = Object.keys(data);
+			if(dataKeys.length == 0)
+			{
+				console.log(`Data is malformed, no object keys found in ${JSON.stringify(data)}.`)
+				return true;
+			}
+			let dataSetsLengths = [];
+		
+			//assert all the lists in the data dict are the same length
+			for(let i = 0; i < dataKeys.length; i++)
+			{
+				let dataPack = data[dataKeys[i]];
+		
+				if(typeof dataPack != 'object')
+				{
+					console.log(`${dataPack} is not an object`)
+					return true;
+				}
+		
+				let dataPackValues = data[dataKeys[i]]["values"];
+		
+				if(typeof dataPackValues != 'object')
+				{
+					console.log(`${dataPackValues} is not an object`)
+					return true;
+				}
+		
+				if(dataPackValues != null)
+					dataSetsLengths.push(dataPackValues.length);
+			}
+		
+			let prevDataSetLength = dataSetsLengths[0];
+			for(let i = 0; i < dataSetsLengths.length; i++)
+			{
+				if(prevDataSetLength != dataSetsLengths[i])
+				{
+					console.log(`Data is not uniform, some datasets in ${JSON.stringify(data)} were not the same length.`)
+					return true;
+				}
+			}
+		
+			return false;
+		},
+		buildChart: function(data) // translate this function to be vue compatible
 		{
-			console.log(`Data is not uniform, some datasets in ${JSON.stringify(data)} were not the same length.`)
-			return true;
+			vueComponent = this;
+			const yearPerformanceChartContainer = document.getElementById('yearPerformanceChart');
+			const monthPerformanceChartContainer = document.getElementById('monthPerformanceChart');
+			const labels = [];
+			const dataKeys = Object.keys(data["SPY500"]["values"]); // SPY500 is the most consistently available data
+
+			for(let i = 0; i < dataKeys.length; i++)
+			{
+				let dateParts = new Date(dataKeys[i]*1000).toUTCString().split(" ");
+				let date = `${dateParts[1]} ${dateParts[2]} ${dateParts[3]}`
+				labels.push(date);
+			}
+			const yearGraphData = {
+				labels: labels,
+				datasets: [
+					data["CurrentHoldings"] ? vueComponent.formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]["values"]), null, false, 'rgb(0, 255, 0)', 0.1) : {},
+					data["SPY500"] ? vueComponent.formatGraphData('SPY 500', Object.values(data["SPY500"]["values"]), null, false, 'rgb(255, 0, 0)', 0.1) : {},
+					data["PortfolioPerformance"] ? vueComponent.formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]["values"]), null, false, 'rgb(0, 0, 255)', 0.1) : {}
+				]
+			};
+
+			const monthGraphData = {
+				labels: vueComponent.getFinalThirtyEntries(labels),
+				datasets: [
+					data["CurrentHoldings"] ? vueComponent.formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1) : {},
+					data["SPY500"] ? vueComponent.formatGraphData('SPY 500', Object.values(data["SPY500"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1) : {},
+					data["PortfolioPerformance"] ? vueComponent.formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1) : {}
+				]
+			};
+
+			const yearConfig = {
+				type: 'line',
+				data: yearGraphData,
+			};
+			const monthConfig = {
+				type: 'line',
+				data: monthGraphData,
+			};
+
+
+			charts.forEach(function(chart){
+				chart.destroy();
+			});    
+
+			charts.push(new Chart(yearPerformanceChartContainer, yearConfig));
+			charts.push(new Chart(monthPerformanceChartContainer, monthConfig));
+		},
+		getFinalThirtyEntries: function(list){
+			return list.slice(list.length-30, list.length);
+		},		
+		formatGraphData: function(label, data, dataFunction, fill, borderColor, tension)
+		{
+			return {
+				label: label,
+				data: dataFunction ? dataFunction(data) : data,
+				fill: fill,
+				borderColor:borderColor,
+				tension: tension
+			};
 		}
-	}
+	},
+	beforeMount() {
+		vueComponent = this;
+		axios.get(`/getInvestmentPerformanceData`).then((response) => {
 
-	return false;
-}
+			let data = response.data;
 
-function getFinalThirtyEntries(list){
-	return list.slice(list.length-30, list.length);
-}
+			if(vueComponent.dataIsMalformed(data))
+				return;
 
-function formatGraphData(label, data, dataFunction, fill, borderColor, tension)
-{
-	return {
-		label: label,
-		data: dataFunction ? dataFunction(data) : data,
-		fill: fill,
-		borderColor:borderColor,
-		tension: tension
-	};
-}
+			vueComponent.buildChart(data);
 
-// translate this function to be vue compatible
-function buildChart(data){
+			let spy500OneMonthPrevValue = (data["SPY500"].oneMonthPrevValue).toFixed(1);
+			let spy500OneYearPrevValue = (data["SPY500"].oneYearPrevValue).toFixed(1);
+			let spy500Current = (data["SPY500"].currentValue).toFixed(1);
+			let spy500MonthPercentChange = (spy500Current/spy500OneMonthPrevValue * 100).toFixed(1);
+			let spy500YearPercentChange = (spy500Current/spy500OneYearPrevValue * 100).toFixed(1);
 
-	const yearPerformanceChartContainer = document.getElementById('yearPerformanceChart');
-	const monthPerformanceChartContainer = document.getElementById('monthPerformanceChart');
-	const labels = [];
-	const dataKeys = Object.keys(data["SPY500"]["values"]); // SPY500 is the most consistently available data
+			let currentHoldingsOneMonthPrevValue = (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1);
+			let currentHoldingsOneYearPrevValue = (data["CurrentHoldings"].oneYearPrevValue).toFixed(1);
+			let currentHoldingsCurrent = (data["CurrentHoldings"].currentValue).toFixed(1);
+			let currentHoldingsMonthPercentChange = (currentHoldingsCurrent/currentHoldingsOneMonthPrevValue * 100).toFixed(1);
+			let currentHoldingsYearPercentChange = (currentHoldingsCurrent/currentHoldingsOneYearPrevValue * 100).toFixed(1);
 
-	if(dataIsMalformed(data))
-		return;
-	
-	for(let i = 0; i < dataKeys.length; i++)
-	{
-		let dateParts = new Date(dataKeys[i]*1000).toUTCString().split(" ");
-		let date = `${dateParts[1]} ${dateParts[2]} ${dateParts[3]}`
-		labels.push(date);
-	}
-	const yearGraphData = {
-		labels: labels,
-		datasets: [
-			data["CurrentHoldings"] ? formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]["values"]), null, false, 'rgb(0, 255, 0)', 0.1) : {},
-			data["SPY500"] ? formatGraphData('SPY 500', Object.values(data["SPY500"]["values"]), null, false, 'rgb(255, 0, 0)', 0.1) : {},
-			data["PortfolioPerformance"] ? formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]["values"]), null, false, 'rgb(0, 0, 255)', 0.1) : {}
-		]
-	};
+			vueComponent.monthPerformanceChartDataPanelMessages = [];
+			vueComponent.monthPerformanceChartDataPanelMessages.push(`SPY500 - Start: ${spy500OneMonthPrevValue}, End: ${spy500Current}, Change: ${spy500MonthPercentChange}%.`);
+			vueComponent.monthPerformanceChartDataPanelMessages.push(`CurrentHoldings - Start: ${currentHoldingsOneMonthPrevValue}, End: ${currentHoldingsCurrent}, Change: ${currentHoldingsMonthPercentChange}.`);
 
-	const monthGraphData = {
-		labels: getFinalThirtyEntries(labels),
-		datasets: [
-			data["CurrentHoldings"] ? formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]["values"]), getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1) : {},
-			data["SPY500"] ? formatGraphData('SPY 500', Object.values(data["SPY500"]["values"]), getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1) : {},
-			data["PortfolioPerformance"] ? formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]["values"]), getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1) : {}
-		]
-	};
-
-	const yearConfig = {
-		type: 'line',
-		data: yearGraphData,
-	};
-	const monthConfig = {
-		type: 'line',
-		data: monthGraphData,
-	};
-
-
-	charts.forEach(function(chart){
-		chart.destroy();
-	});    
-
-	charts.push(new Chart(yearPerformanceChartContainer, yearConfig));
-	charts.push(new Chart(monthPerformanceChartContainer, monthConfig));
-}
-
-getData();
+			vueComponent.yearPerformanceChartDataPanelMessages = [];
+			vueComponent.yearPerformanceChartDataPanelMessages.push(`SPY500 - Start: ${spy500OneYearPrevValue}, End: ${spy500Current}, Change: ${spy500YearPercentChange}%.`);
+			vueComponent.yearPerformanceChartDataPanelMessages.push(`CurrentHoldings - Start: ${currentHoldingsOneYearPrevValue}, End: ${currentHoldingsCurrent}, Change: ${currentHoldingsYearPercentChange}.`);
+		})
+	},
+});

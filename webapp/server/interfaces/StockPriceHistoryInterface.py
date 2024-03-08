@@ -20,6 +20,7 @@ def _parsePriceData(priceData):
 
     try:
         baseObject = priceData["chart"]["result"][0]
+
         labels = baseObject["timestamp"]
         values = baseObject["indicators"]["quote"][0]["close"]
         dataDict = {}
@@ -33,7 +34,7 @@ def _parsePriceData(priceData):
         return dataDict
     except KeyError as exception:
         symbol = baseObject["meta"]["symbol"]
-        print(f"Exception occured when parsing data for {symbol}. Problematic key: ", exception)
+        logging.error(f"Exception occured when parsing data for {symbol}. Problematic key: ", exception)
         return {}
     
 
@@ -43,10 +44,10 @@ async def _getPriceDataForUrlListOld(urls):
     
     async with aiohttp.ClientSession() as session:
         for url in urls:
-            print(f"url req sent: {url}")
+            logging.info(f"url req sent: {url}")
             async with session.get(url) as response:
 
-                print(f"url response received: {url}")
+                logging.info(f"url response received: {url}")
                 priceData = await response.json()
                 parsedPriceData = _parsePriceData(priceData)
                 stockHistoryPrices.append(parsedPriceData)
@@ -77,7 +78,6 @@ async def _getPriceDataForUrlList(urls):
 
 def getPricesForStockSymbols(symbols):
     try:
-        logging.info(_buildGetPricesUrls(symbols))
         return asyncio.run(_getPriceDataForUrlList(_buildGetPricesUrls(symbols)))
     except Exception as exception:
-        print(exception)
+        logging.error(exception)

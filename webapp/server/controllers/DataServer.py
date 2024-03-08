@@ -22,6 +22,22 @@ class DataGrabbingSources(Enum):
     CurrentHoldings = 2,
     PortfolioPerformance = 3
 
+class InvestmentData():
+    
+    def __init__(self, currentValue, oneMonthPrevValue, oneYearPrevValue, values):
+        self.currentValue = currentValue
+        self.oneMonthPrevValue = oneMonthPrevValue
+        self.oneYearPrevValue = oneYearPrevValue
+        self.values = values
+
+    def toDict(self):
+        return {
+            "currentValue": self.currentValue,
+            "oneMonthPrevValue": self.oneMonthPrevValue,
+            "oneYearPrevValue": self.oneYearPrevValue,
+            "values": self.values
+        }
+
 
 def _normaliseValues(data):
     maxValue = max([ value for value in data.values() if value ])
@@ -36,14 +52,11 @@ def _getSPY500Data():
     prices = getPricesForStockSymbols(["SPY"])[0]
 
     sortedDates = sorted(prices.keys())
-    startValue = prices[sortedDates[0]]
     endValue = prices[sortedDates[len(prices) - 1]]
-
-    return {
-        "startValue": startValue,
-        "endValue": endValue,
-        "values": _normaliseValues(prices)
-    }
+    oneMonthPrevValue = prices[sortedDates[len(sortedDates) - 30]]
+    oneYearPrevValue = prices[sortedDates[len(sortedDates) - 366]]
+    
+    return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(prices)).toDict()
 
 
 def _getSPY500DataThreadWrapper(results, threadId):
@@ -73,14 +86,11 @@ def _getCurrentHoldingsPerformanceData():
             
 
     sortedDates = sorted(portfolioHistoryTotals.keys())
-    startValue = portfolioHistoryTotals[sortedDates[0]]
     endValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 1]]
+    oneMonthPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 30]]
+    oneYearPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 366]]
     
-    return {
-        "startValue": startValue,
-        "endValue": endValue,
-        "values": _normaliseValues(portfolioHistoryTotals)
-    }
+    return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioHistoryTotals)).toDict()
 
 ### wrapper functions to allow threading
 
@@ -112,13 +122,13 @@ def getInvestmentData():
     threads = {}
     results = {
         DataGrabbingSources.SPY500: None,
-        DataGrabbingSources.CurrentHoldings: None,
-        DataGrabbingSources.PortfolioPerformance: None
+        DataGrabbingSources.CurrentHoldings: None
+        # DataGrabbingSources.PortfolioPerformance: None
     }
     dataGrabbingFunctions = {
         DataGrabbingSources.SPY500: _getSPY500DataThreadWrapper, 
-        DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper, 
-        DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
+        DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper
+        # DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
     }
 
     for key, wrapperFunction in dataGrabbingFunctions.items():
@@ -145,7 +155,7 @@ def runInvestmentBalancer():
     investmentappDir = os.path.join(projectRoot, os.getenv('INVESTMENTAPP_DIR'))
     pythonExecutable = os.path.join(os.getenv('PYTHON_DIR'), "python3")
 
-    print(f"Running {pythonExecutable} {investmentappDir}/Main.py")
+    logging.info(f"Running {pythonExecutable} {investmentappDir}/Main.py")
     
     try:
         result = subprocess.run(f'{pythonExecutable} Main.py',
@@ -155,7 +165,7 @@ def runInvestmentBalancer():
             cwd=investmentappDir,
             text=True)
     except Exception as exception:
-        print(exception)
+        logging.error(exception)
         return False
     
     programOutputLogs = []
