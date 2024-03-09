@@ -23,7 +23,7 @@ def main():
     # create AlpacaInterface
     alpacaInterface = AlpacaInterface()
     portfolioValue = alpacaInterface.getPortfolioValue()
-    print(portfolioValue)
+    logging.info(f"portfolioValue: {portfolioValue}")
 
     databaseInterface = DatabaseInterface()
     databaseInterface.addTodaysPortfolioValue(portfolioValue)
