@@ -31,9 +31,6 @@ RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client
 RUN mkdir /var/log/etfbot
 RUN chmod 0666 /var/log/etfbot
 
-RUN service cron start
-#RUN service cron enable
-
 # install the production env files
 COPY ./investmentapp/.prodenv $INVESTMENTAPPDIR/.env
 COPY ./webapp/.prodenv $WEBAPPDIR/.env
@@ -47,4 +44,6 @@ EXPOSE 8080
 
 # run the command to start uWSGI
 WORKDIR $WEBAPPDIR
-CMD ["uwsgi", "app-dev.ini"]
+# CMD ["uwsgi", "app-dev.ini"]
+ENTRYPOINT ["../entrypoint.sh"]
+
