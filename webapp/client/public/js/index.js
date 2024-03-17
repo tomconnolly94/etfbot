@@ -94,7 +94,7 @@ new Vue({
 		
 				let dataPackValues = data[dataKeys[i]]["values"];
 		
-				if(typeof dataPackValues != 'object')
+				if(typeof dataPackValues != 'object' )
 				{
 					console.log(`${dataPackValues} is not an object`)
 					return true;
@@ -177,6 +177,16 @@ new Vue({
 				borderColor:borderColor,
 				tension: tension
 			};
+		},
+		formatDataPanelString: function(label, prevValue, currentValue)
+		{
+			let change = ((currentValue/prevValue * 100) - 100).toFixed(1);
+			if(change >= 0)
+				change = `+${change}`;
+			else
+				change = `-${change}`
+
+			return `${label} - Start: ${prevValue}, End: ${currentValue}, Change: ${change}%.`
 		}
 	},
 	beforeMount() {
@@ -190,25 +200,17 @@ new Vue({
 
 			vueComponent.buildChart(data);
 
-			let spy500OneMonthPrevValue = (data["SPY500"].oneMonthPrevValue).toFixed(1);
-			let spy500OneYearPrevValue = (data["SPY500"].oneYearPrevValue).toFixed(1);
-			let spy500Current = (data["SPY500"].currentValue).toFixed(1);
-			let spy500MonthPercentChange = (spy500Current/spy500OneMonthPrevValue * 100).toFixed(1);
-			let spy500YearPercentChange = (spy500Current/spy500OneYearPrevValue * 100).toFixed(1);
-
-			let currentHoldingsOneMonthPrevValue = (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1);
-			let currentHoldingsOneYearPrevValue = (data["CurrentHoldings"].oneYearPrevValue).toFixed(1);
-			let currentHoldingsCurrent = (data["CurrentHoldings"].currentValue).toFixed(1);
-			let currentHoldingsMonthPercentChange = (currentHoldingsCurrent/currentHoldingsOneMonthPrevValue * 100).toFixed(1);
-			let currentHoldingsYearPercentChange = (currentHoldingsCurrent/currentHoldingsOneYearPrevValue * 100).toFixed(1);
-
 			vueComponent.monthPerformanceChartDataPanelMessages = [];
-			vueComponent.monthPerformanceChartDataPanelMessages.push(`SPY500 - Start: ${spy500OneMonthPrevValue}, End: ${spy500Current}, Change: ${spy500MonthPercentChange}%.`);
-			vueComponent.monthPerformanceChartDataPanelMessages.push(`CurrentHoldings - Start: ${currentHoldingsOneMonthPrevValue}, End: ${currentHoldingsCurrent}, Change: ${currentHoldingsMonthPercentChange}.`);
+			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", (data["SPY500"].oneMonthPrevValue).toFixed(1), (data["SPY500"].currentValue).toFixed(1)));
+			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1), (data["CurrentHoldings"].currentValue).toFixed(1)));
+			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", (data["PortfolioPerformance"].oneMonthPrevValue).toFixed(1), (data["PortfolioPerformance"].currentValue).toFixed(1)));
+
 
 			vueComponent.yearPerformanceChartDataPanelMessages = [];
-			vueComponent.yearPerformanceChartDataPanelMessages.push(`SPY500 - Start: ${spy500OneYearPrevValue}, End: ${spy500Current}, Change: ${spy500YearPercentChange}%.`);
-			vueComponent.yearPerformanceChartDataPanelMessages.push(`CurrentHoldings - Start: ${currentHoldingsOneYearPrevValue}, End: ${currentHoldingsCurrent}, Change: ${currentHoldingsYearPercentChange}.`);
+			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", (data["SPY500"].oneYearPrevValue).toFixed(1), (data["SPY500"].currentValue).toFixed(1)));
+			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", (data["CurrentHoldings"].oneYearPrevValue).toFixed(1), (data["CurrentHoldings"].currentValue).toFixed(1)));
+			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", (data["PortfolioPerformance"].oneYearPrevValue).toFixed(1), (data["PortfolioPerformance"].currentValue).toFixed(1)));
+
 		})
 	},
 });

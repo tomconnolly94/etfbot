@@ -1,6 +1,7 @@
 #!/venv/bin/python
 
 # external dependencies
+import datetime
 import sys
 sys.path.append("..") # makes AlpacaInterface accessible
 sys.path.append("../investmentapp") # makes AlpacaInterface accessible
@@ -15,6 +16,7 @@ import logging
 # internal dependencies
 from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
+from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 
 
 class DataGrabbingSources(Enum):
@@ -54,7 +56,7 @@ def _getSPY500Data():
     sortedDates = sorted(prices.keys())
     endValue = prices[sortedDates[len(prices) - 1]]
     oneMonthPrevValue = prices[sortedDates[len(sortedDates) - 30]]
-    oneYearPrevValue = prices[sortedDates[len(sortedDates) - 366]]
+    oneYearPrevValue = prices[sortedDates[len(sortedDates) - 365]]
     
     return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(prices)).toDict()
 
@@ -88,7 +90,7 @@ def _getCurrentHoldingsPerformanceData():
     sortedDates = sorted(portfolioHistoryTotals.keys())
     endValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 1]]
     oneMonthPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 30]]
-    oneYearPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 366]]
+    oneYearPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 365]]
     
     return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioHistoryTotals)).toDict()
 
@@ -98,20 +100,34 @@ def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getCurrentHoldingsPerformanceData()
 
 def _getPortfolioPerformanceData():
-    portfolioPerformanceData = AlpacaInterface().getLastYearPortfolioPerformance()
+    rawPortfolioPerformanceData = DatabaseInterface().getPortfolioValueOverTime()
+    print(rawPortfolioPerformanceData)
+
+    # calculate date list
+    today = datetime.datetime.today()
+    date_list = [today - datetime.timedelta(days=x) for x in range(365)]
+
+    # create base data of null values
+    portfolioPerformanceData = { date.strftime("%Y-%m-%d"): None for date in date_list }
+
+    # overwrite null values with real data 
+    for rawData in rawPortfolioPerformanceData:
+        portfolioPerformanceData[rawData["date"].split(" ")[0]] = float(rawData["value"])
 
     if not portfolioPerformanceData:
         return {}
 
-    sortedDates = sorted(portfolioPerformanceData.keys())
-    startValue = portfolioPerformanceData[sortedDates[0]]
-    endValue = portfolioPerformanceData[sortedDates[len(portfolioPerformanceData) - 1]]
+    # sortedDates = sorted(portfolioPerformanceData.keys())
+    # startValue = portfolioPerformanceData[sortedDates[0]] if portfolioPerformanceData[sortedDates[0]] else 0
+    # endValue = portfolioPerformanceData[sortedDates[len(portfolioPerformanceData) - 1]]
 
-    return {
-        "startValue": startValue,
-        "endValue": endValue,
-        "values": _normaliseValues(portfolioPerformanceData)
-    }
+    sortedDates = sorted(portfolioPerformanceData.keys())
+    endValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 1]]
+    oneMonthPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 30]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 30]] else 0
+    oneYearPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 365]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 365]] else 0
+    
+    return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioPerformanceData)).toDict()
+
 
 def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getPortfolioPerformanceData()
@@ -122,13 +138,13 @@ def getInvestmentData():
     threads = {}
     results = {
         DataGrabbingSources.SPY500: None,
-        DataGrabbingSources.CurrentHoldings: None
-        # DataGrabbingSources.PortfolioPerformance: None
+        DataGrabbingSources.CurrentHoldings: None,
+        DataGrabbingSources.PortfolioPerformance: None
     }
     dataGrabbingFunctions = {
         DataGrabbingSources.SPY500: _getSPY500DataThreadWrapper, 
-        DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper
-        # DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
+        DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper,
+        DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
     }
 
     for key, wrapperFunction in dataGrabbingFunctions.items():

@@ -5,7 +5,7 @@ from typing import Dict
 import apsw
 import sys
 from enum import Enum
-from datetime import datetime
+import datetime
 import os
 
 # internal dependencies
@@ -20,6 +20,10 @@ class PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE(Enum):
     DATE = 1
     VALUE = 2
 
+class TIME_PERIOD:
+    YEAR = 1
+    MONTH = 2
+    DAY = 3
 
 """
 DatabaseInterface
@@ -70,14 +74,22 @@ class DatabaseInterface():
     """
     `getPortfolioValueOverTime`: get the list of excluded stock symbol records from the database file
     """
-    def getPortfolioValueOverTime(self):    
-        return [ { "date": record[0], "value": record[1] } for record in self.db_connection.execute(f"SELECT * FROM {self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME}") ]
+    def getPortfolioValueOverTime(self, timePeriod: TIME_PERIOD=TIME_PERIOD.YEAR):
+        timePeriodTimeDeltaMap = {
+            TIME_PERIOD.YEAR: datetime.timedelta(days=365),
+            TIME_PERIOD.MONTH: datetime.timedelta(days=31),
+            TIME_PERIOD.DAY: datetime.timedelta(days=1),
+        }
+
+        today = datetime.datetime.today()
+        startDate = (today - timePeriodTimeDeltaMap[timePeriod]).strftime("%Y-%m-%d")
+        return [ { "date": record[0], "value": record[1] } for record in self.db_connection.execute(f"SELECT * FROM {self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME} WHERE date > {startDate}") ]
 
     """
     `getPortfolioValueForToday`: get the list of excluded stock symbol records from the database file
     """
     def _todayHasAPortfolioValue(self):
-        todaysDate = datetime.today().strftime('%Y-%m-%d')
+        todaysDate = datetime.datetime.today().strftime('%Y-%m-%d')
         return len([ record for record in self.db_connection.execute(f"SELECT value from {self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME} WHERE date LIKE '{todaysDate}%'") ]) > 0
 
     """
