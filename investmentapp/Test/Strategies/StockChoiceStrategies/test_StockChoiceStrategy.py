@@ -12,8 +12,8 @@ from src.Types.StockData import StockData
 class TestCustomWeightingStrategy(unittest.TestCase):
 
 
-    @mock.patch("src.Interfaces.DatabaseInterface.DatabaseInterface.getExcludedStockSymbols")
-    def test__getStockRange(self, getExcludedStockSymbolsMock):
+    @mock.patch("src.Strategies.StockChoiceStrategies.StockChoiceStrategy.DatabaseInterface")
+    def test__getStockRange(self, DatabaseInterfaceMock):
         
         # configure fake data
         fakeStockList = [ StockData("fakeStockSymbol1", 10), StockData("fakeStockSymbol2", 20), StockData("fakeStockSymbol3", 30) ]
@@ -22,7 +22,9 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         # configure mocks
         fakeStockListInterface = MagicMock()
         fakeStockListInterface.getStockCache.return_value = fakeStockList
-        getExcludedStockSymbolsMock.return_value = "fakeStockSymbol3"
+        DatabaseInterfaceMagicMock = MagicMock()
+        DatabaseInterfaceMagicMock.getExcludedStockSymbols.return_value = "fakeStockSymbol3"
+        DatabaseInterfaceMock.return_value = DatabaseInterfaceMagicMock
 
         # concrete class to allow testing the abstract class
         class TestStockChoiceStrategy(StockChoiceStrategy):
@@ -37,8 +39,8 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         actualStockRange = TestStockChoiceStrategy(fakeStockListInterface)._getStockRange(filterFunction)
 
         # asserts
-        self.assertEquals(1, len(actualStockRange))
-        self.assertEquals(fakeStockList[1].symbol, actualStockRange[0].symbol)
+        self.assertEqual(1, len(actualStockRange))
+        self.assertEqual(fakeStockList[1].symbol, actualStockRange[0].symbol)
         fakeStockListInterface.getStockCache.assert_called()
 
 

@@ -4,6 +4,7 @@
 import itertools
 import unittest
 from unittest import mock
+from unittest.mock import MagicMock
 import matplotlib.pyplot as plt
 plt.rcdefaults()
 
@@ -13,25 +14,17 @@ from src.Controllers.InvestmentController import InvestmentController
 
 class TestInvestmentController(unittest.TestCase):
 
-    @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.openOrdersExist")
     @mock.patch("src.Controllers.InvestmentController.InvestmentController._getValueOfStock")
-    @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.buyStock")
-    @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.sellStock")
-    @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.getAvailableFunds")
-    @mock.patch("src.Controllers.StockChoiceController.StockChoiceController.getStockChoiceStrategy")
+    @mock.patch("src.Controllers.InvestmentController.StockChoiceController")
     @mock.patch("src.Controllers.InvestmentController.logging.info")
     @mock.patch("src.Controllers.InvestmentController.InvestmentController._getPositionInIndex")
-    @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.getOpenPositions")
+    @mock.patch("src.Controllers.InvestmentController.AlpacaInterface")
     def test_rebalanceInvestments(self,
-        getOpenPositionsMock,
+        AlpacaInterfaceMock,
         _getPositionInIndexMock,
         loggingMock,
-        getStockChoiceStrategyMock,
-        getAvailableFundsMock,
-        sellStockMock,
-        buyStockMock,
+        StockChoiceControllerMock,
         _getValueOfStockMock,
-        openOrdersExistMock
         ):
 
         # configure fake data
@@ -69,28 +62,32 @@ class TestInvestmentController(unittest.TestCase):
 
 
         # configure mocks
-        getOpenPositionsMock.return_value = fakeOpenPositions
+        AlpacaInterfaceMagicMock = MagicMock()
+        AlpacaInterfaceMagicMock.getOpenPositions.return_value = fakeOpenPositions
+        AlpacaInterfaceMagicMock.getAvailableFunds.return_value = fakeAvailableFunds
+        AlpacaInterfaceMagicMock.openOrdersExist.return_value = False
+        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
         _getPositionInIndexMock.side_effect = fakePositionsInIndex
-        getStockChoiceStrategyMock.return_value = FakeStockChoiceStrategy(fakeBuyOrders, fakeSellOrders)
-        getAvailableFundsMock.return_value = fakeAvailableFunds
+        StockChoiceControllerMagicMock = MagicMock()
+        StockChoiceControllerMagicMock.getStockChoiceStrategy.return_value = FakeStockChoiceStrategy(fakeBuyOrders, fakeSellOrders)
+        StockChoiceControllerMock.return_value = StockChoiceControllerMagicMock
         _getValueOfStockMock.return_value = 10
-        openOrdersExistMock.return_value = False
 
         # run testable function
         InvestmentController().rebalanceInvestments()
 
         # asserts
-        getOpenPositionsMock.assert_called()
-        openOrdersExistMock.assert_called()
-        self.assertEquals(11, loggingMock.call_count)
-        getAvailableFundsMock.assert_called()
+        AlpacaInterfaceMagicMock.getOpenPositions.assert_called()
+        AlpacaInterfaceMagicMock.openOrdersExist.assert_called()
+        self.assertEqual(11, loggingMock.call_count)
+        AlpacaInterfaceMagicMock.getAvailableFunds.assert_called()
 
-        sellStockMock.assert_has_calls([ 
+        AlpacaInterfaceMagicMock.sellStock.assert_has_calls([ 
             mock.call(list(fakeOpenPositionsOriginal.keys())[0], list(fakeOpenPositionsOriginal.values())[0]), 
             mock.call(list(fakeOpenPositionsOriginal.keys())[1], list(fakeOpenPositionsOriginal.values())[1])
         ])
-        buyStockMock.assert_has_calls([mock.call(key, value) for key, value in fakeBuyOrders.items() ])
-        self.assertEquals(4, _getValueOfStockMock.call_count)
+        AlpacaInterfaceMagicMock.buyStock.assert_has_calls([mock.call(key, value) for key, value in fakeBuyOrders.items() ])
+        self.assertEqual(4, _getValueOfStockMock.call_count)
         _getValueOfStockMock.assert_has_calls([
             mock.call(fakeSellOrders[0]),
             mock.call(fakeSellOrders[1]),

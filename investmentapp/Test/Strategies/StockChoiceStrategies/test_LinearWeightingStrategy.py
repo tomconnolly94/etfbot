@@ -5,6 +5,7 @@ import json
 import time
 import unittest
 from unittest import mock
+from unittest.mock import MagicMock
 #import matplotlib.pyplot as plt
 import numpy as np
 from src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import LinearWeightingStrategy
@@ -28,12 +29,9 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         return stockData
     
 
-    @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.getStockCache")
-    @mock.patch("src.Interfaces.AlpacaInterface.AlpacaInterface.getOpenPositions")
-    def test__getSellOrders(self, getOpenPositionsMock, getStockCacheMock):
-        linearWeightingStrategy = LinearWeightingStrategy()
-
-        # configure fake data
+    @mock.patch("src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
+    def test__getSellOrders(self, AlpacaInterfaceMock):
+       # configure fake data
         fakeOpenPositions = {
             "A": 5,
             "B": 5,
@@ -45,6 +43,14 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         openPositionListPositions = [295, 300, 350, 399, 400, 450]
 
         fullStockRange = []
+        # config mocks
+        AlpacaInterfaceMagicMock = MagicMock()
+        AlpacaInterfaceMagicMock.getOpenPositions.return_value = fakeOpenPositions
+        AlpacaInterfaceMagicMock.getStockCache.return_value = fullStockRange
+        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
+        linearWeightingStrategy = LinearWeightingStrategy()
+
+        
 
         for i in range(0, 500):
             if i in openPositionListPositions:
@@ -53,17 +59,18 @@ class TestCustomWeightingStrategy(unittest.TestCase):
             else:
                 fullStockRange.append(StockData(str(i), random.randint(0,9)))
 
-        # configure mocks
-        getOpenPositionsMock.return_value = fakeOpenPositions
-        getStockCacheMock.return_value = fullStockRange
-
         positionsToSell = linearWeightingStrategy.getSellOrders()
 
         self.assertEqual(1, len(positionsToSell))
         self.assertTrue("F" in positionsToSell)
 
 
-    def test__reorderStockDataListBasedOnExistingPositions(self):
+    @mock.patch("src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
+    def test__reorderStockDataListBasedOnExistingPositions(self, AlpacaInterfaceMock):
+
+        # config mocks
+        AlpacaInterfaceMagicMock = MagicMock()
+        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
         linearWeightingStrategy = LinearWeightingStrategy()
 
         # inputs
@@ -94,9 +101,12 @@ class TestCustomWeightingStrategy(unittest.TestCase):
             self.assertEqual(expectedOrderedStockData.price, orderedStockDataList[i].price)
 
 
+    @mock.patch("src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
+    def test__getBuyingQuantities(self, AlpacaInterfaceMock):
 
-
-    def test__getBuyingQuantities(self):
+        # config mocks
+        AlpacaInterfaceMagicMock = MagicMock()
+        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
         linearWeightingStrategy = LinearWeightingStrategy()
 
         # inputs 
@@ -116,16 +126,16 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         numberOfSharesToBuy = linearWeightingStrategy._getBuyingQuantities(funds, stockDataList)
 
-        self.assertEquals(2, numberOfSharesToBuy["A"])
-        self.assertEquals(2, numberOfSharesToBuy["B"])
-        self.assertEquals(2, numberOfSharesToBuy["C"])
-        self.assertEquals(2, numberOfSharesToBuy["D"])
-        self.assertEquals(2, numberOfSharesToBuy["E"])
-        self.assertEquals(2, numberOfSharesToBuy["F"])
-        self.assertEquals(1, numberOfSharesToBuy["G"])
-        self.assertEquals(1, numberOfSharesToBuy["H"])
-        self.assertEquals(1, numberOfSharesToBuy["I"])
-        self.assertEquals(1, numberOfSharesToBuy["J"])
+        self.assertEqual(2, numberOfSharesToBuy["A"])
+        self.assertEqual(2, numberOfSharesToBuy["B"])
+        self.assertEqual(2, numberOfSharesToBuy["C"])
+        self.assertEqual(2, numberOfSharesToBuy["D"])
+        self.assertEqual(2, numberOfSharesToBuy["E"])
+        self.assertEqual(2, numberOfSharesToBuy["F"])
+        self.assertEqual(1, numberOfSharesToBuy["G"])
+        self.assertEqual(1, numberOfSharesToBuy["H"])
+        self.assertEqual(1, numberOfSharesToBuy["I"])
+        self.assertEqual(1, numberOfSharesToBuy["J"])
 
 
 if __name__ == '__main__':

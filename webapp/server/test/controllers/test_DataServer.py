@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 from server.test.testUtilities import FakeFile
 import unittest
 import mock
+import random
 
 # internal dependencies
 from server.controllers.DataServer import _normaliseValues, _getSPY500Data, _getCurrentHoldingsPerformanceData
@@ -35,33 +36,46 @@ class Test_DataServer(unittest.TestCase):
 
         self.assertEqual(expectedNormalisedValues, normalisedValues)
 
+    def generateAYearOfFakeValue(self):
+        prices = []
+
+        for stockIndex in range(10):
+            
+            newStockData = {}
+            
+            for dateIndex in range(365):
+
+                newStockData[f"date{dateIndex}"] = random.random() * 100
+            
+            prices.append(newStockData)
+
+        return prices
+
 
     @mock.patch("server.controllers.DataServer._normaliseValues")
     @mock.patch("server.controllers.DataServer.getPricesForStockSymbols")
     def test__getSPY500Data(self, getPricesForStockSymbolsMock, _normaliseValuesMock):
 
         # config fake data
-        fakeStockData = {
-            "stock1": 10,
-            "stock2": 15,
-            "stock3": 20,
-            "stock4": 50,
-            "stock5": 100,
-        }
+        fakeStockData = self.generateAYearOfFakeValue()
         expectedStockData = {
-            "startValue": 10,
-            "endValue": 100,
+            "currentValue": sum([value["date364"] for value in fakeStockData ]),
+            "oneMonthPrevValue": sum([value["date334"] for value in fakeStockData ]),
+            "oneYearPrevValue": sum([value["date0"] for value in fakeStockData ]),
             "values": fakeStockData
         }
 
         # config mocks
-        getPricesForStockSymbolsMock.return_value = [fakeStockData]
+        getPricesForStockSymbolsMock.return_value = fakeStockData
         _normaliseValuesMock.return_value = fakeStockData
 
 
         stockData = _getSPY500Data()
+        print(stockData)
 
-        self.assertEqual(expectedStockData, stockData)
+        self.assertEqual(expectedStockData["currentValue"], stockData["currentValue"])
+        self.assertEqual(expectedStockData["oneMonthPrevValue"], stockData["oneMonthPrevValue"])
+        self.assertEqual(expectedStockData["oneYearPrevValue"], stockData["oneYearPrevValue"])
     
     
     @mock.patch("server.controllers.DataServer._normaliseValues")
@@ -77,17 +91,15 @@ class Test_DataServer(unittest.TestCase):
             "stock4": 50,
             "stock5": 100,
         }
-        historicalPositionPrices = [
-            { "date1": 2, "date2": 7, "date3": 3, "date4": 10 },
-            { "date1": 12, "date2": 15, "date3": 6, "date4": 15 },
-            { "date1": 24, "date2": 14, "date3": 17, "date4": 20 },
-            { "date1": 21, "date2": 18, "date3": 58, "date4": 50 },
-            { "date1": 76, "date2": 1, "date3": 38, "date4": 100 },
-        ]
-        expectedReturnValue = {
-            'startValue': 135, 
-            'endValue': 195, 
-            'values': {'date1': 135, 'date2': 55, 'date3': 122, 'date4': 195}}
+        historicalPositionPrices = self.generateAYearOfFakeValue()
+
+        for index in range(365):
+            historicalPositionPrices.append({
+                "date1": random.random() * 100,
+                "date2": random.random() * 100,
+                "date3": random.random() * 100,
+                "date4": random.random() * 100
+            })
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
@@ -100,8 +112,8 @@ class Test_DataServer(unittest.TestCase):
 
         expectedEndValue = sum([ price["date1"] for price in historicalPositionPrices ])
 
-        self.assertEqual(stockData["endValue"], sum(openPositions.values()))
-        self.assertEqual(stockData["startValue"], expectedEndValue)
+        self.assertEqual(sum(openPositions.values()), stockData["endValue"])
+        self.assertEqual(expectedEndValue, stockData["startValue"])
 
 
 if __name__ == "__main__":

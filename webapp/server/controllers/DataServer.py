@@ -117,10 +117,6 @@ def _getPortfolioPerformanceData():
     if not portfolioPerformanceData:
         return {}
 
-    # sortedDates = sorted(portfolioPerformanceData.keys())
-    # startValue = portfolioPerformanceData[sortedDates[0]] if portfolioPerformanceData[sortedDates[0]] else 0
-    # endValue = portfolioPerformanceData[sortedDates[len(portfolioPerformanceData) - 1]]
-
     sortedDates = sorted(portfolioPerformanceData.keys())
     endValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 1]]
     oneMonthPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 30]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 30]] else 0
