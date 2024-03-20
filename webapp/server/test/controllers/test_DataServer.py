@@ -71,7 +71,6 @@ class Test_DataServer(unittest.TestCase):
 
 
         stockData = _getSPY500Data()
-        print(stockData)
 
         self.assertEqual(expectedStockData["currentValue"], stockData["currentValue"])
         self.assertEqual(expectedStockData["oneMonthPrevValue"], stockData["oneMonthPrevValue"])
