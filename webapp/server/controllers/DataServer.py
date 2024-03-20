@@ -55,7 +55,7 @@ def _getSPY500Data():
 
     sortedDates = sorted(prices.keys())
     endValue = prices[sortedDates[len(prices) - 1]]
-    oneMonthPrevValue = prices[sortedDates[len(sortedDates) - 30]]
+    oneMonthPrevValue = prices[sortedDates[len(sortedDates) - 31]]
     oneYearPrevValue = prices[sortedDates[len(sortedDates) - 365]]
     
     return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(prices)).toDict()
@@ -85,11 +85,10 @@ def _getCurrentHoldingsPerformanceData():
                 continue
 
             portfolioHistoryTotals[date] = price if price else 0 # initialise the dict on the first run
-            
 
     sortedDates = sorted(portfolioHistoryTotals.keys())
     endValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 1]]
-    oneMonthPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 30]]
+    oneMonthPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 31]]
     oneYearPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 365]]
     
     return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioHistoryTotals)).toDict()
@@ -119,7 +118,7 @@ def _getPortfolioPerformanceData():
 
     sortedDates = sorted(portfolioPerformanceData.keys())
     endValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 1]]
-    oneMonthPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 30]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 30]] else 0
+    oneMonthPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 31]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 31]] else 0
     oneYearPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 365]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 365]] else 0
     
     return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioPerformanceData)).toDict()

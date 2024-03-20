@@ -36,16 +36,24 @@ class Test_DataServer(unittest.TestCase):
 
         self.assertEqual(expectedNormalisedValues, normalisedValues)
 
-    def generateAYearOfFakeValue(self):
+
+    def _generateFakeStockPositions(self, numberOfStocks=10):
+        stockPositions = {}
+
+        for stockIndex in range(numberOfStocks):
+            stockPositions[f"stock{stockIndex}"] = random.random() * 150
+
+        return stockPositions
+
+
+    def _generateAYearOfFakeValue(self, numberOfStocks=10):
         prices = []
 
-        for stockIndex in range(10):
-            
+        for stockIndex in range(numberOfStocks):
             newStockData = {}
             
             for dateIndex in range(365):
-
-                newStockData[f"date{dateIndex}"] = random.random() * 100
+                newStockData[dateIndex] = random.random() * 150
             
             prices.append(newStockData)
 
@@ -57,12 +65,12 @@ class Test_DataServer(unittest.TestCase):
     def test__getSPY500Data(self, getPricesForStockSymbolsMock, _normaliseValuesMock):
 
         # config fake data
-        fakeStockData = self.generateAYearOfFakeValue()
+        fakeStockData = self._generateAYearOfFakeValue(1)
         expectedStockData = {
-            "currentValue": sum([value["date364"] for value in fakeStockData ]),
-            "oneMonthPrevValue": sum([value["date334"] for value in fakeStockData ]),
-            "oneYearPrevValue": sum([value["date0"] for value in fakeStockData ]),
-            "values": fakeStockData
+            "currentValue": fakeStockData[0][364], #sum([value[364] for value in fakeStockData ]),
+            "oneMonthPrevValue": fakeStockData[0][334], #sum([value[334] for value in fakeStockData ]),
+            "oneYearPrevValue": fakeStockData[0][0], #sum([value[0] for value in fakeStockData ]),
+            "values": fakeStockData[0]
         }
 
         # config mocks
@@ -83,22 +91,10 @@ class Test_DataServer(unittest.TestCase):
     def test__getCurrentHoldingsPerformanceData(self, AlpacaInterfaceMock, getPricesForStockSymbolsMock, _normaliseValuesMock):
 
         # config fake data
-        openPositions = {
-            "stock1": 10,
-            "stock2": 15,
-            "stock3": 20,
-            "stock4": 50,
-            "stock5": 100,
-        }
-        historicalPositionPrices = self.generateAYearOfFakeValue()
-
-        for index in range(365):
-            historicalPositionPrices.append({
-                "date1": random.random() * 100,
-                "date2": random.random() * 100,
-                "date3": random.random() * 100,
-                "date4": random.random() * 100
-            })
+        openPositions = self._generateFakeStockPositions()
+        historicalPositionPrices = self._generateAYearOfFakeValue()
+        for positionIndex, positionHistory in enumerate(historicalPositionPrices):
+            positionHistory[364] = openPositions[list(openPositions.keys())[positionIndex]]
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
@@ -109,10 +105,40 @@ class Test_DataServer(unittest.TestCase):
 
         stockData = _getCurrentHoldingsPerformanceData()
 
-        expectedEndValue = sum([ price["date1"] for price in historicalPositionPrices ])
+        expectedYearPrevValue = sum([ price[0] for price in historicalPositionPrices ])
+        expectedMonthPrevValue = sum([ price[334] for price in historicalPositionPrices ])
 
-        self.assertEqual(sum(openPositions.values()), stockData["endValue"])
-        self.assertEqual(expectedEndValue, stockData["startValue"])
+        self.assertEqual(sum(openPositions.values()), stockData["currentValue"])
+        self.assertEqual(expectedYearPrevValue, stockData["oneYearPrevValue"])
+        self.assertEqual(expectedMonthPrevValue, stockData["oneMonthPrevValue"])
+    
+    
+    @mock.patch("server.controllers.DataServer._normaliseValues")
+    @mock.patch("server.controllers.DataServer.getPricesForStockSymbols")
+    @mock.patch("server.controllers.DataServer.AlpacaInterface")
+    def test__getPortfolioPerformanceData(self, AlpacaInterfaceMock, getPricesForStockSymbolsMock, _normaliseValuesMock):
+
+        # config fake data
+        openPositions = self._generateFakeStockPositions()
+        historicalPositionPrices = self._generateAYearOfFakeValue()
+        for positionIndex, positionHistory in enumerate(historicalPositionPrices):
+            positionHistory[364] = openPositions[list(openPositions.keys())[positionIndex]]
+
+        # config mocks
+        AlpacaInterfaceMagicMock = MagicMock()
+        AlpacaInterfaceMagicMock.getOpenPositions.return_value = openPositions
+        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
+        getPricesForStockSymbolsMock.return_value = historicalPositionPrices
+        _normaliseValuesMock.side_effect = lambda input: input
+
+        stockData = _getCurrentHoldingsPerformanceData()
+
+        expectedYearPrevValue = sum([ price[0] for price in historicalPositionPrices ])
+        expectedMonthPrevValue = sum([ price[334] for price in historicalPositionPrices ])
+
+        self.assertEqual(sum(openPositions.values()), stockData["currentValue"])
+        self.assertEqual(expectedYearPrevValue, stockData["oneYearPrevValue"])
+        self.assertEqual(expectedMonthPrevValue, stockData["oneMonthPrevValue"])
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ import time
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 from src.Strategies.StockChoiceStrategies.CustomWeightingStrategy import CustomWeightingStrategy
 
@@ -160,23 +160,23 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         numSharesPerStock = [numberOfSharesToBuy[stockData.symbol] for stockData in stockDataList]
         
         # draw graph
-        plt.rcdefaults()
-        plt.bar(y_pos, value, align='center', alpha=0.5)
-        plt.bar(y_pos, numSharesPerStock, align='center', alpha=0.5)
-        plt.xticks(y_pos, objects)
-        plt.ylabel('Value')
-        plt.title('Investment weightings')
+        # plt.rcdefaults()
+        # plt.bar(y_pos, value, align='center', alpha=0.5)
+        # plt.bar(y_pos, numSharesPerStock, align='center', alpha=0.5)
+        # plt.xticks(y_pos, objects)
+        # plt.ylabel('Value')
+        # plt.title('Investment weightings')
 
-        def close_event():
-            plt.close()
+        # def close_event():
+        #     plt.close()
 
-        fig = plt.figure()
-        timer = fig.canvas.new_timer(interval = 2000) #creating a timer object and setting an interval of 3000 milliseconds
-        timer.add_callback(close_event)
+        # fig = plt.figure()
+        # timer = fig.canvas.new_timer(interval = 2000) #creating a timer object and setting an interval of 3000 milliseconds
+        # timer.add_callback(close_event)
 
-        plt.show(block=False)
-        plt.pause(3)
-        plt.close()
+        # plt.show(block=False)
+        # plt.pause(3)
+        # plt.close()
 
 
 

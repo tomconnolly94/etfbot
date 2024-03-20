@@ -5,8 +5,6 @@ import itertools
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock
-import matplotlib.pyplot as plt
-plt.rcdefaults()
 
 # internal dependencies
 from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy

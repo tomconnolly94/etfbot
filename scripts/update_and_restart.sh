@@ -16,7 +16,8 @@ docker container prune -f
 cd $SCRIPTDIR/..
 
 # rebuild and restart containers in daemon mode, relies on volume "etfbot-db-volume" existing
-docker build --no-cache -t etfbot .
+# docker build --no-cache -t etfbot .
+docker build -t etfbot .
 docker run --mount source=etfbot-db-volume,target=/db -p 8080:8080 --name etfbot -d etfbot:latest
 
 cd -
