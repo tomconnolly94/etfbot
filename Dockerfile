@@ -18,9 +18,9 @@ ENV PIP_BREAK_SYSTEM_PACKAGES 1
 RUN apt-get update -y
 RUN apt-get -y install python3 python3-dev python3-pip cron libffi-dev cmake
 
-# Install the dependencies
-RUN pip install --upgrade pip setuptools wheel
-RUN npm install --prefix $WEBAPPDIR/client
+# Install dependencies
+RUN pip install --upgrade pip setuptools wheelt
+RUN npm install -g npm@10.5.2; npm install --prefix $WEBAPPDIR/client
 
 # run frontend static file build
 RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
