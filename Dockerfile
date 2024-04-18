@@ -1,5 +1,5 @@
 # Use the node base image
-FROM node:21
+FROM node:20
 
 ARG PROJDIR=/proj-dir
 ARG WEBAPPDIR=$PROJDIR/webapp
@@ -20,11 +20,6 @@ RUN apt-get -y install python3 python3-dev python3-pip cron libffi-dev cmake
 
 # Install the dependencies
 RUN pip install --upgrade pip setuptools wheel
-
-RUN npm config get proxy
-RUN npm config rm proxy
-RUN npm config rm https-proxy
-RUN npm config set registry http://registry.npmjs.org/
 RUN npm install --prefix $WEBAPPDIR/client
 
 # run frontend static file build
