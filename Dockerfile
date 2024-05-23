@@ -19,7 +19,7 @@ RUN apt-get update -y
 RUN apt-get -y install python3 python3-dev python3-pip cron libffi-dev cmake
 
 # Install dependencies
-RUN pip install --upgrade pip setuptools wheelt
+RUN pip install --upgrade pip setuptools wheel
 RUN npm install -g npm@10.5.2; npm install --prefix $WEBAPPDIR/client
 
 # run frontend static file build
