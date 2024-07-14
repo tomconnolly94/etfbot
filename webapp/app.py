@@ -1,7 +1,7 @@
 #!/venv/bin/python
 
 # external dependencies
-from flask import Flask, Response, send_from_directory, jsonify
+from flask import Flask, Response, send_from_directory
 from dotenv import load_dotenv
 from os.path import join, dirname
 import json
