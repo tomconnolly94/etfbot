@@ -28,51 +28,30 @@ def _parsePriceData(priceData):
         for index, label in enumerate(labels):
             dataDict[label] = values[index]
             if not values[index]:
-                logging.error("")
-                logging.error(priceData["chart"]["result"][0]["meta"]["symbol"])
-                logging.error("")
+                logging.error(f"Error found in _parsePriceData, symbol: {baseObject['meta']['symbol']}")
         return dataDict
     except KeyError as exception:
         symbol = baseObject["meta"]["symbol"]
         logging.error(f"Exception occured when parsing data for {symbol}. Problematic key: ", exception)
         return {}
-    
-
-async def _getPriceDataForUrlListOld(urls):
-
-    stockHistoryPrices = []
-    
-    async with aiohttp.ClientSession() as session:
-        for url in urls:
-            logging.info(f"url req sent: {url}")
-            async with session.get(url) as response:
-
-                logging.info(f"url response received: {url}")
-                priceData = await response.json()
-                parsedPriceData = _parsePriceData(priceData)
-                stockHistoryPrices.append(parsedPriceData)
-    return stockHistoryPrices
 
 
-async def get(session: aiohttp.ClientSession, url) -> dict:
+async def _makeUrlRequest(session: aiohttp.ClientSession, url) -> dict:
     response = await session.request('GET', url=url)
-    priceData = await response.json()
-    parsedPriceData = _parsePriceData(priceData)
-    return parsedPriceData
+    return await response.json()
 
 
 async def _getPriceDataForUrlList(urls):
     async with aiohttp.ClientSession() as session:
         tasks = []
         for url in urls:
-            tasks.append(get(session=session, url=url))
+            tasks.append(_makeUrlRequest(session=session, url=url))
 
         data = []
         for task in asyncio.as_completed(tasks, timeout=10):
-            # get the next result
-            data.append(await task)
-        
-        #data = await asyncio.gather(*tasks, return_exceptions=True)
+            # await the url request, parse the response for price data and append it to `data`
+            data.append(_parsePriceData(await task))
+
         return data
 
 

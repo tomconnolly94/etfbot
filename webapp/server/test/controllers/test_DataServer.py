@@ -2,18 +2,57 @@
 
 # external dependencies
 import datetime
-import json
 from unittest.mock import MagicMock
-from server.test.testUtilities import FakeFile
 import unittest
 import mock
 import random
 
 # internal dependencies
-from server.controllers.DataServer import _normaliseValues, _getSPY500Data, _getCurrentHoldingsPerformanceData, _getPortfolioPerformanceData
+from server.controllers.DataServer import _getLastYearDates, _normaliseValues, _getSPY500Data, _getCurrentHoldingsPerformanceData, _getPortfolioPerformanceData
 
 
 class Test_DataServer(unittest.TestCase):
+
+    ##### helper functions start ######
+
+    def _generateFakeStockPositions(self, numberOfStocks=10):
+        stockPositions = {}
+
+        for stockIndex in range(numberOfStocks):
+            stockPositions[f"stock{stockIndex}"] = random.random() * 150
+
+        return stockPositions
+
+
+    def _generateAYearOfFakeValue(self, numberOfStocks=10):
+        prices = []
+
+        for stockIndex in range(numberOfStocks):
+            newStockData = {}
+            
+            for dateIndex in range(365):
+                newStockData[dateIndex] = random.random() * 150
+            
+            prices.append(newStockData)
+
+        return prices
+    
+    
+    ##### helper functions end ######
+    
+
+    def test__getLastYearDates(self):
+        lastYearDates = _getLastYearDates()
+        expectedFinalDate = datetime.datetime.now()
+        actualFinalDate = lastYearDates[0]
+
+        self.assertEqual(365, len(lastYearDates))
+        self.assertEqual(expectedFinalDate.year, actualFinalDate.year)
+        self.assertEqual(expectedFinalDate.month, actualFinalDate.month)
+        self.assertEqual(expectedFinalDate.day, actualFinalDate.day)
+        self.assertEqual(expectedFinalDate.hour, actualFinalDate.hour)
+        self.assertEqual(expectedFinalDate.minute, actualFinalDate.minute)
+
 
     def test__normaliseValues(self):
 
@@ -37,28 +76,6 @@ class Test_DataServer(unittest.TestCase):
 
         self.assertEqual(expectedNormalisedValues, normalisedValues)
 
-
-    def _generateFakeStockPositions(self, numberOfStocks=10):
-        stockPositions = {}
-
-        for stockIndex in range(numberOfStocks):
-            stockPositions[f"stock{stockIndex}"] = random.random() * 150
-
-        return stockPositions
-
-
-    def _generateAYearOfFakeValue(self, numberOfStocks=10):
-        prices = []
-
-        for stockIndex in range(numberOfStocks):
-            newStockData = {}
-            
-            for dateIndex in range(365):
-                newStockData[dateIndex] = random.random() * 150
-            
-            prices.append(newStockData)
-
-        return prices
 
 
     @mock.patch("server.controllers.DataServer._normaliseValues")
