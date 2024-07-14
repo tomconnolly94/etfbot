@@ -6,7 +6,6 @@ import time
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock
-#import matplotlib.pyplot as plt
 import numpy as np
 from src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import LinearWeightingStrategy
 import random
