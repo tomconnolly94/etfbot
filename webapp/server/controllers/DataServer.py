@@ -40,6 +40,10 @@ class InvestmentData():
             "values": self.values
         }
 
+def _getLastYearDates():
+    today = datetime.datetime.today()
+    return [today - datetime.timedelta(days=x) for x in range(365)]
+
 
 def _normaliseValues(data):
     maxValue = max([ value for value in data.values() if value ])
@@ -100,16 +104,14 @@ def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):
 
 def _getPortfolioPerformanceData():
     rawPortfolioPerformanceData = DatabaseInterface().getPortfolioValueOverTime()
-    print(rawPortfolioPerformanceData)
 
     # calculate date list
-    today = datetime.datetime.today()
-    date_list = [today - datetime.timedelta(days=x) for x in range(365)]
+    dateList = _getLastYearDates()
 
     # create base data of null values
-    portfolioPerformanceData = { date.strftime("%Y-%m-%d"): None for date in date_list }
+    portfolioPerformanceData = { date.strftime("%Y-%m-%d"): None for date in dateList }
 
-    # overwrite null values with real data 
+    # overwrite null values with real data
     for rawData in rawPortfolioPerformanceData:
         portfolioPerformanceData[rawData["date"].split(" ")[0]] = float(rawData["value"])
 

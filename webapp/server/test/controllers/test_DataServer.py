@@ -1,6 +1,7 @@
 #!/venv/bin/python
 
 # external dependencies
+import datetime
 import json
 from unittest.mock import MagicMock
 from server.test.testUtilities import FakeFile
@@ -9,7 +10,7 @@ import mock
 import random
 
 # internal dependencies
-from server.controllers.DataServer import _normaliseValues, _getSPY500Data, _getCurrentHoldingsPerformanceData
+from server.controllers.DataServer import _normaliseValues, _getSPY500Data, _getCurrentHoldingsPerformanceData, _getPortfolioPerformanceData
 
 
 class Test_DataServer(unittest.TestCase):
@@ -115,28 +116,43 @@ class Test_DataServer(unittest.TestCase):
     
     @mock.patch("server.controllers.DataServer._normaliseValues")
     @mock.patch("server.controllers.DataServer.getPricesForStockSymbols")
-    @mock.patch("server.controllers.DataServer.AlpacaInterface")
-    def test__getPortfolioPerformanceData(self, AlpacaInterfaceMock, getPricesForStockSymbolsMock, _normaliseValuesMock):
+    @mock.patch("server.controllers.DataServer.DatabaseInterface")
+    def test__getPortfolioPerformanceData(self, DatabaseInterfaceMock, getPricesForStockSymbolsMock, _normaliseValuesMock):
 
         # config fake data
         openPositions = self._generateFakeStockPositions()
         historicalPositionPrices = self._generateAYearOfFakeValue()
-        for positionIndex, positionHistory in enumerate(historicalPositionPrices):
-            positionHistory[364] = openPositions[list(openPositions.keys())[positionIndex]]
+        fakePortfolioHistory = []
+        todayStockValue = 0
+
+        base = datetime.datetime.today()
+        date_list = [(base - datetime.timedelta(days=x)).date() for x in range(364, -1, -1)]
+
+
+        for day in range(365):
+            stockValue = 0
+            for stockNumber in range(len(historicalPositionPrices)):
+                stockValue += historicalPositionPrices[stockNumber][day]
+
+            fakePortfolioHistory.append({
+                "date": str(date_list[day]),
+                "value": stockValue,
+            })
+            todayStockValue = stockValue
 
         # config mocks
-        AlpacaInterfaceMagicMock = MagicMock()
-        AlpacaInterfaceMagicMock.getOpenPositions.return_value = openPositions
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
+        DatabaseInterfaceMagicMock = MagicMock()
+        DatabaseInterfaceMagicMock.getPortfolioValueOverTime.return_value = fakePortfolioHistory
+        DatabaseInterfaceMock.return_value = DatabaseInterfaceMagicMock
         getPricesForStockSymbolsMock.return_value = historicalPositionPrices
         _normaliseValuesMock.side_effect = lambda input: input
 
-        stockData = _getCurrentHoldingsPerformanceData()
+        stockData = _getPortfolioPerformanceData()
 
         expectedYearPrevValue = sum([ price[0] for price in historicalPositionPrices ])
         expectedMonthPrevValue = sum([ price[334] for price in historicalPositionPrices ])
 
-        self.assertEqual(sum(openPositions.values()), stockData["currentValue"])
+        self.assertEqual(todayStockValue, stockData["currentValue"])
         self.assertEqual(expectedYearPrevValue, stockData["oneYearPrevValue"])
         self.assertEqual(expectedMonthPrevValue, stockData["oneMonthPrevValue"])
 

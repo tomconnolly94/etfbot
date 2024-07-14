@@ -12,7 +12,7 @@ WORKDIR $PROJDIR
 ADD . $PROJDIR
 
 # hack to jump over PEP668
-ENV PIP_BREAK_SYSTEM_PACKAGES 1
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # add python bins
 RUN apt-get update -y

@@ -9,8 +9,8 @@ git pull
 # stop the containers
 docker stop etfbot
 
-# remove the containers
-docker container prune -f
+# remove the previous image
+docker rm etfbot
 
 # move to project root
 cd $SCRIPTDIR/..
