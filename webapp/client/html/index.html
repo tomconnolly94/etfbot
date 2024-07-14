@@ -61,6 +61,17 @@
 						</div>
 					</div>
 				</div>
+
+				<div id="excludeListPanel" class="container panel panel-default">
+					<h2>Exclude list:</h2>
+					<div id="excludeListContainer">
+						<ul class="dataPanel">
+							<li v-for="stockSymbol in stockSymbols">
+								{{ stockSymbol }}
+							</li>
+						</ul>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

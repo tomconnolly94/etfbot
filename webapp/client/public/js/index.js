@@ -63,6 +63,22 @@ new Vue({
 
 
 new Vue({
+	el: '#excludeListPanel',
+	data() {
+		return {
+			stockSymbols: [],
+		}
+	},
+	beforeMount() {
+		vueComponent = this;
+		axios.get(`/getExcludeListData`).then((response) => {
+			this.stockSymbols = response.data;
+		})
+	}
+});
+
+
+new Vue({
 	el: '#displayPanel',
 	data() {
 		return {
@@ -201,16 +217,30 @@ new Vue({
 			vueComponent.buildChart(data);
 
 			vueComponent.monthPerformanceChartDataPanelMessages = [];
-			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", (data["SPY500"].oneMonthPrevValue).toFixed(1), (data["SPY500"].currentValue).toFixed(1)));
-			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1), (data["CurrentHoldings"].currentValue).toFixed(1)));
-			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", (data["PortfolioPerformance"].oneMonthPrevValue).toFixed(1), (data["PortfolioPerformance"].currentValue).toFixed(1)));
+
+			var SPY500CurrentValue = data["SPY500"].currentValue ? (data["SPY500"].currentValue).toFixed(1) : "N/A";
+			var SPY500OneMonthPrevValue = data["SPY500"].oneMonthPrevValue ? (data["SPY500"].oneMonthPrevValue).toFixed(1) : "N/A";
+			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", SPY500OneMonthPrevValue, SPY500CurrentValue));
+
+			var currentHoldingsCurrentValue = data["CurrentHoldings"].currentValue ? (data["CurrentHoldings"].currentValue).toFixed(1) : "N/A";
+			var currentHoldingsOneMonthPrevValue = data["CurrentHoldings"].oneMonthPrevValue ? (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1) : "N/A";
+			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", currentHoldingsOneMonthPrevValue, currentHoldingsCurrentValue));
+
+			var portfolioPerformanceCurrentValue = data["PortfolioPerformance"].currentValue ? (data["PortfolioPerformance"].currentValue).toFixed(1) : "N/A";
+			var portfolioPerformanceOneMonthPrevValue = data["PortfolioPerformance"].oneMonthPrevValue ? (data["PortfolioPerformance"].oneMonthPrevValue).toFixed(1) : "N/A";
+			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", portfolioPerformanceOneMonthPrevValue, portfolioPerformanceCurrentValue));
 
 
-			vueComponent.yearPerformanceChartDataPanelMessages = [];
-			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", (data["SPY500"].oneYearPrevValue).toFixed(1), (data["SPY500"].currentValue).toFixed(1)));
-			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", (data["CurrentHoldings"].oneYearPrevValue).toFixed(1), (data["CurrentHoldings"].currentValue).toFixed(1)));
-			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", (data["PortfolioPerformance"].oneYearPrevValue).toFixed(1), (data["PortfolioPerformance"].currentValue).toFixed(1)));
+			vueComponent.yearPerformanceChartDataPanelMessages = [];			
 
+			var SPY500OneYearPrevValue = data["SPY500"].oneMonthPrevValue ? (data["SPY500"].oneMonthPrevValue).toFixed(1) : "N/A";
+			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", SPY500OneYearPrevValue, SPY500CurrentValue));
+
+			var currentHoldingsOneYearPrevValue = data["CurrentHoldings"].oneMonthPrevValue ? (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1) : "N/A";
+			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", currentHoldingsOneYearPrevValue, currentHoldingsCurrentValue));
+
+			var portfolioPerformanceOneYearPrevValue = data["PortfolioPerformance"].oneMonthPrevValue ? (data["PortfolioPerformance"].oneMonthPrevValue).toFixed(1) : "N/A";
+			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", portfolioPerformanceOneYearPrevValue, portfolioPerformanceCurrentValue));
 		})
-	},
+	}
 });

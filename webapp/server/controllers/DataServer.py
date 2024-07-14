@@ -97,10 +97,10 @@ def _getCurrentHoldingsPerformanceData():
     
     return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioHistoryTotals)).toDict()
 
-### wrapper functions to allow threading
 
 def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getCurrentHoldingsPerformanceData()
+
 
 def _getPortfolioPerformanceData():
     rawPortfolioPerformanceData = DatabaseInterface().getPortfolioValueOverTime()
@@ -123,6 +123,10 @@ def _getPortfolioPerformanceData():
     oneMonthPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 31]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 31]] else 0
     oneYearPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 365]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 365]] else 0
     
+    logging.info(f"endValue: {endValue}, oneMonthPrevValue: {oneMonthPrevValue}, oneYearPrevValue: {oneYearPrevValue}")
+    logging.info(f"rawPortfolioPerformanceData: {rawPortfolioPerformanceData}")
+    logging.info(f"portfolioPerformanceData: {portfolioPerformanceData}")
+
     return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioPerformanceData)).toDict()
 
 
@@ -194,6 +198,11 @@ def runInvestmentBalancer():
         programOutputLogs = (result.stderr + result.stdout).split("\n")
 
     return programOutputLogs
+
+
+def getExcludeList():
+    databaseInterface = DatabaseInterface()
+    return databaseInterface.getExcludedStockSymbols()
 
 
 if __name__ == "__main__":

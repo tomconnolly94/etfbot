@@ -11,7 +11,7 @@ import logging
 
 # internal dependencies
 from server.controllers.PageServer import serveIndex
-from server.controllers.DataServer import getInvestmentData, runInvestmentBalancer
+from server.controllers.DataServer import getInvestmentData, runInvestmentBalancer, getExcludeList
 
 #create app
 app = Flask(__name__, template_folder="client")
@@ -59,6 +59,11 @@ def mediaGrab():
         return getResponse(200, json.dumps(returnData), "application/json") 
     else:
         return getResponse(500, "investment app run failed") 
+
+
+@app.route("/getExcludeListData", methods=["GET"])
+def getExcludeListData():
+        return getExcludeList()
 
 
 
