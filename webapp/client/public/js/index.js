@@ -55,8 +55,6 @@ new Vue({
 			this.spinnerParentClass = this.originalSpinnerParentClass;
 			if(response.data && response.data.logs)
 				this.outputLogs = response.data.logs;
-			if(success)
-				getData();
 		}
 	}
 });

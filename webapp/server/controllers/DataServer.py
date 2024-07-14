@@ -122,10 +122,6 @@ def _getPortfolioPerformanceData():
     endValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 1]]
     oneMonthPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 31]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 31]] else 0
     oneYearPrevValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 365]] if portfolioPerformanceData[sortedDates[len(sortedDates) - 365]] else 0
-    
-    logging.info(f"endValue: {endValue}, oneMonthPrevValue: {oneMonthPrevValue}, oneYearPrevValue: {oneYearPrevValue}")
-    logging.info(f"rawPortfolioPerformanceData: {rawPortfolioPerformanceData}")
-    logging.info(f"portfolioPerformanceData: {portfolioPerformanceData}")
 
     return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioPerformanceData)).toDict()
 
