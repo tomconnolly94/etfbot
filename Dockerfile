@@ -15,7 +15,7 @@ ADD . $PROJDIR
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # run frontend static file build
-RUN npm link gulp; gulp --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
+RUN npm update; npm link gulp; gulp --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
 
 # unit testing
 RUN cd investmentapp; python3 -m unittest discover -s Test
