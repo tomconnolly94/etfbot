@@ -9,7 +9,7 @@ git pull
 # stop the containers
 docker stop etfbot
 
-# remove the previous image
+# remove the previous container
 docker rm etfbot
 
 # move to project root

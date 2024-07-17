@@ -1,5 +1,5 @@
 # Use the node base image
-FROM node:20
+FROM etfbot-dependency-img
 
 ARG PROJDIR=/proj-dir
 ARG WEBAPPDIR=$PROJDIR/webapp
@@ -14,32 +14,12 @@ ADD . $PROJDIR
 # hack to jump over PEP668
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
-# add python bins
-RUN apt-get update -y
-RUN apt-get -y install python3 python3-dev python3-pip cron libffi-dev cmake
-
-# Install dependencies
-RUN pip install --upgrade pip setuptools wheel
-RUN npm install -g npm@10.5.2; npm install --prefix $WEBAPPDIR/client
-
 # run frontend static file build
-RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
-
-# install test dependencies
-RUN pip install -r $WEBAPPDIR/requirements-dev.txt
-RUN pip install -r $INVESTMENTAPPDIR/requirements-dev.txt
+RUN npm link gulp; gulp --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
 
 # unit testing
 RUN cd investmentapp; python3 -m unittest discover -s Test
 RUN cd webapp; python3 -m unittest discover -s server/test/
-
-# uninstall test dependencies
-RUN pip uninstall -y -r $WEBAPPDIR/requirements-dev.txt
-RUN pip uninstall -y -r $INVESTMENTAPPDIR/requirements-dev.txt
-
-# install prod dependencies
-RUN pip install -r $WEBAPPDIR/requirements.txt
-RUN pip install -r $INVESTMENTAPPDIR/requirements.txt
 
 # make and config access rights for logging directories
 RUN mkdir /var/log/etfbot
