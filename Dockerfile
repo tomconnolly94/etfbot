@@ -14,8 +14,9 @@ ADD . $PROJDIR
 # hack to jump over PEP668
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
-# link global npm modules and run frontend static file build
-RUN gulp --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
+# install npm dependencies and perform gulp build
+RUN npm install -g npm@10.5.2; npm install --prefix $WEBAPPDIR/client
+RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
 
 # unit testing
 RUN cd investmentapp; python3 -m unittest discover -s Test
