@@ -8,11 +8,20 @@ import logging
 
 # internal dependencies
 
+def getTimestampNow():
+    return (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%s")
+
     
 def _buildGetPricesUrls(symbols):
-    timestampNow = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%s")
+    timestampNow = getTimestampNow()
     timestampOneYearAgo = (datetime.datetime.now() - datetime.timedelta(weeks=52)).strftime("%s")
     return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampOneYearAgo}&period2={timestampNow}&interval=1d&events=history" 
+            for symbol in symbols ]
+
+    
+def _buildGetCompanyNamesUrls(symbols):
+    timestampNow = getTimestampNow() # specifiying two "now" timestamps reduce the size of the returned data
+    return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampNow}&period2={timestampNow}" 
             for symbol in symbols ]
 
 
@@ -32,7 +41,20 @@ def _parsePriceData(priceData):
         return dataDict
     except KeyError as exception:
         symbol = baseObject["meta"]["symbol"]
-        logging.error(f"Exception occured when parsing data for {symbol}. Problematic key: ", exception)
+        logging.error(f"Exception occured when parsing price data for {symbol}. Problematic key: {symbol} error: ", exception)
+        return {}
+    
+
+def _parseCompanyNameData(priceData):
+
+    try:
+        return { 
+            "symbol": priceData["chart"]["result"][0]["meta"]["symbol"],
+            "companyName": priceData["chart"]["result"][0]["meta"]["longName"]
+        }
+    except KeyError as exception:
+        symbol = priceData["chart"]["result"][0]["meta"]["symbol"]
+        logging.error(f"Exception occured when parsing companyName data for {symbol}. Problematic key: {symbol} error: ", exception)
         return {}
 
 
@@ -41,7 +63,7 @@ async def _makeUrlRequest(session: aiohttp.ClientSession, url) -> dict:
     return await response.json()
 
 
-async def _getPriceDataForUrlList(urls):
+async def _getDataForUrlList(urls, dataProcessingFunction):
     async with aiohttp.ClientSession() as session:
         tasks = []
         for url in urls:
@@ -50,13 +72,20 @@ async def _getPriceDataForUrlList(urls):
         data = []
         for task in asyncio.as_completed(tasks, timeout=10):
             # await the url request, parse the response for price data and append it to `data`
-            data.append(_parsePriceData(await task))
+            data.append(dataProcessingFunction(await task))
 
         return data
 
 
 def getPricesForStockSymbols(symbols):
     try:
-        return asyncio.run(_getPriceDataForUrlList(_buildGetPricesUrls(symbols)))
+        return asyncio.run(_getDataForUrlList(_buildGetPricesUrls(symbols), _parsePriceData))
+    except Exception as exception:
+        logging.error(exception)
+
+
+def getCompanyNamesForStockSymbols(symbols):
+    try:
+        return asyncio.run(_getDataForUrlList(_buildGetCompanyNamesUrls(symbols), _parseCompanyNameData))
     except Exception as exception:
         logging.error(exception)

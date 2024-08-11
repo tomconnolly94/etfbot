@@ -14,7 +14,7 @@ import glob
 import logging
 
 # internal dependencies
-from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols
+from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols, getCompanyNamesForStockSymbols
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 
@@ -198,7 +198,12 @@ def runInvestmentBalancer():
 
 def getExcludeList():
     databaseInterface = DatabaseInterface()
-    return databaseInterface.getExcludedStockSymbols()
+    excludedStockRecords = list(databaseInterface.getExcludedStockRecords())
+    logging.info(excludedStockRecords)
+    companyRecords = getCompanyNamesForStockSymbols([record[0] for record in excludedStockRecords])
+    for index, companyNameRecord in enumerate(companyRecords):
+        companyNameRecord["reason"] = excludedStockRecords[index][1]
+    return companyRecords
 
 
 if __name__ == "__main__":

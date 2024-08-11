@@ -56,8 +56,8 @@ class DatabaseInterface():
     """
     `getExcludedStockSymbols`: get the list of excluded stock symbol records from the database file
     """
-    def getExcludedStockSymbols(self):    
-        return [ record[0] for record in self.db_connection.execute(f"SELECT * FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME}") ]
+    def getExcludedStockRecords(self):    
+        return self.db_connection.execute(f"SELECT * FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME}")
 
     """
     `addExcludedStockSymbol`: get the list of excluded stock symbol records from the database file

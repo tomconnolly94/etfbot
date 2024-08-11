@@ -70,7 +70,12 @@ new Vue({
 	beforeMount() {
 		vueComponent = this;
 		axios.get(`/getExcludeListData`).then((response) => {
-			this.stockSymbols = response.data;
+			//this.stockSymbols = response.data;
+			for(const stockRecord of response.data)
+			{
+				console.log(stockRecord);
+				this.stockSymbols.push(`${stockRecord["symbol"]} - ${stockRecord["companyName"]} (${stockRecord["reason"]})`)
+			}
 		})
 	}
 });
