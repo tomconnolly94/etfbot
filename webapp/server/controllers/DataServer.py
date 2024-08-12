@@ -206,6 +206,11 @@ def getExcludeList():
     return companyRecords
 
 
+def removeExcludeListItem(stockSymbol: str):
+    databaseInterface = DatabaseInterface()
+    return databaseInterface.removeExcludeListItem(stockSymbol)
+
+
 if __name__ == "__main__":
     print(__file__)
     print(dirname(dirname(dirname(__file__))))

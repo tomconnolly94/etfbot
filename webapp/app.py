@@ -1,7 +1,7 @@
 #!/venv/bin/python
 
 # external dependencies
-from flask import Flask, Response, send_from_directory
+from flask import Flask, Response, send_from_directory, request
 from dotenv import load_dotenv
 from os.path import join, dirname
 import json
@@ -11,7 +11,7 @@ import logging
 
 # internal dependencies
 from server.controllers.PageServer import serveIndex
-from server.controllers.DataServer import getInvestmentData, runInvestmentBalancer, getExcludeList
+from server.controllers.DataServer import getInvestmentData, runInvestmentBalancer, getExcludeList, removeExcludeListItem
 
 #create app
 app = Flask(__name__, template_folder="client")
@@ -61,10 +61,18 @@ def mediaGrab():
         return getResponse(500, "investment app run failed") 
 
 
-@app.route("/getExcludeListData", methods=["GET"])
-def getExcludeListData():
-        return getExcludeList()
+@app.route("/excludeList/<stockSymbol>", methods=["POST", "DELETE"])
+def excludeListItem(stockSymbol):
+    if request.method == 'DELETE':
+        if removeExcludeListItem(stockSymbol):
+            return getResponse(200, "ExcludeList item deleted successfully") 
+        else:
+            return getResponse(500, "ExcludeList item failed to delete") 
 
+
+@app.route("/excludeList", methods=["GET"])
+def excludeList():
+    return getExcludeList()
 
 
 if __name__ == "__main__":

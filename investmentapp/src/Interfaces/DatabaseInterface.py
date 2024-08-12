@@ -7,6 +7,7 @@ import sys
 from enum import Enum
 import datetime
 import os
+import logging
 
 # internal dependencies
 
@@ -52,6 +53,15 @@ class DatabaseInterface():
             PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.DATE: "date",
             PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.VALUE: "value"
         }
+
+    """
+    `removeExcludeListItem`: get the list of excluded stock symbol records from the database file
+    """
+    def removeExcludeListItem(self, stockSymbol: str):
+        logging.info(f"DELETE FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME} "
+                    f"WHERE {self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]} == '{stockSymbol}';")
+        return self.db_connection.execute(f"DELETE FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME} "
+                                          f"WHERE {self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]} == '{stockSymbol}';")
 
     """
     `getExcludedStockSymbols`: get the list of excluded stock symbol records from the database file

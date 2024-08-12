@@ -36,6 +36,17 @@ h2 {
     color: white;
 }
 
+button.btn.btn-light {
+    background-color: white;
+    color: black;
+}
+
+button.btn.btn-light:hover {
+    color: white;
+    background-color: #666a6e;
+    border-color: #f9fafb;
+  }
+
 /* general styles */
 
 
@@ -144,10 +155,10 @@ button.main-button {
     color: white;
 }
 
-#runInvestmentBalancerButton {
-    background-color: white;
-    color: black
-}
+// #runInvestmentBalancerButton {
+//     background-color: white;
+//     color: black
+// }
 
 /* triggerPanel styles */
 
@@ -160,6 +171,20 @@ button.main-button {
     border-radius: 15px;
     margin-top: 70px;
     color: white;
+}
+
+#excludeListTermRemoveButton{
+    margin: 0px;
+    padding: 1px 8px;
+}
+
+#excludeListAddItemRow{
+    margin: 12px 0px;
+}
+
+#excludeListAddItemTextBox{
+    padding: 4px;
+    margin: 14px 0px;
 }
 
 /* excludeListPanel styles */

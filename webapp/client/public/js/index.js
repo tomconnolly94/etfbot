@@ -64,19 +64,43 @@ new Vue({
 	el: '#excludeListPanel',
 	data() {
 		return {
-			stockSymbols: [],
+			stocks: []
 		}
 	},
 	beforeMount() {
 		vueComponent = this;
-		axios.get(`/getExcludeListData`).then((response) => {
-			//this.stockSymbols = response.data;
+		axios.get(`/excludeList`).then((response) => {
 			for(const stockRecord of response.data)
 			{
-				console.log(stockRecord);
-				this.stockSymbols.push(`${stockRecord["symbol"]} - ${stockRecord["companyName"]} (${stockRecord["reason"]})`)
+				this.stocks.push({
+					symbol: stockRecord["symbol"],
+					companyName: stockRecord["companyName"],
+					reason: stockRecord["reason"]
+				})
 			}
-		})
+		}).catch(function(error){
+			console.log(`Failed to retrieve excludeList error: ${error}`);
+		});
+	},
+	methods: {
+		removeExcludeListItem(stockForRemoval) {
+			const stockSymbolForRemoval = stockForRemoval.stock["symbol"]
+			for(let index = 0; index < this.stocks.length; index++)
+			{
+				const stockSymbol = this.stocks[index]["symbol"];
+				if(stockSymbol == stockSymbolForRemoval)
+				{
+					axios.delete(`/excludeList/${stockSymbolForRemoval}`).then((response) => {
+							this.stocks.splice(index, 1);
+					}).catch(function(error){
+						console.log(`Failed to remove item from excludeList error: ${error}`);
+					});
+				}
+			}
+		},
+		addExcludeListItem(stockSymbolForAdd){
+			console.log(stockSymbolForAdd);
+		}
 	}
 });
 
