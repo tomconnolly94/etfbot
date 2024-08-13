@@ -11,6 +11,28 @@ import logging
 def getTimestampNow():
     return (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%s")
 
+
+def getPricesForStockSymbols(symbols):
+    try:
+        return asyncio.run(_getDataForUrlList(_buildGetPricesUrls(symbols), _parsePriceData))
+    except Exception as exception:
+        logging.error(exception)
+
+
+def getCompanyNamesForStockSymbols(symbols):
+    try:
+        return asyncio.run(_getDataForUrlList(_buildGetCompanyNamesUrls(symbols), _parseCompanyNameData))
+    except Exception as exception:
+        logging.error(exception)
+
+
+def validateSymbol(stockSymbol: str):
+    companyNames = getCompanyNamesForStockSymbols([stockSymbol])
+    logging.info(companyNames)
+    if companyNames:
+        return True
+    return False
+
     
 def _buildGetPricesUrls(symbols):
     timestampNow = getTimestampNow()
@@ -75,17 +97,3 @@ async def _getDataForUrlList(urls, dataProcessingFunction):
             data.append(dataProcessingFunction(await task))
 
         return data
-
-
-def getPricesForStockSymbols(symbols):
-    try:
-        return asyncio.run(_getDataForUrlList(_buildGetPricesUrls(symbols), _parsePriceData))
-    except Exception as exception:
-        logging.error(exception)
-
-
-def getCompanyNamesForStockSymbols(symbols):
-    try:
-        return asyncio.run(_getDataForUrlList(_buildGetCompanyNamesUrls(symbols), _parseCompanyNameData))
-    except Exception as exception:
-        logging.error(exception)

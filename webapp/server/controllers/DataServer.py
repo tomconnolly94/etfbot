@@ -14,7 +14,7 @@ import glob
 import logging
 
 # internal dependencies
-from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols, getCompanyNamesForStockSymbols
+from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols, getCompanyNamesForStockSymbols, validateSymbol
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 
@@ -39,6 +39,97 @@ class InvestmentData():
             "oneYearPrevValue": self.oneYearPrevValue,
             "values": self.values
         }
+
+
+
+def getInvestmentData():
+
+    threads = {}
+    results = {
+        DataGrabbingSources.SPY500: None,
+        DataGrabbingSources.CurrentHoldings: None,
+        DataGrabbingSources.PortfolioPerformance: None
+    }
+    dataGrabbingFunctions = {
+        DataGrabbingSources.SPY500: _getSPY500DataThreadWrapper, 
+        DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper,
+        DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
+    }
+
+    for key, wrapperFunction in dataGrabbingFunctions.items():
+        threads[key] = Thread(target=wrapperFunction, args=(results, key))
+        threads[key].start()
+
+    for thread in threads.values():
+        thread.join()
+
+    returnableResults = {}
+
+    for key, value in results.items():
+        if value is None:
+            logging.warn(f"Source: {key} was removed as it's result was calculated as: {value}")
+            continue
+        returnableResults[key.name] = value
+
+
+    return returnableResults
+
+
+def runInvestmentBalancer():
+    projectRoot = dirname(dirname(dirname(os.path.abspath(__file__)))).replace('.', '')
+    investmentappDir = os.path.join(projectRoot, os.getenv('INVESTMENTAPP_DIR'))
+    pythonExecutable = os.path.join(os.getenv('PYTHON_DIR'), "python3")
+
+    logging.info(f"Running {pythonExecutable} {investmentappDir}/Main.py")
+    
+    try:
+        result = subprocess.run(f'{pythonExecutable} Main.py',
+            check=True,
+            capture_output=True,
+            shell=True, 
+            cwd=investmentappDir,
+            text=True)
+    except Exception as exception:
+        logging.error(exception)
+        return False
+    
+    programOutputLogs = []
+    
+    # collect all logs together
+    if os.getenv("ENVIRONMENT") == "production":
+        # collect most recent log file from /var/log/etfbot
+        list_of_files = glob.glob(os.path.join(projectRoot, os.getenv("INVESTMENT_APP_LOGS_DIR")) + "/*") # * means all if need specific format then *.csv
+        latest_file = max(list_of_files, key=os.path.getctime)
+        with open(latest_file) as file:
+            programOutputLogs = [line.rstrip() for line in file]
+    else:
+        programOutputLogs = (result.stderr + result.stdout).split("\n")
+
+    return programOutputLogs
+
+
+def getExcludeList():
+    databaseInterface = DatabaseInterface()
+    excludedStockRecords = list(databaseInterface.getExcludedStockRecords())
+    logging.info(excludedStockRecords)
+    companyRecords = getCompanyNamesForStockSymbols([record[0] for record in excludedStockRecords])
+    for index, companyNameRecord in enumerate(companyRecords):
+        companyNameRecord["reason"] = excludedStockRecords[index][1]
+    return companyRecords
+
+
+def removeExcludeListItem(stockSymbol: str):
+    databaseInterface = DatabaseInterface()
+    return databaseInterface.removeExcludeListItem(stockSymbol)
+
+
+def addExcludeListItem(stockSymbol: str, excludeReason: str):
+    databaseInterface = DatabaseInterface()
+    # validate that symbol is correct
+    if validateSymbol(stockSymbol):
+        return databaseInterface.addExcludedStockSymbol(stockSymbol, excludeReason, "NASDAQ")
+    return False
+
 
 def _getLastYearDates():
     today = datetime.datetime.today()
@@ -128,87 +219,6 @@ def _getPortfolioPerformanceData():
 
 def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getPortfolioPerformanceData()
-
-
-def getInvestmentData():
-
-    threads = {}
-    results = {
-        DataGrabbingSources.SPY500: None,
-        DataGrabbingSources.CurrentHoldings: None,
-        DataGrabbingSources.PortfolioPerformance: None
-    }
-    dataGrabbingFunctions = {
-        DataGrabbingSources.SPY500: _getSPY500DataThreadWrapper, 
-        DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper,
-        DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
-    }
-
-    for key, wrapperFunction in dataGrabbingFunctions.items():
-        threads[key] = Thread(target=wrapperFunction, args=(results, key))
-        threads[key].start()
-
-    for thread in threads.values():
-        thread.join()
-
-    returnableResults = {}
-
-    for key, value in results.items():
-        if value is None:
-            logging.warn(f"Source: {key} was removed as it's result was calculated as: {value}")
-            continue
-        returnableResults[key.name] = value
-
-
-    return returnableResults
-
-
-def runInvestmentBalancer():
-    projectRoot = dirname(dirname(dirname(os.path.abspath(__file__)))).replace('.', '')
-    investmentappDir = os.path.join(projectRoot, os.getenv('INVESTMENTAPP_DIR'))
-    pythonExecutable = os.path.join(os.getenv('PYTHON_DIR'), "python3")
-
-    logging.info(f"Running {pythonExecutable} {investmentappDir}/Main.py")
-    
-    try:
-        result = subprocess.run(f'{pythonExecutable} Main.py',
-            check=True,
-            capture_output=True,
-            shell=True, 
-            cwd=investmentappDir,
-            text=True)
-    except Exception as exception:
-        logging.error(exception)
-        return False
-    
-    programOutputLogs = []
-    
-    # collect all logs together
-    if os.getenv("ENVIRONMENT") == "production":
-        # collect most recent log file from /var/log/etfbot
-        list_of_files = glob.glob(os.path.join(projectRoot, os.getenv("INVESTMENT_APP_LOGS_DIR")) + "/*") # * means all if need specific format then *.csv
-        latest_file = max(list_of_files, key=os.path.getctime)
-        with open(latest_file) as file:
-            programOutputLogs = [line.rstrip() for line in file]
-    else:
-        programOutputLogs = (result.stderr + result.stdout).split("\n")
-
-    return programOutputLogs
-
-
-def getExcludeList():
-    databaseInterface = DatabaseInterface()
-    excludedStockRecords = list(databaseInterface.getExcludedStockRecords())
-    logging.info(excludedStockRecords)
-    companyRecords = getCompanyNamesForStockSymbols([record[0] for record in excludedStockRecords])
-    for index, companyNameRecord in enumerate(companyRecords):
-        companyNameRecord["reason"] = excludedStockRecords[index][1]
-    return companyRecords
-
-
-def removeExcludeListItem(stockSymbol: str):
-    databaseInterface = DatabaseInterface()
-    return databaseInterface.removeExcludeListItem(stockSymbol)
 
 
 if __name__ == "__main__":

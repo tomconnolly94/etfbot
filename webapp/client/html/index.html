@@ -64,11 +64,17 @@
 				<div id="excludeListPanel" class="container panel panel-default">
 					<h2>Exclude list:</h2>
 					<div class="row" id="excludeListAddItemRow">
-						<div class="col-sm-8">
-							<input type="text" id="excludeListAddItemTextBox"/>
+						<div class="col-sm-4">
+							<input type="text" v-model="newExcludeListStockSymbol" id="excludeListAddItemTextBox"/>
 						</div>
 						<div class="col-sm-4">
-							<button class="btn btn-light" type="button" @click="addExcludeListItem">Go</button>
+							<select id="excludeReasonSelector" v-model="excludeReason">
+								<option value="immoral">Immoral</option>
+								<option value="oil">Oil</option>
+							</select>
+						</div>
+						<div class="col-sm-4">
+							<button id="addButton" class="btn btn-light" type="button" @click="addExcludeListItem">Add</button>
 						</div>
 					</div>
 					<div id="excludeListContainer">

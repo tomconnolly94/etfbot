@@ -11,7 +11,9 @@ import logging
 
 # internal dependencies
 from server.controllers.PageServer import serveIndex
-from server.controllers.DataServer import getInvestmentData, runInvestmentBalancer, getExcludeList, removeExcludeListItem
+from server.controllers.DataServer import getInvestmentData, \
+    runInvestmentBalancer, getExcludeList, removeExcludeListItem, \
+    addExcludeListItem
 
 #create app
 app = Flask(__name__, template_folder="client")
@@ -63,16 +65,32 @@ def mediaGrab():
 
 @app.route("/excludeList/<stockSymbol>", methods=["POST", "DELETE"])
 def excludeListItem(stockSymbol):
-    if request.method == 'DELETE':
-        if removeExcludeListItem(stockSymbol):
-            return getResponse(200, "ExcludeList item deleted successfully") 
+    try:
+        if request.method == 'DELETE':
+            if removeExcludeListItem(stockSymbol):
+                return getResponse(200, "ExcludeList item deleted successfully") 
+            else:
+                return getResponse(500, "ExcludeList item failed to delete") 
+        elif request.method == 'POST':
+            excludeReason = request.args["reason"]
+            if addExcludeListItem(stockSymbol, excludeReason):
+                return getResponse(200, "ExcludeList item added successfully") 
+            else:
+                return getResponse(500, "ExcludeList item failed to add") 
         else:
-            return getResponse(500, "ExcludeList item failed to delete") 
+            return getResponse(405, "Method Not Allowed")
+    except Exception as exception:
+        logging.error(exception)
+        return getResponse(500, "Unknown error, check server logs")
 
 
 @app.route("/excludeList", methods=["GET"])
 def excludeList():
-    return getExcludeList()
+    try:
+        return getExcludeList()
+    except Exception as exception:
+        logging.error(exception)
+        return getResponse(500, "Unknown error, check server logs")
 
 
 if __name__ == "__main__":

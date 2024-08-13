@@ -58,8 +58,7 @@ class DatabaseInterface():
     `removeExcludeListItem`: get the list of excluded stock symbol records from the database file
     """
     def removeExcludeListItem(self, stockSymbol: str):
-        logging.info(f"DELETE FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME} "
-                    f"WHERE {self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]} == '{stockSymbol}';")
+        logging.info(f"Attempting to remove {stockSymbol} from excludeList")
         return self.db_connection.execute(f"DELETE FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME} "
                                           f"WHERE {self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]} == '{stockSymbol}';")
 
@@ -70,16 +69,28 @@ class DatabaseInterface():
         return self.db_connection.execute(f"SELECT * FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME}")
 
     """
+    `getExcludedStockSymbol`: get a specific excluded stock symbol record from the database file
+    """
+    def getExcludedStockRecord(self, stockSymbol: str):    
+        return self.db_connection.execute(f"SELECT * FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME} WHERE "
+                                          f"'{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]}' == '{stockSymbol}'")
+
+    """
     `addExcludedStockSymbol`: get the list of excluded stock symbol records from the database file
     """
-    def addExcludedStockSymbol(self, symbol: str, reason: str, stockExchange: str):
-        query = (f"INSERT INTO '{self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME}'"
+    def addExcludedStockSymbol(self, stockSymbol: str, reason: str, stockExchange: str):
+        if list(self.getExcludedStockRecord(stockSymbol)):
+            logging.info(f"{stockSymbol} is already in the excludeList")
+            return False
+        query = (f"INSERT INTO {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME}"
                  f"('{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]}', "
                  f"'{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.REASON]}', "
                  f"'{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.STOCK_EXCHANGE]}') "
-                 f"VALUES('{symbol}', '{reason}', '{stockExchange}');"
+                 f"VALUES('{stockSymbol}', '{reason}', '{stockExchange}');"
         )
         self.db_connection.execute(query)
+        logging.info(f"{stockSymbol} added to the excludeList")
+        return True
 
     """
     `getPortfolioValueOverTime`: get the list of excluded stock symbol records from the database file
