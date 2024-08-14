@@ -26,7 +26,16 @@ def getCompanyNamesForStockSymbols(symbols):
         logging.error(exception)
 
 
-def validateSymbol(stockSymbol: str):
+def getStockExchangesForStockSymbol(stockSymbol: str):
+    try:
+        stockExchangeData = asyncio.run(_getDataForUrlList(_buildGetCompanyNamesUrls([stockSymbol]), _parseStockExchangeData))
+        if not stockExchangeData[0]:
+            return False
+        
+        return stockExchangeData[0]["stockExchange"]
+    except Exception as exception:
+        logging.error(exception)
+
     companyNames = getCompanyNamesForStockSymbols([stockSymbol])
     logging.info(companyNames)
     if companyNames:
@@ -63,7 +72,7 @@ def _parsePriceData(priceData):
         return dataDict
     except KeyError as exception:
         symbol = baseObject["meta"]["symbol"]
-        logging.error(f"Exception occured when parsing price data for {symbol}. Problematic key: {symbol} error: ", exception)
+        logging.error(f"Exception occured when parsing price data for {symbol}. error: ", exception)
         return {}
     
 
@@ -76,7 +85,19 @@ def _parseCompanyNameData(priceData):
         }
     except KeyError as exception:
         symbol = priceData["chart"]["result"][0]["meta"]["symbol"]
-        logging.error(f"Exception occured when parsing companyName data for {symbol}. Problematic key: {symbol} error: ", exception)
+        logging.error(f"Exception occured when parsing companyName data for {symbol}. error: ", exception)
+        return {}
+    
+def _parseStockExchangeData(priceData):
+
+    try:
+        return { 
+            "symbol": priceData["chart"]["result"][0]["meta"]["symbol"],
+            "stockExchange": priceData["chart"]["result"][0]["meta"]["fullExchangeName"]
+        }
+    except KeyError as exception:
+        symbol = priceData["chart"]["result"][0]["meta"]["symbol"]
+        logging.error(f"Exception occured when parsing stockExchange data for {symbol}. error: ", exception)
         return {}
 
 

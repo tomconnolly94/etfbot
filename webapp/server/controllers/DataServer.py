@@ -14,7 +14,8 @@ import glob
 import logging
 
 # internal dependencies
-from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols, getCompanyNamesForStockSymbols, validateSymbol
+from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols, \
+    getCompanyNamesForStockSymbols, getStockExchangesForStockSymbol
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 
@@ -125,9 +126,11 @@ def removeExcludeListItem(stockSymbol: str):
 
 def addExcludeListItem(stockSymbol: str, excludeReason: str):
     databaseInterface = DatabaseInterface()
-    # validate that symbol is correct
-    if validateSymbol(stockSymbol):
-        return databaseInterface.addExcludedStockSymbol(stockSymbol, excludeReason, "NASDAQ")
+    # validate the symbol, if we cannot get the symbol's exchange we can 
+    # consider the symbol invalid
+    stockExchange = getStockExchangesForStockSymbol(stockSymbol)
+    if stockExchange:
+        return databaseInterface.addExcludedStockSymbol(stockSymbol, excludeReason, stockExchange)
     return False
 
 
