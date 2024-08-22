@@ -46,7 +46,7 @@ class StockChoiceStrategy(ABC):
     """
     def _getStockRange(self, filterFunction: Callable[[List[StockData]], List[StockData]]) -> List[StockData]:
         filteredStockList = filterFunction(self._stockListInterface.getStockCache())
-        excludedStockSymbolList = DatabaseInterface().getExcludedStockSymbols()
+        excludedStockSymbolList = DatabaseInterface().getExcludedStockRecords()
         filteredStockList = [ stock for stock in filteredStockList if stock.symbol not in excludedStockSymbolList ]
         return filteredStockList
 

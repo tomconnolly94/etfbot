@@ -23,12 +23,13 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         fakeStockListInterface = MagicMock()
         fakeStockListInterface.getStockCache.return_value = fakeStockList
         DatabaseInterfaceMagicMock = MagicMock()
-        DatabaseInterfaceMagicMock.getExcludedStockSymbols.return_value = "fakeStockSymbol3"
+        DatabaseInterfaceMagicMock.getExcludedStockRecords.return_value = "fakeStockSymbol3"
         DatabaseInterfaceMock.return_value = DatabaseInterfaceMagicMock
 
         # concrete class to allow testing the abstract class
         class TestStockChoiceStrategy(StockChoiceStrategy):
 
+            #concrete implementations are needed
             def getBuyOrders(self, quantity: int, existingPositions: 'dict[str, int]') -> 'dict[str, int]':
                 pass
 

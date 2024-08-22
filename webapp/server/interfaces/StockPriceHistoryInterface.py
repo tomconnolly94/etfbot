@@ -29,19 +29,12 @@ def getCompanyNamesForStockSymbols(symbols):
 def getStockExchangesForStockSymbol(stockSymbol: str):
     try:
         stockExchangeData = asyncio.run(_getDataForUrlList(_buildGetCompanyNamesUrls([stockSymbol]), _parseStockExchangeData))
-        if not stockExchangeData[0]:
+        if not stockExchangeData[0] or "stockExchange" not in stockExchangeData[0]:
             return False
         
         return stockExchangeData[0]["stockExchange"]
     except Exception as exception:
         logging.error(exception)
-
-    companyNames = getCompanyNamesForStockSymbols([stockSymbol])
-    logging.info(companyNames)
-    if companyNames:
-        return True
-    return False
-
     
 def _buildGetPricesUrls(symbols):
     timestampNow = getTimestampNow()

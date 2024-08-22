@@ -63,7 +63,7 @@ class DatabaseInterface():
                                           f"WHERE {self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]} == '{stockSymbol}';")
 
     """
-    `getExcludedStockSymbols`: get the list of excluded stock symbol records from the database file
+    `getExcludedStockRecords`: get the list of excluded stock symbol records from the database file
     """
     def getExcludedStockRecords(self):    
         return self.db_connection.execute(f"SELECT * FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME}")
@@ -135,10 +135,10 @@ if __name__ == '__main__':
     if len(sys.argv) == 4: # use this to add a new record quickly, usage: `python src/Interfaces/DatabaseInterface.py <symbol> <reason> <stock-exchange>``
         databaseInterface.addExcludedStockSymbol(str(sys.argv[1]), sys.argv[2], sys.argv[3])
     
-        stockSymbols = databaseInterface.getExcludedStockSymbols()
+        stockRecords = databaseInterface.getExcludedStockRecords()
 
-        for stockSymbol in stockSymbols:
-            print(stockSymbol)
+        for stockRecord in stockRecords:
+            print(stockRecord)
 
     elif len(sys.argv) == 2: # use this to add a new record quickly, usage: `python src/Interfaces/DatabaseInterface.py <todays-value>``
         databaseInterface.addTodaysPortfolioValue(str(sys.argv[1]))
