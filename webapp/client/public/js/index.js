@@ -96,7 +96,7 @@ new Vue({
 				if(stockSymbol == stockSymbolForRemoval)
 				{
 					axios.delete(`/excludeList/${stockSymbolForRemoval}`).then((response) => {
-							this.stocks.splice(index, 1);
+						this.stocks.splice(index, 1);
 					}).catch(function(error){
 						console.log(`Failed to remove item from excludeList error: ${error}`);
 					});
@@ -144,6 +144,7 @@ new Vue({
 	methods: {
 		reloadLogFileNameList(){
 			console.log("reloading... logFileNameList");
+			this.logFileNameList = [];
 			axios.get(`/logFileNames`).then((response) => {
 				for(const logFileName of response.data)
 				{
