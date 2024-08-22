@@ -28,19 +28,19 @@ class Test_LoggingController(unittest.TestCase):
         # config mocks
         getLogsDirMock.return_value = "nothing"
         listdirMock.return_value = [
-            "etfbot_22-08-2024_18-45.log",
-            "etfbot_23-07-2024_18-45.log",
+            "etfbot-Main_22-08-2024_18-45.log",
+            "etfbot-hello_wewew123_23-07-2024_18-45.log",
             "etfbot_23-07-2023_18-45.log",
-            "etfbot_23-07-2024_18-55.log"
+            "etfbot-OtherRandom_thing_23-07-2024_18-55.log"
         ]
         isfileMock.return_value = True
 
         existingLogFiles = listExistingLogFiles()
 
         expectedExistingLogFiles = [
-            "etfbot_22-08-2024_18-45.log",
-            "etfbot_23-07-2024_18-55.log",
-            "etfbot_23-07-2024_18-45.log",
+            "etfbot-Main_22-08-2024_18-45.log",
+            "etfbot-OtherRandom_thing_23-07-2024_18-55.log",
+            "etfbot-hello_wewew123_23-07-2024_18-45.log",
             "etfbot_23-07-2023_18-45.log"
         ]
 
