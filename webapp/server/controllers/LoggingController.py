@@ -40,6 +40,7 @@ def listExistingLogFiles():
     logsDir = getLogsDir()
     logFiles = [f for f in os.listdir(logsDir) if os.path.isfile(os.path.join(logsDir, f))]
 
+    # sort log files by date
     def sortLogFileNames(logFileName):
         # e.g. log file name: etfbot_22-08-2024_18-45.log
         regexPattern = r"etfbot.*_(\d{2})-(\d{2})-(\d{4})_(\d{2})-(\d{2})\.log"
