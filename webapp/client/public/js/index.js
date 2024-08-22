@@ -65,7 +65,7 @@ new Vue({
 	data() {
 		return {
 			stocks: [],
-			newExcludeListStockSymbol: "boop",
+			newExcludeListStockSymbol: "",
 			excludeReason: "immoral"
 		}
 	},
