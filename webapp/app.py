@@ -93,5 +93,14 @@ def excludeList():
         return getResponse(500, "Unknown error, check server logs")
 
 
+@app.route("/logFileNames", methods=["GET"])
+def logFileNames():
+    try:
+        return LoggingController.listExistingLogFiles()
+    except Exception as exception:
+        logging.error(exception)
+        return getResponse(500, "Unknown error, check server logs")
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0")

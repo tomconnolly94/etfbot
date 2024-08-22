@@ -61,7 +61,7 @@
 					</div>
 				</div>
 
-				<div id="excludeListPanel" class="container panel panel-default">
+				<div id="excludeListPanel" class="container panel panel-default custom-panel">
 					<h2>Exclude list:</h2>
 					<div class="row" id="excludeListAddItemRow">
 						<div class="col-sm-4">
@@ -86,6 +86,16 @@
 								<label>
 									{{ stock["symbol"] }} - {{ stock["companyName"] }} ({{ stock["reason"] }})
 								</label>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div id="logListPanel" class="container panel panel-default custom-panel">
+					<h2>Log list:</h2>
+					<div id="logListContainer">
+						<ul class="dataPanel">
+							<li v-for="logFileName in logFileNameList">
+								<a v-bind:href="'/logs/'+ logFileName">{{logFileName}}</a>
 							</li>
 						</ul>
 					</div>

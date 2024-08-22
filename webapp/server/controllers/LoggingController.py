@@ -4,6 +4,12 @@
 import os
 import logging
 import time
+import datetime
+import re
+
+
+def getLogsDir():
+    return os.getenv("LOGS_DIR") if os.getenv("LOGS_DIR") else os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
 
 
 def initLogging():
@@ -15,7 +21,7 @@ def initLogging():
     logFormat = '%(asctime)s - %(levelname)s - %(message)s'
     programName = "etfbot"
     logDateFormat = '%d-%b-%y %H:%M:%S'
-    projectBaseDir = os.getenv("LOGS_DIR") if os.getenv("LOGS_DIR") else os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+    projectBaseDir = getLogsDir()
 
     if os.getenv("ENVIRONMENT") == "production":
         logFilename = os.path.join(projectBaseDir, f"{programName}_{time.strftime('%d-%m-%Y_%H-%M')}.log")
@@ -28,3 +34,23 @@ def initLogging():
     logging.info(f"Logging initialised, mode: {os.getenv('ENVIRONMENT')}")
 
     return logging
+
+
+def listExistingLogFiles():
+    logsDir = getLogsDir()
+    logFiles = [f for f in os.listdir(logsDir) if os.path.isfile(os.path.join(logsDir, f))]
+
+    def sortLogFileNames(logFileName):
+        # e.g. log file name: etfbot_22-08-2024_18-45.log
+        regexPattern = r"etfbot_(\d{2})-(\d{2})-(\d{4})_(\d{2})-(\d{2})\.log"
+        result = re.search(regexPattern, logFileName)
+        if result:
+            return datetime.datetime(
+                int(result.group(3)),
+                int(result.group(2)),
+                int(result.group(1)),
+                int(result.group(4)),
+                int(result.group(5))
+            ).timestamp()
+
+    return sorted(logFiles, key=sortLogFileNames, reverse=True)

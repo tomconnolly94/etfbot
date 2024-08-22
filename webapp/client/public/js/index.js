@@ -127,6 +127,32 @@ new Vue({
 
 
 new Vue({
+	el: '#logListPanel',
+	data() {
+		return {
+			logFileNameList: []
+		}
+	},
+	beforeMount() {
+		this.reloadLogFileNameList();
+	},
+	methods: {
+		reloadLogFileNameList(){
+			vueComponent = this;
+			axios.get(`/logFileNames`).then((response) => {
+				for(const logFileName of response.data)
+				{
+					this.logFileNameList.push(logFileName);
+				}
+			}).catch(function(error){
+				console.log(`Failed to retrieve excludeList error: ${error}`);
+			});
+		}
+	}
+});
+
+
+new Vue({
 	el: '#displayPanel',
 	data() {
 		return {
