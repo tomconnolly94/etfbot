@@ -4,4 +4,4 @@
 service cron start
 
 # start uwsgi web server
-uwsgi app-dev.ini
+uwsgi app.ini
