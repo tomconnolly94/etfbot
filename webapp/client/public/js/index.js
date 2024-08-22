@@ -74,7 +74,7 @@ new Vue({
 	},
 	methods: {
 		reloadExcludeList(){
-			vueComponent = this;
+			this.stocks = [];
 			axios.get(`/excludeList`).then((response) => {
 				for(const stockRecord of response.data)
 				{
