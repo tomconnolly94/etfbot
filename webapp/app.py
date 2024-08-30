@@ -5,15 +5,18 @@ from flask import Flask, Response, send_from_directory, request
 from dotenv import load_dotenv
 from os.path import join, dirname
 import json
-import os
-from server.controllers import LoggingController
+import os, sys
 import logging
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # make investmentapp and common sub projects accessible
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/investmentapp") # make investmentapp and common sub projects accessible
 
 # internal dependencies
 from server.controllers.PageServer import serveIndex
 from server.controllers.DataServer import getInvestmentData, \
     runInvestmentBalancer, getExcludeList, removeExcludeListItem, \
     addExcludeListItem
+from common import LoggingController
 
 #create app
 app = Flask(__name__, template_folder="client")

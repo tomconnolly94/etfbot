@@ -8,7 +8,7 @@ import logging
 # internal dependencies
 from src.Interfaces.AlpacaInterface import AlpacaInterface
 from src.Interfaces.DatabaseInterface import DatabaseInterface
-from src.Controllers import LoggingController
+from common import LoggingController
 
 
 def main():

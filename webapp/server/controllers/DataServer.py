@@ -3,8 +3,7 @@
 # external dependencies
 import datetime
 import sys
-sys.path.append("..") # makes AlpacaInterface accessible
-sys.path.append("../investmentapp") # makes AlpacaInterface accessible
+sys.path.append("..") # makes investmentapp accessible
 from threading import Thread
 from enum import Enum
 import os
