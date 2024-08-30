@@ -19,21 +19,6 @@ def main():
 
     logging.info(f"Program started.")
 
-    # from src.Interfaces.AlpacaInterface import AlpacaInterface
-    # from src.Types.StockData import StockData
-    # alpacaInterface = AlpacaInterface()
-
-    # stocklist: 'list[StockData]' = alpacaInterface.getStockCache()
-
-    # index = 0
-    # for stock in stocklist:
-    #     logging.info(f"{index} symbol: {stock.symbol} at {stock.price}")
-    #     index += 1
-    # return
-
-    # read program config
-    
-
     # run program with general error handling to prevent crashes
     try:
         InvestmentController().rebalanceInvestments()

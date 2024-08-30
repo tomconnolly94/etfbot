@@ -50,6 +50,7 @@ class AlpacaInterface(InvestingInterface):
 
         self._sortedFullStockCache = []
         self._stockIndexDataInterface = StockIndexDataInterface()
+        logging.info(f"AlpacaInterface initialised. devMode={self.devMode} env={os.getenv('TRADING_DEV_MODE', 'False')}")
 
 
     """
@@ -68,6 +69,9 @@ class AlpacaInterface(InvestingInterface):
     test: None
     """
     def buyStock(self, stockSymbol: str, quantity: int) -> None:
+        if self.devMode:
+            logging.info(f"buyStock called, devMode={self.devMode} so no order was submitted")
+            return
         self._submitOrder(stockSymbol, quantity, OrderSide.BUY)
 
 
@@ -75,6 +79,9 @@ class AlpacaInterface(InvestingInterface):
     `sellStock`: execute sell trade of stock `stockSymbol` for `quantity` units
     """
     def sellStock(self, stockSymbol: str, quantity: int) -> None:
+        if self.devMode:
+            logging.info(f"sellStock called, devMode={self.devMode} so no order was submitted")
+            return
         self._submitOrder(stockSymbol, quantity, OrderSide.SELL)
 
 
@@ -82,8 +89,6 @@ class AlpacaInterface(InvestingInterface):
     `getAvailableFunds`: return any uninvested funds 
     """
     def getAvailableFunds(self: object) -> float:
-        logging.info("self._getAlpacaAccount()")
-        logging.info(self._getAlpacaAccount())
         return float(self._getAlpacaAccount().cash)
 
 
