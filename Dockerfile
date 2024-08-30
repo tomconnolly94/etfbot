@@ -21,6 +21,7 @@ RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client
 # unit testing
 RUN cd investmentapp; python3 -m unittest discover -s Test
 RUN cd webapp; python3 -m unittest discover -s server/test/
+RUN python3 -m unittest discover -s common/test/
 
 # make and config access rights for logging directories
 RUN mkdir /var/log/etfbot

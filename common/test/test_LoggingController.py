@@ -1,22 +1,19 @@
 #!/venv/bin/python
 
 # external dependencies
-import datetime
-from unittest.mock import MagicMock
 import unittest
 import mock
-import random
 
 # internal dependencies
-from server.controllers.LoggingController import listExistingLogFiles, getLatestLogContent
-from server.test.testUtilities import FakeFile
+from webapp.server.controllers.LoggingController import listExistingLogFiles, getLatestLogContent
+from webapp.server.test.testUtilities import FakeFile
 
 
 class Test_LoggingController(unittest.TestCase):
 
     @mock.patch('os.path.isfile')
     @mock.patch('os.listdir')
-    @mock.patch("server.controllers.LoggingController.getLogsDir")
+    @mock.patch("webapp.server.controllers.LoggingController.getLogsDir")
     def test_listExistingLogFiles(self, getLogsDirMock, listdirMock, isfileMock):
         
         # config mocks
@@ -42,7 +39,7 @@ class Test_LoggingController(unittest.TestCase):
 
 
     @mock.patch("builtins.open", create=True)
-    @mock.patch("server.controllers.LoggingController.listExistingLogFiles")
+    @mock.patch("webapp.server.controllers.LoggingController.listExistingLogFiles")
     def test_listExistingLogFiles(self, listExistingLogFilesMock, openMock):
         
         # config mocks
@@ -69,4 +66,6 @@ class Test_LoggingController(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    import sys
+    sys.path.append()
     unittest.main()

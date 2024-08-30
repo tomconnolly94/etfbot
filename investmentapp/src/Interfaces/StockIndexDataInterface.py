@@ -3,7 +3,7 @@
 # external dependencies
 import finsymbols
 
-from src.Types.StockExchange import StockExchange
+from investmentapp.src.Types.StockExchange import StockExchange
 
 
 """
