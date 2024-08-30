@@ -8,8 +8,8 @@ import sys, os
 # internal dependencies
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # make webapp and common sub projects accessible
 from common import LoggingController
-from src.Controllers.InvestmentController import InvestmentController
-from src.Interfaces.MailInterface import MailInterface
+from investmentapp.src.Controllers.InvestmentController import InvestmentController
+from investmentapp.src.Interfaces.MailInterface import MailInterface
 
 def main():
 

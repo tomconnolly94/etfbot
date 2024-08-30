@@ -8,10 +8,10 @@ import logging
 import json
 
 # internal dependencies
-from src.Types.StockExchange import StockExchange
-from src.Interfaces.InvestingInterface import InvestingInterface
-from src.Types.StockData import StockData
-from src.Interfaces.StockIndexDataInterface import StockIndexDataInterface
+from investmentapp.src.Types.StockExchange import StockExchange
+from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
+from investmentapp.src.Types.StockData import StockData
+from investmentapp.src.Interfaces.StockIndexDataInterface import StockIndexDataInterface
 
 
 """

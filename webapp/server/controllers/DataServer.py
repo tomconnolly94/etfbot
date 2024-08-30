@@ -13,7 +13,7 @@ import glob
 import logging
 
 # internal dependencies
-from server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols, \
+from webapp.server.interfaces.StockPriceHistoryInterface import getPricesForStockSymbols, \
     getCompanyNamesForStockSymbols, getStockExchangesForStockSymbol
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface

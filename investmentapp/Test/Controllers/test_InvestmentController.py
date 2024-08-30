@@ -7,16 +7,16 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 # internal dependencies
-from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
-from src.Controllers.InvestmentController import InvestmentController
+from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
+from investmentapp.src.Controllers.InvestmentController import InvestmentController
 
 class TestInvestmentController(unittest.TestCase):
 
-    @mock.patch("src.Controllers.InvestmentController.InvestmentController._getValueOfStock")
-    @mock.patch("src.Controllers.InvestmentController.StockChoiceController")
-    @mock.patch("src.Controllers.InvestmentController.logging.info")
-    @mock.patch("src.Controllers.InvestmentController.InvestmentController._getPositionInIndex")
-    @mock.patch("src.Controllers.InvestmentController.AlpacaInterface")
+    @mock.patch("investmentapp.src.Controllers.InvestmentController.InvestmentController._getValueOfStock")
+    @mock.patch("investmentapp.src.Controllers.InvestmentController.StockChoiceController")
+    @mock.patch("investmentapp.src.Controllers.InvestmentController.logging.info")
+    @mock.patch("investmentapp.src.Controllers.InvestmentController.InvestmentController._getPositionInIndex")
+    @mock.patch("investmentapp.src.Controllers.InvestmentController.AlpacaInterface")
     def test_rebalanceInvestments(self,
         AlpacaInterfaceMock,
         _getPositionInIndexMock,

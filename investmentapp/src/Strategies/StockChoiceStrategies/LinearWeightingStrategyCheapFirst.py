@@ -3,7 +3,7 @@
 # external dependencies
 
 # internal dependencies
-from src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import LinearWeightingStrategy
+from investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import LinearWeightingStrategy
 
 """
 LinearWeightingStrategy

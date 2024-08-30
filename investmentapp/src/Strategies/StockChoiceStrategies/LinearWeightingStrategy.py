@@ -5,9 +5,9 @@ import logging
 import math
 
 # internal dependencies
-from src.Interfaces.AlpacaInterface import AlpacaInterface
-from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
-from src.Types.StockData import StockData
+from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
+from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
+from investmentapp.src.Types.StockData import StockData
 
 """
 LinearWeightingStrategy

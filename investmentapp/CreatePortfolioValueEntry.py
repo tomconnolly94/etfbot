@@ -6,8 +6,8 @@ import logging
 
 
 # internal dependencies
-from src.Interfaces.AlpacaInterface import AlpacaInterface
-from src.Interfaces.DatabaseInterface import DatabaseInterface
+from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
+from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 from common import LoggingController
 
 

@@ -19,8 +19,8 @@ RUN npm install -g npm@10.5.2; npm install --prefix $WEBAPPDIR/client
 RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
 
 # unit testing
-RUN cd investmentapp; python3 -m unittest discover -s Test
-RUN cd webapp; python3 -m unittest discover -s server/test/
+RUN python3 -m unittest discover -s investmentapp/Test/
+RUN python3 -m unittest discover -s webapp/server/test/
 RUN python3 -m unittest discover -s common/test/
 
 # make and config access rights for logging directories

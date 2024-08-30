@@ -4,11 +4,11 @@
 import logging
 
 # internal dependencies
-from src.Interfaces.InvestingInterface import InvestingInterface
-from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
-from src.Controllers.StockChoiceController import StockChoiceController
-from src.Interfaces.AlpacaInterface import AlpacaInterface
-from src.Strategies.StockChoiceStrategies.StockChoiceStrategyEnum import StockChoiceStrategyEnum
+from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
+from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
+from investmentapp.src.Controllers.StockChoiceController import StockChoiceController
+from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
+from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategyEnum import StockChoiceStrategyEnum
 
 """
 InvestmentController

@@ -12,8 +12,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # m
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/investmentapp") # make investmentapp and common sub projects accessible
 
 # internal dependencies
-from server.controllers.PageServer import serveIndex
-from server.controllers.DataServer import getInvestmentData, \
+from webapp.server.controllers.PageServer import serveIndex
+from webapp.server.controllers.DataServer import getInvestmentData, \
     runInvestmentBalancer, getExcludeList, removeExcludeListItem, \
     addExcludeListItem
 from common import LoggingController

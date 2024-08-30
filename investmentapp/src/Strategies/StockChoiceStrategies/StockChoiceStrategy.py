@@ -6,8 +6,8 @@ from typing import Callable, List
 import logging
 
 # internal dependencies
-from src.Types.StockData import StockData
-from src.Interfaces.DatabaseInterface import DatabaseInterface
+from investmentapp.src.Types.StockData import StockData
+from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 
 
 """

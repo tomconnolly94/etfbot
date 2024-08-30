@@ -6,13 +6,13 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 # internal dependencies
-from src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
-from src.Types.StockData import StockData
+from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
+from investmentapp.src.Types.StockData import StockData
 
 class TestCustomWeightingStrategy(unittest.TestCase):
 
 
-    @mock.patch("src.Strategies.StockChoiceStrategies.StockChoiceStrategy.DatabaseInterface")
+    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy.DatabaseInterface")
     def test__getStockRange(self, DatabaseInterfaceMock):
         
         # configure fake data

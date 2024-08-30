@@ -5,8 +5,8 @@ import unittest
 import mock
 
 # internal dependencies
-from server.interfaces.StockPriceHistoryInterface import _buildGetPricesUrls, _parsePriceData
-from server.test.testUtilities import FakeFile
+from webapp.server.interfaces.StockPriceHistoryInterface import _buildGetPricesUrls, _parsePriceData
+from webapp.server.test.testUtilities import FakeFile
 
 
 class Test_StockPriceHistoryInterface(unittest.TestCase):

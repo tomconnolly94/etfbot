@@ -7,11 +7,11 @@ import unittest
 from unittest import mock
 from unittest.mock import MagicMock
 import numpy as np
-from src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import LinearWeightingStrategy
+from investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import LinearWeightingStrategy
 import random
 
 # internal dependencies
-from src.Types.StockData import StockData
+from investmentapp.src.Types.StockData import StockData
 
 class TestCustomWeightingStrategy(unittest.TestCase):
 
@@ -28,7 +28,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         return stockData
     
 
-    @mock.patch("src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
+    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
     def test__getSellOrders(self, AlpacaInterfaceMock):
        # configure fake data
         fakeOpenPositions = {
@@ -64,7 +64,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         self.assertTrue("F" in positionsToSell)
 
 
-    @mock.patch("src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
+    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
     def test__reorderStockDataListBasedOnExistingPositions(self, AlpacaInterfaceMock):
 
         # config mocks
@@ -100,7 +100,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
             self.assertEqual(expectedOrderedStockData.price, orderedStockDataList[i].price)
 
 
-    @mock.patch("src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
+    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface")
     def test__getBuyingQuantities(self, AlpacaInterfaceMock):
 
         # config mocks

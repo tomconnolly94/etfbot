@@ -8,7 +8,7 @@ import mock
 import random
 
 # internal dependencies
-from server.controllers.DataServer import _getLastYearDates, _normaliseValues, _getSPY500Data, _getCurrentHoldingsPerformanceData, _getPortfolioPerformanceData
+from webapp.server.controllers.DataServer import _getLastYearDates, _normaliseValues, _getSPY500Data, _getCurrentHoldingsPerformanceData, _getPortfolioPerformanceData
 
 
 class Test_DataServer(unittest.TestCase):
@@ -78,8 +78,8 @@ class Test_DataServer(unittest.TestCase):
 
 
 
-    @mock.patch("server.controllers.DataServer._normaliseValues")
-    @mock.patch("server.controllers.DataServer.getPricesForStockSymbols")
+    @mock.patch("webapp.server.controllers.DataServer._normaliseValues")
+    @mock.patch("webapp.server.controllers.DataServer.getPricesForStockSymbols")
     def test__getSPY500Data(self, getPricesForStockSymbolsMock, _normaliseValuesMock):
 
         # config fake data
@@ -103,9 +103,9 @@ class Test_DataServer(unittest.TestCase):
         self.assertEqual(expectedStockData["oneYearPrevValue"], stockData["oneYearPrevValue"])
     
     
-    @mock.patch("server.controllers.DataServer._normaliseValues")
-    @mock.patch("server.controllers.DataServer.getPricesForStockSymbols")
-    @mock.patch("server.controllers.DataServer.AlpacaInterface")
+    @mock.patch("webapp.server.controllers.DataServer._normaliseValues")
+    @mock.patch("webapp.server.controllers.DataServer.getPricesForStockSymbols")
+    @mock.patch("webapp.server.controllers.DataServer.AlpacaInterface")
     def test__getCurrentHoldingsPerformanceData(self, AlpacaInterfaceMock, getPricesForStockSymbolsMock, _normaliseValuesMock):
 
         # config fake data
@@ -131,9 +131,9 @@ class Test_DataServer(unittest.TestCase):
         self.assertEqual(expectedMonthPrevValue, stockData["oneMonthPrevValue"])
     
     
-    @mock.patch("server.controllers.DataServer._normaliseValues")
-    @mock.patch("server.controllers.DataServer.getPricesForStockSymbols")
-    @mock.patch("server.controllers.DataServer.DatabaseInterface")
+    @mock.patch("webapp.server.controllers.DataServer._normaliseValues")
+    @mock.patch("webapp.server.controllers.DataServer.getPricesForStockSymbols")
+    @mock.patch("webapp.server.controllers.DataServer.DatabaseInterface")
     def test__getPortfolioPerformanceData(self, DatabaseInterfaceMock, getPricesForStockSymbolsMock, _normaliseValuesMock):
 
         # config fake data

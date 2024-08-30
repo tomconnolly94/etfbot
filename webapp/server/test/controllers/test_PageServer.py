@@ -6,8 +6,8 @@ from flask.wrappers import Response
 import mock
 
 # internal dependencies
-from server.controllers.PageServer import serveCustomCssModule, serveCustomJsModule, serveIndex, serveNodeModule, serveNodeModuleMapModule
-from server.test.testUtilities import FakeFile
+from webapp.server.controllers.PageServer import serveCustomCssModule, serveCustomJsModule, serveIndex, serveNodeModule, serveNodeModuleMapModule
+from webapp.server.test.testUtilities import FakeFile
 
 
 class Test_PageServer(unittest.TestCase):

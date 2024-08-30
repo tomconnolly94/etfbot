@@ -5,7 +5,7 @@ import os
 from trading_ig.rest import IGService
 
 # internal dependencies
-# from src.Interfaces.InvestingInterface import InvestingInterface
+# from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
 
 
 """
