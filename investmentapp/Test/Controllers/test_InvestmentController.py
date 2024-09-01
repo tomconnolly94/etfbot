@@ -77,7 +77,7 @@ class TestInvestmentController(unittest.TestCase):
         # asserts
         AlpacaInterfaceMagicMock.getOpenPositions.assert_called()
         AlpacaInterfaceMagicMock.openOrdersExist.assert_called()
-        self.assertEqual(11, loggingMock.call_count)
+        self.assertEqual(12, loggingMock.call_count)
         AlpacaInterfaceMagicMock.getAvailableFunds.assert_called()
 
         AlpacaInterfaceMagicMock.sellStock.assert_has_calls([ 
@@ -96,6 +96,7 @@ class TestInvestmentController(unittest.TestCase):
         loggingMock.assert_has_calls([
             mock.call(f"Number of current positions held: {len(fakeOpenPositionsOriginal)}"),
             mock.call("Current positions - (symbol: index position) fakeOpenPosition1: 3, fakeOpenPosition2: 6, fakeOpenPosition3: 7"),
+            mock.call(f"Number of positions that can be sold {len(fakeSellOrders)}"),
             mock.call(f"Number of positions that will be closed: {len(fakeSellOrders)}"),
             mock.call("Sold 10 shares of fakeOpenPosition1 at 10"),
             mock.call("Sold 15 shares of fakeOpenPosition2 at 10"),
