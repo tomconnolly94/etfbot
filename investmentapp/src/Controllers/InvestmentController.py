@@ -47,6 +47,10 @@ class InvestmentController():
 
         # calculate positions to dump
         stockSymbolsToSell: 'list[str]' = stockChoiceStrategy.getSellOrders()
+        stockSymbolsToSellOriginalLength = len(stockSymbolsToSell)
+
+        stockSymbolsToSell = stockSymbolsToSell[:10]
+        logging.info(f"Number of positions that can be sold {stockSymbolsToSellOriginalLength}")
         logging.info(f"Number of positions that will be closed: {len(stockSymbolsToSell)}")
         
         # make sales
