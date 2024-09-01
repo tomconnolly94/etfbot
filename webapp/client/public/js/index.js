@@ -213,45 +213,73 @@ new Vue({
 		
 			return false;
 		},
-		buildChart: function(data) // translate this function to be vue compatible
+		getValuesOrderedByKeys: function(obj)
+		{
+			orderedValues = []
+			Object.keys(obj).sort()
+				.forEach(function(v, i) {
+					orderedValues.push(obj[v])
+				});
+			console.log(orderedValues)
+			return orderedValues;
+		},
+		buildChart: function(data)
 		{
 			vueComponent = this;
 			const yearPerformanceChartContainer = document.getElementById('yearPerformanceChart');
 			const monthPerformanceChartContainer = document.getElementById('monthPerformanceChart');
 			const labels = [];
-			const dataKeys = Object.keys(data["SPY500"]["values"]); // SPY500 is the most consistently available data
+			const dates = Object.keys(data["PortfolioPerformance"]["values"]); // SPY500 is the most consistently available data
 
-			for(let i = 0; i < dataKeys.length; i++)
+			for(let i = 0; i < 365; i++)
 			{
-				let dateParts = new Date(dataKeys[i]*1000).toUTCString().split(" ");
-				let date = `${dateParts[1]} ${dateParts[2]} ${dateParts[3]}`
+				// let dateParts = new Date(dataKeys[i]*1000).toUTCString().split(" ");
+				// let date = `${dateParts[1]} ${dateParts[2]} ${dateParts[3]}`
+				let date = dates[i];
 				labels.push(date);
+
+				// use the date to add empty fields to our data sets
+				if(!(date in data["SPY500"]["values"]))
+				{
+					data["SPY500"]["values"][date] = null;
+				}
+				if(!(date in data["CurrentHoldings"]["values"]))
+				{
+					data["CurrentHoldings"]["values"][date] = null;
+				}
 			}
+
 			const yearGraphData = {
 				labels: labels,
 				datasets: [
-					data["CurrentHoldings"] ? vueComponent.formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]["values"]), null, false, 'rgb(0, 255, 0)', 0.1) : {},
-					data["SPY500"] ? vueComponent.formatGraphData('SPY 500', Object.values(data["SPY500"]["values"]), null, false, 'rgb(255, 0, 0)', 0.1) : {},
-					data["PortfolioPerformance"] ? vueComponent.formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]["values"]), null, false, 'rgb(0, 0, 255)', 0.1) : {}
+					data["CurrentHoldings"] ? vueComponent.formatGraphData('Current holdings', this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), null, false, 'rgb(0, 255, 0)', 0.1) : {},
+					data["SPY500"] ? vueComponent.formatGraphData('SPY 500', this.getValuesOrderedByKeys(data["SPY500"]["values"]), null, false, 'rgb(255, 0, 0)', 0.1) : {},
+					data["PortfolioPerformance"] ? vueComponent.formatGraphData('Portfolio', this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), null, false, 'rgb(0, 0, 255)', 0.1) : {}
 				]
 			};
 
 			const monthGraphData = {
 				labels: vueComponent.getFinalThirtyEntries(labels),
 				datasets: [
-					data["CurrentHoldings"] ? vueComponent.formatGraphData('Current holdings', Object.values(data["CurrentHoldings"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1) : {},
-					data["SPY500"] ? vueComponent.formatGraphData('SPY 500', Object.values(data["SPY500"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1) : {},
-					data["PortfolioPerformance"] ? vueComponent.formatGraphData('Portfolio', Object.values(data["PortfolioPerformance"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1) : {}
+					data["CurrentHoldings"] ? vueComponent.formatGraphData('Current holdings', this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1) : {},
+					data["SPY500"] ? vueComponent.formatGraphData('SPY 500', this.getValuesOrderedByKeys(data["SPY500"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1) : {},
+					data["PortfolioPerformance"] ? vueComponent.formatGraphData('Portfolio', this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1) : {}
 				]
 			};
 
 			const yearConfig = {
 				type: 'line',
 				data: yearGraphData,
+				options: {
+					spanGaps: true
+				}
 			};
 			const monthConfig = {
 				type: 'line',
 				data: monthGraphData,
+				options: {
+					spanGaps: true
+				}
 			};
 
 

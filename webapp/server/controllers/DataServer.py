@@ -71,7 +71,6 @@ def getInvestmentData():
             continue
         returnableResults[key.name] = value
 
-
     return returnableResults
 
 
@@ -154,8 +153,14 @@ def _getSPY500Data():
     endValue = prices[sortedDates[len(prices) - 1]]
     oneMonthPrevValue = prices[sortedDates[len(sortedDates) - 31]]
     oneYearPrevValue = prices[sortedDates[len(sortedDates) - 365]]
+
+    # replace timestamps with dates
+    pricesWithDates={}
+    for timestamp, price in prices.items():
+        date = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+        pricesWithDates[date] = price
     
-    return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(prices)).toDict()
+    return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(pricesWithDates)).toDict()
 
 
 def _getSPY500DataThreadWrapper(results, threadId):
@@ -187,8 +192,14 @@ def _getCurrentHoldingsPerformanceData():
     endValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 1]]
     oneMonthPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 31]]
     oneYearPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 365]]
+
+    # replace timestamps with dates
+    portfolioHistoryTotalsWithDates={}
+    for timestamp, price in portfolioHistoryTotals.items():
+        date = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+        portfolioHistoryTotalsWithDates[date] = price
     
-    return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioHistoryTotals)).toDict()
+    return InvestmentData(endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(portfolioHistoryTotalsWithDates)).toDict()
 
 
 def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):

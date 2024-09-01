@@ -38,7 +38,8 @@ def getStockExchangesForStockSymbol(stockSymbol: str):
     
 def _buildGetPricesUrls(symbols):
     timestampNow = getTimestampNow()
-    timestampOneYearAgo = (datetime.datetime.now() - datetime.timedelta(weeks=52)).strftime("%s")
+    timestampOneYearAgo = (datetime.datetime.now() - datetime.timedelta(days=365)).strftime("%s")
+    logging.info(f"https://query2.finance.yahoo.com/v8/finance/chart/AAPL?period1={timestampOneYearAgo}&period2={timestampNow}&interval=1d&events=history")
     return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampOneYearAgo}&period2={timestampNow}&interval=1d&events=history" 
             for symbol in symbols ]
 
