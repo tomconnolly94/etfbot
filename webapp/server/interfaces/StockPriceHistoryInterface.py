@@ -2,14 +2,16 @@
 
 # external dependencies
 import datetime
+from dateutil import tz
 import aiohttp
 import asyncio
 import logging
 
 # internal dependencies
 
-def getTimestampNow():
-    return (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%s")
+def getTimestampForStartOfToday():
+    now = datetime.datetime.now()
+    return datetime.datetime(now.year, now.month, now.day, tzinfo=tz.tzutc()).strftime("%s")
 
 
 def getPricesForStockSymbols(symbols):
@@ -37,16 +39,15 @@ def getStockExchangesForStockSymbol(stockSymbol: str):
         logging.error(exception)
     
 def _buildGetPricesUrls(symbols):
-    timestampNow = getTimestampNow()
+    timestampStartOfToday = getTimestampForStartOfToday()
     timestampOneYearAgo = (datetime.datetime.now() - datetime.timedelta(days=365)).strftime("%s")
-    logging.info(f"https://query2.finance.yahoo.com/v8/finance/chart/AAPL?period1={timestampOneYearAgo}&period2={timestampNow}&interval=1d&events=history")
-    return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampOneYearAgo}&period2={timestampNow}&interval=1d&events=history" 
+    return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampOneYearAgo}&period2={timestampStartOfToday}&interval=1d&events=history" 
             for symbol in symbols ]
 
     
 def _buildGetCompanyNamesUrls(symbols):
-    timestampNow = getTimestampNow() # specifiying two "now" timestamps reduce the size of the returned data
-    return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampNow}&period2={timestampNow}" 
+    timestampStartOfToday = getTimestampForStartOfToday() # specifiying two "now" timestamps reduce the size of the returned data
+    return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampStartOfToday}&period2={timestampStartOfToday}" 
             for symbol in symbols ]
 
 
