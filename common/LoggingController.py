@@ -12,7 +12,7 @@ def getLogsDir():
     return os.getenv("LOGS_DIR") if os.getenv("LOGS_DIR") else os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
 
 
-def initLogging():
+def initLogging(forceStdoutLogging=False):
     """
     initLogging initialises the logging object to be used throughout the program, providing a logging file, format and date format
     :testedWith: None - library config code
@@ -23,15 +23,13 @@ def initLogging():
     logDateFormat = '%d-%b-%y %H:%M:%S'
     projectBaseDir = getLogsDir()
 
-    if os.getenv("ENVIRONMENT") == "production":
+    if os.getenv("ENVIRONMENT") == "production" and not forceStdoutLogging:
         logFilename = os.path.join(projectBaseDir, f"{programName}_{time.strftime('%d-%m-%Y_%H-%M')}.log")
         logging.basicConfig(filename=logFilename, filemode='w', format=logFormat, datefmt=logDateFormat, level=logging.INFO)
     else:
         logging.basicConfig(format=logFormat, datefmt=logDateFormat, level=logging.INFO)
 
-    # logging.debug('Logging initialised.')
-
-    logging.info(f"Logging initialised, mode: {os.getenv('ENVIRONMENT')}")
+    logging.info(f"Logging initialised, mode={os.getenv('ENVIRONMENT')} forceStdoutLogging={forceStdoutLogging}")
 
     return logging
 

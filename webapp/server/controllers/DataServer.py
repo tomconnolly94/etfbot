@@ -110,7 +110,6 @@ def runInvestmentBalancer():
 def getExcludeList():
     databaseInterface = DatabaseInterface()
     excludedStockRecords = list(databaseInterface.getExcludedStockRecords())
-    logging.info(excludedStockRecords)
     companyRecords = getCompanyNamesForStockSymbols([record[0] for record in excludedStockRecords])
     for index, companyNameRecord in enumerate(companyRecords):
         companyNameRecord["reason"] = excludedStockRecords[index][1]
@@ -175,9 +174,14 @@ def _getCurrentHoldingsPerformanceData():
     if not stockHistoryPrices:
         return {}
 
+    i = 0
     # combine prices of all held stocks for each date 
     for index, stock in enumerate(stockHistoryPrices):
         for date, price in stock.items():
+
+            if date > 1725318000 and date < 1725404400:
+                i = i+1
+                logging.info(f"date: {date}, price: {price}")
 
             if not price:
                 logging.error(f"Problem: could not retrieve price data for a stock: maybe stock: {list(stockSymbolList)[index]}, index: {index}, date: {date}, price: {price}")
@@ -188,6 +192,7 @@ def _getCurrentHoldingsPerformanceData():
 
             portfolioHistoryTotals[date] = price if price else 0 # initialise the dict on the first run
 
+    logging.info(f"count: {i}")
     sortedDates = sorted(portfolioHistoryTotals.keys())
     endValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 1]]
     oneMonthPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 31]]

@@ -27,8 +27,7 @@ investmentapp_dotenv_path = join("../investmentapp", '.env')
 load_dotenv(dotenv_path)
 load_dotenv(investmentapp_dotenv_path)
 
-
-LoggingController.initLogging()
+LoggingController.initLogging(forceStdoutLogging=True)
 
 logging.info(f"Program started.")
 
