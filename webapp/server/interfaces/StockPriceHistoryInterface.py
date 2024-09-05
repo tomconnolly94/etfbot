@@ -13,6 +13,10 @@ def getTimestampForStartOfToday():
     now = datetime.datetime.now()
     return datetime.datetime(now.year, now.month, now.day, tzinfo=tz.tzutc()).strftime("%s")
 
+def getTimestampForStartOfYesterday():
+    yday = datetime.datetime.now() - datetime.timedelta(days=1)    
+    return datetime.datetime(yday.year, yday.month, yday.day, tzinfo=tz.tzutc()).strftime("%s")
+
 
 def getPricesForStockSymbols(symbols):
     try:
@@ -41,12 +45,13 @@ def getStockExchangesForStockSymbol(stockSymbol: str):
 def _buildGetPricesUrls(symbols):
     timestampStartOfToday = getTimestampForStartOfToday()
     timestampOneYearAgo = (datetime.datetime.now() - datetime.timedelta(days=365)).strftime("%s")
+    logging.info(f"stock price query =https://query2.finance.yahoo.com/v8/finance/chart/<symbol>?period1={timestampOneYearAgo}&period2={timestampStartOfToday}&interval=1d&events=history")
     return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampOneYearAgo}&period2={timestampStartOfToday}&interval=1d&events=history" 
             for symbol in symbols ]
 
     
 def _buildGetCompanyNamesUrls(symbols):
-    timestampStartOfToday = getTimestampForStartOfToday() # specifiying two "now" timestamps reduce the size of the returned data
+    timestampStartOfToday = getTimestampForStartOfYesterday() # specifiying two "now" timestamps reduce the size of the returned data
     return [ f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}?period1={timestampStartOfToday}&period2={timestampStartOfToday}" 
             for symbol in symbols ]
 
@@ -63,7 +68,8 @@ def _parsePriceData(priceData):
         for index, label in enumerate(labels):
             dataDict[label] = values[index]
             if not values[index]:
-                logging.error(f"Error found in _parsePriceData, symbol: {baseObject['meta']['symbol']}")
+                logging.error(f"Error found in _parsePriceData, symbol={baseObject['meta']['symbol']} "
+                              f"index={index} lenValues={len(values)} values={values}")
         return dataDict
     except KeyError as exception:
         symbol = baseObject["meta"]["symbol"]
@@ -84,7 +90,7 @@ def _parseCompanyNameData(priceData):
         return {}
     
 def _parseStockExchangeData(priceData):
-
+    logging.error(3)
     try:
         return { 
             "symbol": priceData["chart"]["result"][0]["meta"]["symbol"],

@@ -18,7 +18,7 @@ def initLogging(forceStdoutLogging=False):
     :testedWith: None - library config code
     :return: the configured logging object
     """
-    logFormat = '%(asctime)s - %(levelname)s - %(message)s'
+    logFormat = '%(asctime)s - %(levelname)s %(filename)s:%(funcName)s:%(lineno)d - %(message)s'
     programName = "etfbot"
     logDateFormat = '%d-%b-%y %H:%M:%S'
     projectBaseDir = getLogsDir()

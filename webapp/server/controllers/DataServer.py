@@ -47,12 +47,12 @@ def getInvestmentData():
     threads = {}
     results = {
         DataGrabbingSources.SPY500: None,
-        DataGrabbingSources.CurrentHoldings: None,
+        # DataGrabbingSources.CurrentHoldings: None,
         DataGrabbingSources.PortfolioPerformance: None
     }
     dataGrabbingFunctions = {
         DataGrabbingSources.SPY500: _getSPY500DataThreadWrapper, 
-        DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper,
+        # DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper,
         DataGrabbingSources.PortfolioPerformance:  _getPortfolioPerformanceDataThreadWrapper
     }
 
@@ -174,17 +174,14 @@ def _getCurrentHoldingsPerformanceData():
     if not stockHistoryPrices:
         return {}
 
-    i = 0
     # combine prices of all held stocks for each date 
     for index, stock in enumerate(stockHistoryPrices):
         for date, price in stock.items():
 
-            if date > 1725318000 and date < 1725404400:
-                i = i+1
-                logging.info(f"date: {date}, price: {price}")
-
             if not price:
-                logging.error(f"Problem: could not retrieve price data for a stock: maybe stock: {list(stockSymbolList)[index]}, index: {index}, date: {date}, price: {price}")
+                logging.error(f"Problem: could not retrieve price data for "
+                              f"stock={list(stockSymbolList)[index]}, index={index} "
+                              f"date={date} price={price}")
             
             if date in portfolioHistoryTotals and price:
                 portfolioHistoryTotals[date] += price
@@ -192,7 +189,6 @@ def _getCurrentHoldingsPerformanceData():
 
             portfolioHistoryTotals[date] = price if price else 0 # initialise the dict on the first run
 
-    logging.info(f"count: {i}")
     sortedDates = sorted(portfolioHistoryTotals.keys())
     endValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 1]]
     oneMonthPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 31]]

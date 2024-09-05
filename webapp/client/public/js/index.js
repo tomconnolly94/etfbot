@@ -220,7 +220,6 @@ new Vue({
 				.forEach(function(v, i) {
 					orderedValues.push(obj[v])
 				});
-			console.log(orderedValues)
 			return orderedValues;
 		},
 		buildChart: function(data)
@@ -243,29 +242,33 @@ new Vue({
 				{
 					data["SPY500"]["values"][date] = null;
 				}
-				if(!(date in data["CurrentHoldings"]["values"]))
-				{
-					data["CurrentHoldings"]["values"][date] = null;
+				if("CurrentHoldings" in data){
+					if(!(date in data["CurrentHoldings"]["values"]))
+					{
+						data["CurrentHoldings"]["values"][date] = null;
+						console.log(`data["CurrentHoldings"]["values"][${date}] = null`)
+					}
 				}
 			}
 
 			const yearGraphData = {
 				labels: labels,
-				datasets: [
-					data["CurrentHoldings"] ? vueComponent.formatGraphData('Current holdings', this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), null, false, 'rgb(0, 255, 0)', 0.1) : {},
-					data["SPY500"] ? vueComponent.formatGraphData('SPY 500', this.getValuesOrderedByKeys(data["SPY500"]["values"]), null, false, 'rgb(255, 0, 0)', 0.1) : {},
-					data["PortfolioPerformance"] ? vueComponent.formatGraphData('Portfolio', this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), null, false, 'rgb(0, 0, 255)', 0.1) : {}
-				]
+				datasets: []
 			};
+
+			if("CurrentHoldings" in data) yearGraphData.datasets.push(vueComponent.formatGraphData('Current holdings', this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), null, false, 'rgb(255, 0, 0)', 0.1))
+			if("SPY500" in data) yearGraphData.datasets.push(vueComponent.formatGraphData('SPY 500', this.getValuesOrderedByKeys(data["SPY500"]["values"]), null, false, 'rgb(0, 255, 0)', 0.1))
+			if("PortfolioPerformance" in data) yearGraphData.datasets.push(vueComponent.formatGraphData('Portfolio', this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), null, false, 'rgb(0, 0, 255)', 0.1))
 
 			const monthGraphData = {
 				labels: vueComponent.getFinalThirtyEntries(labels),
-				datasets: [
-					data["CurrentHoldings"] ? vueComponent.formatGraphData('Current holdings', this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1) : {},
-					data["SPY500"] ? vueComponent.formatGraphData('SPY 500', this.getValuesOrderedByKeys(data["SPY500"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1) : {},
-					data["PortfolioPerformance"] ? vueComponent.formatGraphData('Portfolio', this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1) : {}
-				]
+				datasets: []
 			};
+			
+			if("CurrentHoldings" in data) monthGraphData.datasets.push(vueComponent.formatGraphData('Current holdings', this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1))
+			if("SPY500" in data) monthGraphData.datasets.push(vueComponent.formatGraphData('SPY 500', this.getValuesOrderedByKeys(data["SPY500"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1))
+			if("PortfolioPerformance" in data) monthGraphData.datasets.push(vueComponent.formatGraphData('Portfolio', this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1))
+	
 
 			const yearConfig = {
 				type: 'line',
@@ -334,9 +337,14 @@ new Vue({
 			let SPY500OneMonthPrevValue = data["SPY500"].oneMonthPrevValue ? (data["SPY500"].oneMonthPrevValue).toFixed(1) : "N/A";
 			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", SPY500OneMonthPrevValue, SPY500CurrentValue));
 
-			let currentHoldingsCurrentValue = data["CurrentHoldings"].currentValue ? (data["CurrentHoldings"].currentValue).toFixed(1) : "N/A";
-			let currentHoldingsOneMonthPrevValue = data["CurrentHoldings"].oneMonthPrevValue ? (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1) : "N/A";
-			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", currentHoldingsOneMonthPrevValue, currentHoldingsCurrentValue));
+			let currentHoldingsCurrentValue;
+			let currentHoldingsOneMonthPrevValue;
+
+			if("CurrentHoldings" in data){
+				currentHoldingsCurrentValue = data["CurrentHoldings"].currentValue ? (data["CurrentHoldings"].currentValue).toFixed(1) : "N/A";
+				currentHoldingsOneMonthPrevValue = data["CurrentHoldings"].oneMonthPrevValue ? (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1) : "N/A";
+				vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", currentHoldingsOneMonthPrevValue, currentHoldingsCurrentValue));
+			}
 
 			let portfolioPerformanceCurrentValue = data["PortfolioPerformance"].currentValue ? (data["PortfolioPerformance"].currentValue).toFixed(1) : "N/A";
 			let portfolioPerformanceOneMonthPrevValue = data["PortfolioPerformance"].oneMonthPrevValue ? (data["PortfolioPerformance"].oneMonthPrevValue).toFixed(1) : "N/A";
@@ -347,9 +355,10 @@ new Vue({
 			let SPY500OneYearPrevValue = data["SPY500"].oneYearPrevValue ? (data["SPY500"].oneYearPrevValue).toFixed(1) : "N/A";
 			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", SPY500OneYearPrevValue, SPY500CurrentValue));
 
-			let currentHoldingsOneYearPrevValue = data["CurrentHoldings"].oneYearPrevValue ? (data["CurrentHoldings"].oneYearPrevValue).toFixed(1) : "N/A";
-			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", currentHoldingsOneYearPrevValue, currentHoldingsCurrentValue));
-
+			if("CurrentHoldings" in data){
+				let currentHoldingsOneYearPrevValue = data["CurrentHoldings"].oneYearPrevValue ? (data["CurrentHoldings"].oneYearPrevValue).toFixed(1) : "N/A";
+				vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", currentHoldingsOneYearPrevValue, currentHoldingsCurrentValue));
+			}
 			let portfolioPerformanceOneYearPrevValue = data["PortfolioPerformance"].oneYearPrevValue ? (data["PortfolioPerformance"].oneYearPrevValue).toFixed(1) : "N/A";
 			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", portfolioPerformanceOneYearPrevValue, portfolioPerformanceCurrentValue));
 		})
