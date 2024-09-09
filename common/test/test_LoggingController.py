@@ -5,7 +5,7 @@ import unittest
 import mock
 
 # internal dependencies
-from webapp.server.controllers.LoggingController import (
+from common.LoggingController import (
     listExistingLogFiles,
     getLatestLogContent,
 )
@@ -16,7 +16,7 @@ class Test_LoggingController(unittest.TestCase):
 
     @mock.patch("os.path.isfile")
     @mock.patch("os.listdir")
-    @mock.patch("webapp.server.controllers.LoggingController.getLogsDir")
+    @mock.patch("common.LoggingController.getLogsDir")
     def test_listExistingLogFiles(self, getLogsDirMock, listdirMock, isfileMock):
 
         # config mocks
@@ -41,7 +41,7 @@ class Test_LoggingController(unittest.TestCase):
         self.assertEqual(expectedExistingLogFiles, existingLogFiles)
 
     @mock.patch("builtins.open", create=True)
-    @mock.patch("webapp.server.controllers.LoggingController.listExistingLogFiles")
+    @mock.patch("common.LoggingController.listExistingLogFiles")
     def test_listExistingLogFiles(self, listExistingLogFilesMock, openMock):
 
         # config mocks

@@ -15,7 +15,7 @@ if __name__ == "__main__":  # horrible but just for testing
     sys.path.append(
         "/home/tom/projects/etfbot"
     )  # makes investmentapp accessible (during file run)
-from webapp.server.controllers.LoggingController import getLatestLogContent
+from common.LoggingController import getLatestLogContent
 
 
 class MailInterface:
