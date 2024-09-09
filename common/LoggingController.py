@@ -63,14 +63,14 @@ def listExistingLogFiles():
 
     # sort log files by date
     def sortLogFileNames(logFileName):
-        # e.g. log file name: etfbot_22-08-2024_18-45.log
-        regexPattern = r"etfbot.*_(\d{2})-(\d{2})-(\d{4})_(\d{2})-(\d{2})\.log"
+        # e.g. log file name: etfbot-Main_2024-09-09-20-00.log
+        regexPattern = r"etfbot.*_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})\.log"
         result = re.search(regexPattern, logFileName)
         if result:
             return datetime.datetime(
-                int(result.group(3)),
-                int(result.group(2)),
                 int(result.group(1)),
+                int(result.group(2)),
+                int(result.group(3)),
                 int(result.group(4)),
                 int(result.group(5)),
             ).timestamp()
