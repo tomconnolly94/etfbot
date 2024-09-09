@@ -56,9 +56,13 @@ def initLogging(forceStdoutLogging=False):
 
 
 def listExistingLogFiles():
+
+    regexPattern = r"etfbot.*_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})\.log"
     logsDir = getLogsDir()
     logFiles = [
-        f for f in os.listdir(logsDir) if os.path.isfile(os.path.join(logsDir, f))
+        f
+        for f in os.listdir(logsDir)
+        if os.path.isfile(os.path.join(logsDir, f)) and re.search(regexPattern, f)
     ]
 
     # sort log files by date
