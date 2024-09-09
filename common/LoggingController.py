@@ -31,7 +31,7 @@ def initLogging(forceStdoutLogging=False):
     )
     logDateFormat = "%d-%b-%y %H:%M:%S"
     frameInfo = inspect.getframeinfo(sys._getframe(1))
-    programName += f"etfbot-{frameInfo.filename.split('/')[-1].replace('.py', '')}"
+    programName = f"etfbot-{frameInfo.filename.split('/')[-1].replace('.py', '')}"
     projectBaseDir = getLogsDir()
 
     if os.getenv("ENVIRONMENT") == "production" and not forceStdoutLogging:
