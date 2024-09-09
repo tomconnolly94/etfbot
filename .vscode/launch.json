@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "etbot - Main",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "Main",
             "justMyCode": true,

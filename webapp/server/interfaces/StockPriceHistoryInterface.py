@@ -92,7 +92,7 @@ def _parseCompanyNameData(priceData):
 def _parseStockExchangeData(priceData):
     logging.error(3)
     try:
-        return { 
+        return {
             "symbol": priceData["chart"]["result"][0]["meta"]["symbol"],
             "stockExchange": priceData["chart"]["result"][0]["meta"]["fullExchangeName"]
         }

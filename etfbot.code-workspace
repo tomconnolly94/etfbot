@@ -3,5 +3,12 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"notebook.defaultFormatter": null,
+		"editor.defaultFormatter": "ms-python.black-formatter",
+		"python.analysis.autoFormatStrings": true,
+		"editor.formatOnSave": true,
+		"notebook.formatOnSave.enabled": true
+	}
 }

@@ -256,18 +256,77 @@ new Vue({
 				datasets: []
 			};
 
-			if("CurrentHoldings" in data) yearGraphData.datasets.push(vueComponent.formatGraphData('Current holdings', this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), null, false, 'rgb(255, 0, 0)', 0.1))
-			if("SPY500" in data) yearGraphData.datasets.push(vueComponent.formatGraphData('SPY 500', this.getValuesOrderedByKeys(data["SPY500"]["values"]), null, false, 'rgb(0, 255, 0)', 0.1))
-			if("PortfolioPerformance" in data) yearGraphData.datasets.push(vueComponent.formatGraphData('Portfolio', this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), null, false, 'rgb(0, 0, 255)', 0.1))
+			if("CurrentHoldings" in data) 
+				yearGraphData.datasets.push(
+					vueComponent.formatGraphData(
+						'Current holdings', 
+						this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), 
+						null, 
+						false, 
+						'rgb(255, 0, 0)', 
+						0.1
+					)
+				)
+			if("SPY500" in data) 
+				yearGraphData.datasets.push(
+					vueComponent.formatGraphData(
+						'SPY 500', 
+						this.getValuesOrderedByKeys(data["SPY500"]["values"]), 
+						null, 
+						false, 
+						'rgb(0, 255, 0)', 
+						0.1
+					)
+				)
+			if("PortfolioPerformance" in data) 
+				yearGraphData.datasets.push(
+					vueComponent.formatGraphData(
+						'Portfolio', 
+						this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), 
+						null, 
+						false, 
+						'rgb(0, 0, 255)', 
+						0.1
+					)
+				)
 
 			const monthGraphData = {
 				labels: vueComponent.getFinalThirtyEntries(labels),
 				datasets: []
 			};
 			
-			if("CurrentHoldings" in data) monthGraphData.datasets.push(vueComponent.formatGraphData('Current holdings', this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(255, 0, 0)', 0.1))
-			if("SPY500" in data) monthGraphData.datasets.push(vueComponent.formatGraphData('SPY 500', this.getValuesOrderedByKeys(data["SPY500"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 255, 0)', 0.1))
-			if("PortfolioPerformance" in data) monthGraphData.datasets.push(vueComponent.formatGraphData('Portfolio', this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), vueComponent.getFinalThirtyEntries, false, 'rgb(0, 0, 255)', 0.1))
+			if("CurrentHoldings" in data) 
+				monthGraphData.datasets.push(
+					vueComponent.formatGraphData(
+						'Current holdings', 
+						this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), 
+						vueComponent.getFinalThirtyEntries, 
+						false, 
+						'rgb(255, 0, 0)', 0.1
+					)
+				)
+			if("SPY500" in data)
+				monthGraphData.datasets.push(
+					vueComponent.formatGraphData(
+						'SPY 500', 
+						this.getValuesOrderedByKeys(data["SPY500"]["values"]), 
+						vueComponent.getFinalThirtyEntries, 
+						false, 
+						'rgb(0, 255, 0)', 
+						0.1
+					)
+				)
+			if("PortfolioPerformance" in data)
+				monthGraphData.datasets.push(
+					vueComponent.formatGraphData(
+						'Portfolio', 
+						this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]),
+						vueComponent.getFinalThirtyEntries, 
+						false, 
+						'rgb(0, 0, 255)', 
+						0.1
+					)
+				)
 	
 
 			const yearConfig = {

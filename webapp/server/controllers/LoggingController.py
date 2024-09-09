@@ -1,6 +1,6 @@
 #!/venv/bin/python
 
-# external dependencies 
+# external dependencies
 import os
 import logging
 import time
@@ -9,7 +9,13 @@ import re
 
 
 def getLogsDir():
-    return os.getenv("LOGS_DIR") if os.getenv("LOGS_DIR") else os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs")
+    return (
+        os.getenv("LOGS_DIR")
+        if os.getenv("LOGS_DIR")
+        else os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "logs"
+        )
+    )
 
 
 def initLogging():
@@ -18,14 +24,22 @@ def initLogging():
     :testedWith: None - library config code
     :return: the configured logging object
     """
-    logFormat = '%(asctime)s - %(levelname)s - %(message)s'
+    logFormat = "%(asctime)s - %(levelname)s - %(message)s"
     programName = "etfbot"
-    logDateFormat = '%d-%b-%y %H:%M:%S'
+    logDateFormat = "%d-%b-%y %H:%M:%S"
     projectBaseDir = getLogsDir()
 
     if os.getenv("ENVIRONMENT") == "production":
-        logFilename = os.path.join(projectBaseDir, f"{programName}_{time.strftime('%d-%m-%Y_%H-%M')}.log")
-        logging.basicConfig(filename=logFilename, filemode='w', format=logFormat, datefmt=logDateFormat, level=logging.INFO)
+        logFilename = os.path.join(
+            projectBaseDir, f"{programName}_{time.strftime('%d-%m-%Y_%H-%M')}.log"
+        )
+        logging.basicConfig(
+            filename=logFilename,
+            filemode="w",
+            format=logFormat,
+            datefmt=logDateFormat,
+            level=logging.INFO,
+        )
     else:
         logging.basicConfig(format=logFormat, datefmt=logDateFormat, level=logging.INFO)
 
@@ -38,7 +52,9 @@ def initLogging():
 
 def listExistingLogFiles():
     logsDir = getLogsDir()
-    logFiles = [f for f in os.listdir(logsDir) if os.path.isfile(os.path.join(logsDir, f))]
+    logFiles = [
+        f for f in os.listdir(logsDir) if os.path.isfile(os.path.join(logsDir, f))
+    ]
 
     # sort log files by date
     def sortLogFileNames(logFileName):
@@ -51,12 +67,13 @@ def listExistingLogFiles():
                 int(result.group(2)),
                 int(result.group(1)),
                 int(result.group(4)),
-                int(result.group(5))
+                int(result.group(5)),
             ).timestamp()
 
     return sorted(logFiles, key=sortLogFileNames, reverse=True)
 
+
 def getLatestLogContent():
     latestLogFilePath = listExistingLogFiles()[0]
-    with open(os.path.join(getLogsDir(), latestLogFilePath),'r') as latestLogFile:
+    with open(os.path.join(getLogsDir(), latestLogFilePath), "r") as latestLogFile:
         return latestLogFile.read()
