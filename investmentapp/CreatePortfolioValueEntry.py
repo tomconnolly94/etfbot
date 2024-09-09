@@ -7,7 +7,9 @@ import sys, os
 
 
 # internal dependencies
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # make webapp and common sub projects accessible
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)  # make webapp and common sub projects accessible
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 from common import LoggingController
@@ -31,5 +33,5 @@ def main():
     databaseInterface.addTodaysPortfolioValue(portfolioValue)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

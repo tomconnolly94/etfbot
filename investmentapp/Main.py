@@ -6,10 +6,13 @@ import logging
 import sys, os
 
 # internal dependencies
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # make webapp and common sub projects accessible
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)  # make webapp and common sub projects accessible
 from common import LoggingController
 from investmentapp.src.Controllers.InvestmentController import InvestmentController
 from investmentapp.src.Interfaces.MailInterface import MailInterface
+
 
 def main():
 
@@ -33,5 +36,6 @@ def main():
     # send email notification with the log and any unhandled exceptions
     MailInterface().sendInvestmentAppSummaryMail(success=False if errorString else True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

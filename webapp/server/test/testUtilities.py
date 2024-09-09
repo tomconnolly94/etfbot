@@ -6,7 +6,7 @@
 # internal dependencies
 
 
-class FakeFile():
+class FakeFile:
 
     fileContent = ""
 

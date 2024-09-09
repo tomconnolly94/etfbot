@@ -8,22 +8,30 @@ import json
 import os, sys
 import logging
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # make investmentapp and common sub projects accessible
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/investmentapp") # make investmentapp and common sub projects accessible
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)  # make investmentapp and common sub projects accessible
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/investmentapp"
+)  # make investmentapp and common sub projects accessible
 
 # internal dependencies
 from webapp.server.controllers.PageServer import serveIndex
-from webapp.server.controllers.DataServer import getInvestmentData, \
-    runInvestmentBalancer, getExcludeList, removeExcludeListItem, \
-    addExcludeListItem
+from webapp.server.controllers.DataServer import (
+    getInvestmentData,
+    runInvestmentBalancer,
+    getExcludeList,
+    removeExcludeListItem,
+    addExcludeListItem,
+)
 from common import LoggingController
 
-#create app
+# create app
 app = Flask(__name__, template_folder="client")
 
 # load env file
-dotenv_path = join(dirname(__file__), '.env')
-investmentapp_dotenv_path = join("../investmentapp", '.env')
+dotenv_path = join(dirname(__file__), ".env")
+investmentapp_dotenv_path = join("../investmentapp", ".env")
 load_dotenv(dotenv_path)
 load_dotenv(investmentapp_dotenv_path)
 
@@ -31,8 +39,9 @@ LoggingController.initLogging(forceStdoutLogging=True)
 
 logging.info(f"Program started.")
 
+
 def getResponse(errorCode, message, mimetype="text/html"):
-    return Response(message, status=errorCode, mimetype=mimetype) 
+    return Response(message, status=errorCode, mimetype=mimetype)
 
 
 @app.route("/", methods=["GET"])
@@ -42,43 +51,43 @@ def index():
 
 @app.route("/favicon.ico", methods=["GET"])
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'client/images'),
-                          'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(
+        os.path.join(app.root_path, "client/images"),
+        "favicon.ico",
+        mimetype="image/vnd.microsoft.icon",
+    )
 
 
 @app.route("/getInvestmentPerformanceData", methods=["GET"])
 def getInvestmentPerformanceData():
-        return getInvestmentData()
+    return getInvestmentData()
 
 
-@app.route('/runInvestmentBalancer', methods=["GET"])
+@app.route("/runInvestmentBalancer", methods=["GET"])
 def mediaGrab():
     logs = runInvestmentBalancer()
     if logs:
-        returnData = { 
-            "message": "investment app run successful",
-            "logs": logs
-        }
+        returnData = {"message": "investment app run successful", "logs": logs}
         logging.info(returnData)
-        return getResponse(200, json.dumps(returnData), "application/json") 
+        return getResponse(200, json.dumps(returnData), "application/json")
     else:
-        return getResponse(500, "investment app run failed") 
+        return getResponse(500, "investment app run failed")
 
 
 @app.route("/excludeList/<stockSymbol>", methods=["POST", "DELETE"])
 def excludeListItem(stockSymbol):
     try:
-        if request.method == 'DELETE':
+        if request.method == "DELETE":
             if removeExcludeListItem(stockSymbol):
-                return getResponse(200, "ExcludeList item deleted successfully") 
+                return getResponse(200, "ExcludeList item deleted successfully")
             else:
-                return getResponse(500, "ExcludeList item failed to delete") 
-        elif request.method == 'POST':
+                return getResponse(500, "ExcludeList item failed to delete")
+        elif request.method == "POST":
             excludeReason = request.args["reason"]
             if addExcludeListItem(stockSymbol, excludeReason):
-                return getResponse(200, "ExcludeList item added successfully") 
+                return getResponse(200, "ExcludeList item added successfully")
             else:
-                return getResponse(500, "ExcludeList item failed to add") 
+                return getResponse(500, "ExcludeList item failed to add")
         else:
             return getResponse(405, "Method Not Allowed")
     except Exception as exception:

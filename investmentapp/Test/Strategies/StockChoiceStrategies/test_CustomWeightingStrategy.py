@@ -7,10 +7,13 @@ import unittest
 from unittest import mock
 from unittest.mock import MagicMock
 import numpy as np
-from investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy import CustomWeightingStrategy
+from investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy import (
+    CustomWeightingStrategy,
+)
 
 # internal dependencies
 from investmentapp.src.Types.StockData import StockData
+
 
 class TestCustomWeightingStrategy(unittest.TestCase):
 
@@ -18,28 +21,44 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         stockData = []
 
-        with open("investmentapp/Test/TestData/StockDataListRandomPrice.json", "r") as read_file:
+        with open(
+            "investmentapp/Test/TestData/StockDataListRandomPrice.json", "r"
+        ) as read_file:
             stockDataRaw = json.load(read_file)
 
             for item in stockDataRaw:
                 stockData.append(StockData(item["symbol"], item["price"]))
-        
+
         return stockData
 
-    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface")
-    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getBuyingQuantities")
-    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._generateStockWeightsBasedOnValue")
-    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getStockRangeIdeal")
-    def test_getStockOrderNumbers(self, _getStockRangeIdealMock, _generateStockWeightsBasedOnValueMock, _getBuyingQuantitiesMock, AlpacaInterfaceMock):
+    @mock.patch(
+        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface"
+    )
+    @mock.patch(
+        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getBuyingQuantities"
+    )
+    @mock.patch(
+        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._generateStockWeightsBasedOnValue"
+    )
+    @mock.patch(
+        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getStockRangeIdeal"
+    )
+    def test_getStockOrderNumbers(
+        self,
+        _getStockRangeIdealMock,
+        _generateStockWeightsBasedOnValueMock,
+        _getBuyingQuantitiesMock,
+        AlpacaInterfaceMock,
+    ):
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
         AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
-        
+
         # configure fake data
         fakeStockWeights = {"fakeStockWeight": 1}
         fakeStockOrderNumbers = {"fakeStockWeight": 1}
-        fakeStockDataList = [ "fakeStockData1", "fakeStockData2" ]
+        fakeStockDataList = ["fakeStockData1", "fakeStockData2"]
         fakeAvailableFunds = 100
 
         # configure mocks
@@ -48,16 +67,21 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         _getBuyingQuantitiesMock.return_value = fakeStockOrderNumbers
 
         # run testable function
-        actualStockOrderNumbers = CustomWeightingStrategy().getBuyOrders(fakeAvailableFunds)
+        actualStockOrderNumbers = CustomWeightingStrategy().getBuyOrders(
+            fakeAvailableFunds
+        )
 
         # asserts
         self.assertEqual(fakeStockOrderNumbers, actualStockOrderNumbers)
         _getStockRangeIdealMock.assert_called()
         _generateStockWeightsBasedOnValueMock.assert_called_with(fakeStockDataList)
-        _getBuyingQuantitiesMock.assert_called_with(fakeAvailableFunds, fakeStockWeights)
+        _getBuyingQuantitiesMock.assert_called_with(
+            fakeAvailableFunds, fakeStockWeights
+        )
 
-
-    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface")
+    @mock.patch(
+        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface"
+    )
     def test__getStockWeightBasedOnListIndex(self, AlpacaInterfaceMock):
 
         # config mocks
@@ -68,10 +92,10 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(0, 100)
         self.assertEqual(3.2, stockWeight)
-        
+
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(1, 100)
         self.assertEqual(3.2, stockWeight)
-        
+
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(10, 100)
         self.assertEqual(2.2, stockWeight)
 
@@ -80,21 +104,22 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(20, 100)
         self.assertEqual(1.4, stockWeight)
-        
+
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(4, 10)
         self.assertEqual(8, stockWeight)
-        
+
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(6, 10)
         self.assertEqual(4, stockWeight)
 
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(1, 10)
         self.assertEqual(22, stockWeight)
-        
+
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(1, 20)
         self.assertEqual(16, stockWeight)
 
-
-    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface")
+    @mock.patch(
+        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface"
+    )
     def test__generateStockWeightsBasedOnValue(self, AlpacaInterfaceMock):
 
         # config mocks
@@ -104,7 +129,9 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         stockData = self._loadStockData()
 
-        stockWeights = customWeightingStrategy._generateStockWeightsBasedOnValue(stockData)
+        stockWeights = customWeightingStrategy._generateStockWeightsBasedOnValue(
+            stockData
+        )
 
         stockWeightTotal = 0
 
@@ -113,8 +140,9 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         self.assertEqual(100, round(stockWeightTotal))
 
-
-    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface")
+    @mock.patch(
+        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface"
+    )
     def test__getBuyingQuantities(self, AlpacaInterfaceMock):
 
         # config mocks
@@ -122,42 +150,51 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
         customWeightingStrategy = CustomWeightingStrategy()
 
-        # inputs 
+        # inputs
         funds = 100
-        stockDataList = sorted([
-            StockData("0-10%", 12, 30),
-            StockData("11-20%", 7, 20), # 50
-            StockData("21-30%", 5, 15), # 65
-            StockData("31-40%", 4, 12), # 77
-            StockData("41-50%", 3.5, 8),# 85
-            StockData("51-60%", 3, 6),  # 91
-            StockData("61-70%", 2, 4),  # 95
-            StockData("71-80%", 1, 3),  # 98
-            StockData("81-90%", 0.5, 1),# 99
-            StockData("91-100%", 0.2, 1) # 100
-        ], key=lambda stockData: -stockData.price)
+        stockDataList = sorted(
+            [
+                StockData("0-10%", 12, 30),
+                StockData("11-20%", 7, 20),  # 50
+                StockData("21-30%", 5, 15),  # 65
+                StockData("31-40%", 4, 12),  # 77
+                StockData("41-50%", 3.5, 8),  # 85
+                StockData("51-60%", 3, 6),  # 91
+                StockData("61-70%", 2, 4),  # 95
+                StockData("71-80%", 1, 3),  # 98
+                StockData("81-90%", 0.5, 1),  # 99
+                StockData("91-100%", 0.2, 1),  # 100
+            ],
+            key=lambda stockData: -stockData.price,
+        )
 
-        numberOfSharesToBuy = customWeightingStrategy._getBuyingQuantities(funds, stockDataList)
+        numberOfSharesToBuy = customWeightingStrategy._getBuyingQuantities(
+            funds, stockDataList
+        )
 
-        self.assertEqual(3, numberOfSharesToBuy["0-10%"]) #    28   2
-        self.assertEqual(2, numberOfSharesToBuy["11-20%"]) # 12 40   8 extra
-        self.assertEqual(3, numberOfSharesToBuy["21-30%"]) # 14 54   1
-        self.assertEqual(3, numberOfSharesToBuy["31-40%"]) # 10 64   2
-        self.assertEqual(2, numberOfSharesToBuy["41-50%"]) #  6 70   2
-        self.assertEqual(2, numberOfSharesToBuy["51-60%"]) #  6 76   0
-        self.assertEqual(2, numberOfSharesToBuy["61-70%"]) #3.5 79.5 .5 extra
-        self.assertEqual(4, numberOfSharesToBuy["71-80%"]) #  3 82.5 0 
-        self.assertEqual(2, numberOfSharesToBuy["81-90%"]) #  1 83.5 0
-        self.assertEqual(5, numberOfSharesToBuy["91-100%"]) #  1 84.5 0
-                                                # leftover: 15.5
-
+        self.assertEqual(3, numberOfSharesToBuy["0-10%"])  #    28   2
+        self.assertEqual(2, numberOfSharesToBuy["11-20%"])  # 12 40   8 extra
+        self.assertEqual(3, numberOfSharesToBuy["21-30%"])  # 14 54   1
+        self.assertEqual(3, numberOfSharesToBuy["31-40%"])  # 10 64   2
+        self.assertEqual(2, numberOfSharesToBuy["41-50%"])  #  6 70   2
+        self.assertEqual(2, numberOfSharesToBuy["51-60%"])  #  6 76   0
+        self.assertEqual(2, numberOfSharesToBuy["61-70%"])  # 3.5 79.5 .5 extra
+        self.assertEqual(4, numberOfSharesToBuy["71-80%"])  #  3 82.5 0
+        self.assertEqual(2, numberOfSharesToBuy["81-90%"])  #  1 83.5 0
+        self.assertEqual(5, numberOfSharesToBuy["91-100%"])  #  1 84.5 0
+        # leftover: 15.5
 
         # show bar graph of investment weights
         objects = numberOfSharesToBuy.keys()
         y_pos = np.arange(len(stockDataList))
-        value = [stockData.price * numberOfSharesToBuy[stockData.symbol] for stockData in stockDataList]
-        numSharesPerStock = [numberOfSharesToBuy[stockData.symbol] for stockData in stockDataList]
-        
+        value = [
+            stockData.price * numberOfSharesToBuy[stockData.symbol]
+            for stockData in stockDataList
+        ]
+        numSharesPerStock = [
+            numberOfSharesToBuy[stockData.symbol] for stockData in stockDataList
+        ]
+
         # draw graph
         # plt.rcdefaults()
         # plt.bar(y_pos, value, align='center', alpha=0.5)
@@ -178,6 +215,5 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         # plt.close()
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

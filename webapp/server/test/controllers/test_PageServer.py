@@ -6,7 +6,13 @@ from flask.wrappers import Response
 import mock
 
 # internal dependencies
-from webapp.server.controllers.PageServer import serveCustomCssModule, serveCustomJsModule, serveIndex, serveNodeModule, serveNodeModuleMapModule
+from webapp.server.controllers.PageServer import (
+    serveCustomCssModule,
+    serveCustomJsModule,
+    serveIndex,
+    serveNodeModule,
+    serveNodeModuleMapModule,
+)
 from webapp.server.test.testUtilities import FakeFile
 
 
@@ -25,7 +31,6 @@ class Test_PageServer(unittest.TestCase):
 
         self.assertEqual(fakeFileContent, content)
 
-
     @mock.patch("builtins.open", create=True)
     def test_serveNodeModule(self, openMock):
 
@@ -42,8 +47,9 @@ class Test_PageServer(unittest.TestCase):
         self.assertEqual([fakeFileContent], actualResponse.response)
         self.assertEqual("200 OK", actualResponse.status)
         self.assertEqual("text/javascript", actualResponse.mimetype)
-        openMock.assert_called_with(f"client/node_modules/{fakeModuleName}/dist/{fakeModuleNameJS}", "r")
-
+        openMock.assert_called_with(
+            f"client/node_modules/{fakeModuleName}/dist/{fakeModuleNameJS}", "r"
+        )
 
     @mock.patch("builtins.open", create=True)
     def test_serveCustomCssModule(self, openMock):
@@ -62,7 +68,6 @@ class Test_PageServer(unittest.TestCase):
         self.assertEqual("200 OK", actualResponse.status)
         self.assertEqual("text/css", actualResponse.mimetype)
         openMock.assert_called_with(f"client/css/{fakeModuleNameCSS}", "r")
-        
 
     @mock.patch("builtins.open", create=True)
     def test_serveCustomJsModule(self, openMock):
@@ -82,7 +87,6 @@ class Test_PageServer(unittest.TestCase):
         self.assertEqual("text/javascript", actualResponse.mimetype)
         openMock.assert_called_with(f"client/js/{fakeModuleNameJS}", "r")
 
-
     @mock.patch("builtins.open", create=True)
     def test_serveNodeModuleMapModule(self, openMock):
 
@@ -101,4 +105,6 @@ class Test_PageServer(unittest.TestCase):
         self.assertEqual([fakeFileContent], actualResponse.response)
         self.assertEqual("200 OK", actualResponse.status)
         self.assertEqual("text/javascript", actualResponse.mimetype)
-        openMock.assert_called_with(f"client/node_modules/{fakeModuleName}/dist/{fakeModuleNameMap}", "r")
+        openMock.assert_called_with(
+            f"client/node_modules/{fakeModuleName}/dist/{fakeModuleNameMap}", "r"
+        )

@@ -6,7 +6,9 @@ import math
 
 # internal dependencies
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
-from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
+from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import (
+    StockChoiceStrategy,
+)
 from investmentapp.src.Types.StockData import StockData
 
 """
@@ -18,47 +20,57 @@ The strategy is as follows:
     * Sell stock that rises above position 300 or below position 400 in the S&P index
     * Weight the purchases (according to `self._divisionWeights`) allocating more money for stock closer to position 300
 """
+
+
 class CustomWeightingStrategy(StockChoiceStrategy):
 
     def __init__(self):
         # class fields
         self._idealStockRangeIndexStart = 300
         self._idealStockRangeIndexEnd = 400
-        self._divisionWeights = [32, 22, 14, 10, 8, 6, 4, 2, 1.5, .5]
+        self._divisionWeights = [32, 22, 14, 10, 8, 6, 4, 2, 1.5, 0.5]
         self._alpacaInterface = AlpacaInterface()
         super().__init__(self._alpacaInterface)
-
 
     """
     `getStockOrderNumbers`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
     test: TestStockChoiceController.test_getStockOrderNumbers
     """
-    def getBuyOrders(self: object, availableFunds: int,) -> 'dict[str, int]':
+
+    def getBuyOrders(
+        self: object,
+        availableFunds: int,
+    ) -> "dict[str, int]":
         stockDataList = self._getStockRangeIdeal()
         stockWeights = self._generateStockWeightsBasedOnValue(stockDataList)
         return self._getBuyingQuantities(availableFunds, stockWeights)
-
 
     """
     `getSellOrders`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
     test: TestStockChoiceController.test_getSellOrders
     """
-    def getSellOrders(self: object) -> 'list[str]':
-        stockCurrentlyOwned: 'dict[str, int]' = self._alpacaInterface.getOpenPositions()
-        fullStockRange: 'list[StockData]' = self._alpacaInterface.getStockCache()
 
-        return [ stockSymbol for stockSymbol in list(stockCurrentlyOwned.keys())
-            if self.getPositionInStockDataList(stockSymbol, fullStockRange) > self._idealStockRangeIndexEnd]
+    def getSellOrders(self: object) -> "list[str]":
+        stockCurrentlyOwned: "dict[str, int]" = self._alpacaInterface.getOpenPositions()
+        fullStockRange: "list[StockData]" = self._alpacaInterface.getStockCache()
 
-    
+        return [
+            stockSymbol
+            for stockSymbol in list(stockCurrentlyOwned.keys())
+            if self.getPositionInStockDataList(stockSymbol, fullStockRange)
+            > self._idealStockRangeIndexEnd
+        ]
+
     """
     `_getStockRangeIdeal`:  returns a limited list (StockData) of the ideal stocks to 
                             invest in
     """
-    def _getStockRangeIdeal(self: object) -> 'list[StockData]':
-        filterFunction = lambda stockDataList : stockDataList[self._idealStockRangeIndexStart:self._idealStockRangeIndexEnd]
-        return super()._getStockRange(filterFunction)
 
+    def _getStockRangeIdeal(self: object) -> "list[StockData]":
+        filterFunction = lambda stockDataList: stockDataList[
+            self._idealStockRangeIndexStart : self._idealStockRangeIndexEnd
+        ]
+        return super()._getStockRange(filterFunction)
 
     """
     `_generateStockWeightsBasedOnValue`:    returns a list of StockData objects complete with `fundWeighting` 
@@ -66,21 +78,26 @@ class CustomWeightingStrategy(StockChoiceStrategy):
                                             stock based on the value of that stock.
     test: TestStockChoiceController.test_generateStockWeightsBasedOnValue
     """
-    def _generateStockWeightsBasedOnValue(self: object, stockDataList: 'list[StockData]') -> 'list[StockData]':
+
+    def _generateStockWeightsBasedOnValue(
+        self: object, stockDataList: "list[StockData]"
+    ) -> "list[StockData]":
         # order the stockDataList
         stockDataList = sorted(stockDataList, key=lambda x: x.price, reverse=True)
 
         for index, stockData in enumerate(stockDataList):
-            stockData.fundWeighting = self._getStockWeightBasedOnListIndex(index, len(stockDataList))
-        
-        return stockDataList
+            stockData.fundWeighting = self._getStockWeightBasedOnListIndex(
+                index, len(stockDataList)
+            )
 
+        return stockDataList
 
     """
     `_getStockWeightBasedOnListIndex`:  returns a percentage of the fund that should be placed on the stock at 
                                         index `stockListIndex`, based on its position in the index
     test: TestStockChoiceController.test_getStockWeightBasedOnListIndex
     """
+
     def _getStockWeightBasedOnListIndex(self, stockListIndex, listLength) -> int:
         relativeIndex = stockListIndex / listLength
 
@@ -92,7 +109,7 @@ class CustomWeightingStrategy(StockChoiceStrategy):
 
         # weighting matrix
         #
-        # | index position | share of fund | running total | 
+        # | index position | share of fund | running total |
         # |________________|_______________|_______________|
         # |      0-10      |      32%      |      32%      |
         # |     11-20      |      22%      |      54%      |
@@ -105,14 +122,16 @@ class CustomWeightingStrategy(StockChoiceStrategy):
         # |     81-90      |     1.5%      |    99.5%      |
         # |    91-100      |     0.5%      |     100%      |
 
-
     """
     `_getStockWeightBasedOnListIndex`:  returns a dictionary of stock symbols mapped to the number of 
                                         shares of that stock to buy, based on the available funds and the 
                                         pre-caclulated fund weightings
     test: TestStockChoiceController.test_getBuyingQuantities
     """
-    def _getBuyingQuantities(self: object, funds: float, stockDataList: 'list[StockData]') -> 'dict[str, int]':
+
+    def _getBuyingQuantities(
+        self: object, funds: float, stockDataList: "list[StockData]"
+    ) -> "dict[str, int]":
         numberOfSharesToBuy = {stockData.symbol: 0 for stockData in stockDataList}
         totalFunds = funds
         numberOfNewOrders = 0
@@ -126,30 +145,38 @@ class CustomWeightingStrategy(StockChoiceStrategy):
             # update totals
             fundsToBeSpentOnThisStock = newSharesToBuy * stockData.price
             if newSharesToBuy:
-                numberOfNewOrders += 1 
+                numberOfNewOrders += 1
             numberOfSharesToBuy[stockData.symbol] += newSharesToBuy
             funds -= fundsToBeSpentOnThisStock
 
-        # use up the remainder with linearly assigned stock orders 
+        # use up the remainder with linearly assigned stock orders
         for stockData in stockDataList:
             if stockData.price > funds:
                 continue
-            
+
             numberOfSharesToBuy[stockData.symbol] += 1
             funds = funds - stockData.price
 
-
-        if self._verifyOrderAffordability(stockDataList, totalFunds, numberOfSharesToBuy):
+        if self._verifyOrderAffordability(
+            stockDataList, totalFunds, numberOfSharesToBuy
+        ):
             return numberOfSharesToBuy
         return None
 
-    def _getStockDataBySymbol(self: object, symbol: str, stockDataList: 'list[StockData]') -> StockData:
+    def _getStockDataBySymbol(
+        self: object, symbol: str, stockDataList: "list[StockData]"
+    ) -> StockData:
 
         for stockData in stockDataList:
             if stockData.symbol == symbol:
                 return stockData
 
-    def _verifyOrderAffordability(self: object, stockDataList: 'list[StockData]', totalFunds: float, numberOfSharesToBuy: 'dict[str, int]') -> bool:
+    def _verifyOrderAffordability(
+        self: object,
+        stockDataList: "list[StockData]",
+        totalFunds: float,
+        numberOfSharesToBuy: "dict[str, int]",
+    ) -> bool:
 
         stockValue = 0
 

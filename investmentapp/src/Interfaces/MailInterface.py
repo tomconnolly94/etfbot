@@ -8,14 +8,17 @@ from email.message import EmailMessage
 import sys
 import datetime
 
-sys.path.append("..") # makes investmentapp accessible (during app run)
+sys.path.append("..")  # makes investmentapp accessible (during app run)
 
 # internal dependencies
-if __name__== "__main__": # horrible but just for testing
-    sys.path.append("/home/tom/projects/etfbot")# makes investmentapp accessible (during file run)
+if __name__ == "__main__":  # horrible but just for testing
+    sys.path.append(
+        "/home/tom/projects/etfbot"
+    )  # makes investmentapp accessible (during file run)
 from webapp.server.controllers.LoggingController import getLatestLogContent
 
-class MailInterface():
+
+class MailInterface:
 
     def __init__(self, fromEmailAddress=None, toEmailAddress=None, environment=None):
         """
@@ -27,11 +30,15 @@ class MailInterface():
         :param environment: optional dev/production mode for the program run, the param is to allow overwriting for amongst other purposes, testing, if not provided the value will be drawn from the .env file.
         """
         # assign class properties if they are provided, use defaults if they are not
-        self._fromEmailAddress = fromEmailAddress if fromEmailAddress else os.getenv("NOTIFICATION_FROM_ADDRESS")
-        self._toEmailAddress = toEmailAddress if toEmailAddress else os.getenv("NOTIFICATION_TO_ADDRESS")
+        self._fromEmailAddress = (
+            fromEmailAddress
+            if fromEmailAddress
+            else os.getenv("NOTIFICATION_FROM_ADDRESS")
+        )
+        self._toEmailAddress = (
+            toEmailAddress if toEmailAddress else os.getenv("NOTIFICATION_TO_ADDRESS")
+        )
         self._environment = environment if environment else os.getenv("ENVIRONMENT")
-
-
 
     ##### Public functions start #####
 
@@ -41,14 +48,13 @@ class MailInterface():
         failureHeading = "Investment app run failed"
 
         mailHeading = successHeading if success else failureHeading
-        
+
         # get most recent log file content
         logContent = str(getLatestLogContent())
 
         self._sendMail(mailHeading, logContent)
 
     ##### Public functions end #####
-
 
     ##### Private functions start #####
 
@@ -64,7 +70,7 @@ class MailInterface():
 
         if self.__sendingMailIsNotPossible():
             return False
-        
+
         self._fromEmailAddress = "app.dev.notifications.tc@gmail.com"
 
         if self._environment == "production" or True:
@@ -73,12 +79,12 @@ class MailInterface():
                 msg = EmailMessage()
                 messageBody = f"etfbot investmentapp run at {datetime.datetime.now()}\n\nLog content:\n\n\n{messageBody}"
                 msg.set_content(messageBody)
-                msg['Subject'] = f'[etfbot] {heading}'
-                msg['From'] = self._fromEmailAddress
-                msg['To'] = self._toEmailAddress
+                msg["Subject"] = f"[etfbot] {heading}"
+                msg["From"] = self._fromEmailAddress
+                msg["To"] = self._toEmailAddress
 
                 # Send the message via our own SMTP server.
-                s = smtplib.SMTP('192.168.0.106')
+                s = smtplib.SMTP("192.168.0.106")
                 s.send_message(msg)
                 s.quit()
                 logging.info(f"Email sent to {self._toEmailAddress}")
@@ -87,7 +93,9 @@ class MailInterface():
                 logging.error(exception)
                 return False
         elif self._environment == "development":
-            logging.info(f"Program is running in {self._environment} mode. No email has been sent.")
+            logging.info(
+                f"Program is running in {self._environment} mode. No email has been sent."
+            )
             return True
         else:
             logging.info(f"Environment mode: {self._environment} is not recognised.")
@@ -97,21 +105,27 @@ class MailInterface():
         """
         __sendingMailIsNotPossible checks that the private members required to send an email are set.
         :testedWith: TestMailInterface:test_sendingMailIsNotPossible
-        :return: whether it is possible to send an email with the current configuration of the MailInterface 
+        :return: whether it is possible to send an email with the current configuration of the MailInterface
         """
         if self._toEmailAddress and self._fromEmailAddress:
             return False
 
         logging.info(
-            f"Sending a notification mail is not possible because at least one of the following values was not provided - toEmailAddress: {self._toEmailAddress}, mailUsername: {self._fromEmailAddress}")
+            f"Sending a notification mail is not possible because at least one of the following values was not provided - toEmailAddress: {self._toEmailAddress}, mailUsername: {self._fromEmailAddress}"
+        )
         return True
 
     ##### Private functions end #####
 
-if __name__== "__main__":
+
+if __name__ == "__main__":
     os.environ["LOGS_DIR"] = "/home/tom/projects/etfbot/webapp/dev_logs"
-    mailInterface = MailInterface(enterLogMessage="test sendMail entered", toEmailAddress="tom.connolly@protonmail.com",
-                                  environment="production", fromEmailAddress="app.dev.notifications.tc@gmail.com")
+    mailInterface = MailInterface(
+        enterLogMessage="test sendMail entered",
+        toEmailAddress="tom.connolly@protonmail.com",
+        environment="production",
+        fromEmailAddress="app.dev.notifications.tc@gmail.com",
+    )
 
     mailInterface.sendInvestmentAppSummaryMail(True)
     pass

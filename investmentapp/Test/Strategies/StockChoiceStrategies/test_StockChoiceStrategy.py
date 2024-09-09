@@ -6,38 +6,52 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 # internal dependencies
-from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import StockChoiceStrategy
+from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import (
+    StockChoiceStrategy,
+)
 from investmentapp.src.Types.StockData import StockData
+
 
 class TestCustomWeightingStrategy(unittest.TestCase):
 
-
-    @mock.patch("investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy.DatabaseInterface")
+    @mock.patch(
+        "investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy.DatabaseInterface"
+    )
     def test__getStockRange(self, DatabaseInterfaceMock):
-        
+
         # configure fake data
-        fakeStockList = [ StockData("fakeStockSymbol1", 10), StockData("fakeStockSymbol2", 20), StockData("fakeStockSymbol3", 30) ]
+        fakeStockList = [
+            StockData("fakeStockSymbol1", 10),
+            StockData("fakeStockSymbol2", 20),
+            StockData("fakeStockSymbol3", 30),
+        ]
         filterFunction = lambda list: list[1:]
 
         # configure mocks
         fakeStockListInterface = MagicMock()
         fakeStockListInterface.getStockCache.return_value = fakeStockList
         DatabaseInterfaceMagicMock = MagicMock()
-        DatabaseInterfaceMagicMock.getExcludedStockRecords.return_value = "fakeStockSymbol3"
+        DatabaseInterfaceMagicMock.getExcludedStockRecords.return_value = (
+            "fakeStockSymbol3"
+        )
         DatabaseInterfaceMock.return_value = DatabaseInterfaceMagicMock
 
         # concrete class to allow testing the abstract class
         class TestStockChoiceStrategy(StockChoiceStrategy):
 
-            #concrete implementations are needed
-            def getBuyOrders(self, quantity: int, existingPositions: 'dict[str, int]') -> 'dict[str, int]':
+            # concrete implementations are needed
+            def getBuyOrders(
+                self, quantity: int, existingPositions: "dict[str, int]"
+            ) -> "dict[str, int]":
                 pass
 
-            def getSellOrders(self, quantity: int) -> 'list[str]':
+            def getSellOrders(self, quantity: int) -> "list[str]":
                 pass
 
         # run testable function
-        actualStockRange = TestStockChoiceStrategy(fakeStockListInterface)._getStockRange(filterFunction)
+        actualStockRange = TestStockChoiceStrategy(
+            fakeStockListInterface
+        )._getStockRange(filterFunction)
 
         # asserts
         self.assertEqual(1, len(actualStockRange))
@@ -45,5 +59,5 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         fakeStockListInterface.getStockCache.assert_called()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
