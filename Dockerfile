@@ -28,11 +28,11 @@ RUN mkdir /var/log/etfbot
 RUN chmod 0666 /var/log/etfbot
 
 # install the production env files
-COPY $INVESTMENTAPPDIR/.prodenv $INVESTMENTAPPDIR/.env
-COPY $WEBAPPDIR/.prodenv $WEBAPPDIR/.env
+COPY ./investmentapp/.prodenv $INVESTMENTAPPDIR/.env
+COPY ./investmentapp/.prodenv $WEBAPPDIR/.env
 
 # install cron job and config access rights
-COPY $INVESTMENTAPPDIR/cron/etfbot.cronjob /etc/cron.d/etfbot
+COPY ./investmentapp/cron/etfbot.cronjob /etc/cron.d/etfbot
 RUN chmod 0644 /etc/cron.d/etfbot
 
 # expose the port to allow web ui access
