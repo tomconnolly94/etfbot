@@ -29,7 +29,7 @@ RUN chmod 0666 /var/log/etfbot
 
 # install the production env files
 COPY ./investmentapp/.prodenv $INVESTMENTAPPDIR/.env
-COPY ./investmentapp/.prodenv $WEBAPPDIR/.env
+COPY ./webapp/.prodenv $WEBAPPDIR/.env
 
 # install cron job and config access rights
 COPY ./investmentapp/cron/etfbot.cronjob /etc/cron.d/etfbot
