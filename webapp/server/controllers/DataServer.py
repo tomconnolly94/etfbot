@@ -124,8 +124,10 @@ def getExcludeList():
     companyRecords = getCompanyNamesForStockSymbols(
         [record[0] for record in excludedStockRecords]
     )
-    for index, companyNameRecord in enumerate(companyRecords):
-        companyNameRecord["reason"] = excludedStockRecords[index][1]
+    excludedStockReasons = {record[0]: record[1] for record in excludedStockRecords}
+    # match reasons to company records
+    for companyRecord in companyRecords:
+        companyRecord["reason"] = excludedStockReasons[companyRecord["symbol"]]
     return companyRecords
 
 
