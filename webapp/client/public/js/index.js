@@ -302,7 +302,7 @@ new Vue({
 						this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), 
 						vueComponent.getFinalThirtyEntries, 
 						false, 
-						'rgb(255, 0, 0)', 0.1
+						'rgb(0, 0, 255)', 0.1
 					)
 				)
 			if("SPY500" in data)
@@ -323,7 +323,7 @@ new Vue({
 						this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]),
 						vueComponent.getFinalThirtyEntries, 
 						false, 
-						'rgb(0, 0, 255)', 
+						'rgb(255, 0, 0)', 
 						0.1
 					)
 				)
