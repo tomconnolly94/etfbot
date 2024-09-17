@@ -263,7 +263,7 @@ new Vue({
 						this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), 
 						null, 
 						false, 
-						'rgb(255, 0, 0)', 
+						'rgb(0, 0, 255)', 
 						0.1
 					)
 				)
@@ -285,7 +285,7 @@ new Vue({
 						this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), 
 						null, 
 						false, 
-						'rgb(0, 0, 255)', 
+						'rgb(255, 0, 0)', 
 						0.1
 					)
 				)
