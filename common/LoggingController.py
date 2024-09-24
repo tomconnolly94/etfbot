@@ -46,7 +46,12 @@ def initLogging(forceStdoutLogging=False):
             level=logging.INFO,
         )
     else:
-        logging.basicConfig(format=logFormat, datefmt=logDateFormat, level=logging.INFO)
+        logging.basicConfig(
+            format=logFormat,
+            datefmt=logDateFormat,
+            level=logging.INFO,
+            stream=sys.stdout,
+        )
 
     logging.info(
         f"Logging initialised, mode={os.getenv('ENVIRONMENT')} forceStdoutLogging={forceStdoutLogging}"
@@ -83,6 +88,9 @@ def listExistingLogFiles():
 
 
 def getLatestLogContent():
+    logFiles = listExistingLogFiles()
+    if len(logFiles) == 0:
+        return None
     latestLogFilePath = listExistingLogFiles()[0]
     with open(os.path.join(getLogsDir(), latestLogFilePath), "r") as latestLogFile:
         return latestLogFile.read()

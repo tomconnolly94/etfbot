@@ -16,13 +16,13 @@ from investmentapp.src.Interfaces.MailInterface import MailInterface
 
 def main():
 
-    logging.info(f"Program started.")
-
     # load environment
     load_dotenv()
 
     # intitialise logging module
     LoggingController.initLogging()
+
+    logging.info(f"Program started.")
 
     errorString = ""
 

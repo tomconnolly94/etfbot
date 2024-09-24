@@ -14,6 +14,9 @@ finsymbols library
 
 """
 
+import bs4 as bs
+import requests
+
 
 class StockIndexDataInterface:
 
@@ -32,20 +35,32 @@ class StockIndexDataInterface:
     """
 
     def getIndexSymbols(self: object, stockExchange: StockExchange) -> "list[str]":
+
         if stockExchange == StockExchange.NASDAQ:
-            return self.__processFinSymbolsResults(finsymbols.get_nasdaq_symbols())
+            raise NotImplementedError("NASDAQ Stock Index data not connected yet")
         if stockExchange == StockExchange.SP500:
-            return self.__processFinSymbolsResults(finsymbols.get_sp500_symbols())
+            return self._getSPY500TickerSymbols()
         if stockExchange == StockExchange.AMEX:
-            return self.__processFinSymbolsResults(finsymbols.get_amex_symbols())
+            raise NotImplementedError("AMEX Stock Index data not connected yet")
         if stockExchange == StockExchange.NYSE:
-            return self.__processFinSymbolsResults(finsymbols.get_nyse_symbols())
+            raise NotImplementedError("NYSE Stock Index data not connected yet")
         if stockExchange == StockExchange.FTSE100:
             raise NotImplementedError("FTSE 100 Stock Index data not connected yet")
 
     """
-    `__processFinSymbolsResults`: processes the raw data from finsymbols into a list of stock symbols 
+    `_getSPY500TickerSymbols`: accesses wikipdia for the list of symbols in the SPY500 
     """
 
-    def __processFinSymbolsResults(self, input):
-        return [item["symbol"].replace("\n", "") for item in input]
+    def _getSPY500TickerSymbols(self):
+        resp = requests.get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
+        soup = bs.BeautifulSoup(resp.text, "lxml")
+        table = soup.find("table", {"id": "constituents"})
+        numRowsToTrim = 1
+        symbolColumnNum = 0
+        tickers = []
+
+        for row in table.findAll("tr")[numRowsToTrim:]:
+            ticker = row.findAll("td")[symbolColumnNum].text
+            tickers.append(ticker.rstrip())
+
+        return tickers

@@ -52,7 +52,7 @@ class MailInterface:
         # get most recent log file content
         logContent = str(getLatestLogContent())
 
-        self._sendMail(mailHeading, logContent)
+        # self._sendMail(mailHeading, logContent)
 
     ##### Public functions end #####
 
