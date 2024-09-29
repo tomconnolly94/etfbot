@@ -164,7 +164,12 @@ new Vue({
 	data() {
 		return {
 			monthPerformanceChartDataPanelMessages: [],
-			yearPerformanceChartDataPanelMessages: []
+			yearPerformanceChartDataPanelMessages: [],
+			orderData: [],
+			orderDataProfitLossMessages: [],
+			orderDataSelectedSymbol: "all",
+			stockBuySellChart: null,
+			symbols: []
 		}
 	},
 	methods: {
@@ -327,7 +332,6 @@ new Vue({
 						0.1
 					)
 				)
-	
 
 			const yearConfig = {
 				type: 'line',
@@ -347,7 +351,9 @@ new Vue({
 
 			charts.forEach(function(chart){
 				chart.destroy();
-			});    
+			});
+
+			console.log(yearConfig);
 
 			charts.push(new Chart(yearPerformanceChartContainer, yearConfig));
 			charts.push(new Chart(monthPerformanceChartContainer, monthConfig));
@@ -364,6 +370,96 @@ new Vue({
 				borderColor:borderColor,
 				tension: tension
 			};
+		},
+		updateOrderDataSelectedSymbol: function(event)
+		{
+			this.orderDataSelectedSymbol = event.target.options[event.target.options.selectedIndex].text
+			this.populateStockBuySellPanel();
+		},
+		populateStockBuySellPanel: function()
+		{
+			this.orderDataProfitLossMessages = [];
+
+			let orders = []
+			if(this.orderDataSelectedSymbol != "all")
+				orders = this.orderData[this.orderDataSelectedSymbol];
+			else
+			{
+				for(let i = 0; i < this.symbols.length; i++)
+				{
+					orders = orders.concat(this.orderData[this.symbols[i]]); 
+				}
+			}
+
+			let totalPL = 0;
+
+			// loop through orders and create buy/sell messages
+			for(let i = 0; i < orders.length; i++)
+			{
+				const order = orders[i];
+				let orderMessage = `${order["orderType"]} ${order["symbol"]} `;
+
+				if(order["orderType"] == "SELL" )
+				{
+					orderMessage += `+${order["price"]}`;
+					totalPL += Number(order["price"]);
+				}
+				else if(order["orderType"] == "BUY" )
+				{
+					orderMessage += `-${order["price"]}`;
+					totalPL -= Number(order["price"]);
+				}
+				this.orderDataProfitLossMessages.push(orderMessage);
+			}
+			this.orderDataProfitLossMessages.push(`Total P/L: ${totalPL}`);
+
+			this.buildStockBuySellChart();
+		},
+		buildStockBuySellChart: function()
+		{
+			// destroy the existing chart
+			if(this.stockBuySellChart)
+				this.stockBuySellChart.destroy();
+
+			if(this.orderDataSelectedSymbol == "all")
+				return;
+			let symbolOrders = this.orderData[this.orderDataSelectedSymbol];
+			const stockBuySellChartContainer = document.getElementById('stockBuySellChart');
+			let labels = [];
+			let prices = [];
+
+			for(let i = 0; i < symbolOrders.length; i++)
+			{
+				let order = symbolOrders[i];
+				labels.push(order["filledDate"] + " - " + order["orderType"]);
+				prices.push(order["price"]);
+			}
+
+			const graphData = {
+				labels: labels,
+				datasets: [{
+					label: this.orderDataSelectedSymbol,
+					data: prices,
+					fill: false,
+					borderColor: 'rgb(255, 0, 0)',
+					tension: 0.1
+				}]
+			};
+
+			const graphConfig = {
+				type: 'line',
+				data: graphData,
+				options: {
+					spanGaps: true
+				}
+			};
+			console.log(graphConfig);
+			
+			if(this.stockBuySellChart)
+				this.stockBuySellChart.destroy();
+
+			this.stockBuySellChart = new Chart(stockBuySellChartContainer, graphConfig);
+	
 		},
 		formatDataPanelString: function(label, prevValue, currentValue)
 		{
@@ -420,6 +516,13 @@ new Vue({
 			}
 			let portfolioPerformanceOneYearPrevValue = data["PortfolioPerformance"].oneYearPrevValue ? (data["PortfolioPerformance"].oneYearPrevValue).toFixed(1) : "N/A";
 			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", portfolioPerformanceOneYearPrevValue, portfolioPerformanceCurrentValue));
-		})
+		});
+		axios.get(`/symbolOrderInfo`).then((response) => {
+
+			this.orderData = response.data;
+			this.symbols = Object.keys(this.orderData);
+			console.log(this.symbols)
+			vueComponent.populateStockBuySellPanel();
+		});
 	}
 });

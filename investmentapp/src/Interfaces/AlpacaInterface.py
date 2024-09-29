@@ -17,9 +17,18 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import os
 import logging
-import random
+import sys
+
 
 # internal dependencies
+sys.path.append(
+    os.path.dirname(
+        os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
+    )
+)  # make webapp and common sub projects accessible
+from investmentapp.src.Types.StockOrder import StockOrder
 from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 from investmentapp.src.Types.StockExchange import StockExchange
 from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
@@ -104,7 +113,7 @@ class AlpacaInterface(InvestingInterface):
         self._submitOrder(stockSymbol, quantity, OrderSide.SELL)
 
     """
-    `getAvailableFunds`: return any uninvested funds 
+    `getAvailableFunds`: return any uninvested funds
     """
 
     def getAvailableFunds(self: object) -> float:
@@ -118,7 +127,7 @@ class AlpacaInterface(InvestingInterface):
         return float(self._getAlpacaAccount().equity)
 
     """
-    `getOpenPositions`: return all positions currently held 
+    `getOpenPositions`: return all positions currently held
     """
 
     def getOpenPositions(self: object) -> "dict[str, int]":
@@ -175,16 +184,23 @@ class AlpacaInterface(InvestingInterface):
         #     logging.error(e)
         return outputDict
 
-    # """
-    # `_submitOrder`: submits an order to the alpaca api to buy/sell
-    # test: None
-    # """
+    """
+    `getAllOrders`: get all finalised order records
+    test: None
+    """
 
-    # def _submitOrder(self, stockSymbol, quantity, orderType: OrderSide) -> bool:
-    #     pass
+    def getAllOrders(self) -> list[StockOrder]:
+        get_orders_data = GetOrdersRequest(
+            status=QueryOrderStatus.CLOSED, limit=500, direction="asc"
+        )
+
+        return [
+            StockOrder(order)
+            for order in self.tradingAPI.get_orders(filter=get_orders_data)
+        ]
 
     """
-    `_submitOrder`: submits an order to the alpaca api to buy/sell 
+    `_submitOrder`: submits an order to the alpaca api to buy/sell
     test: None
     """
 
@@ -207,10 +223,6 @@ class AlpacaInterface(InvestingInterface):
         # submit market order
         return self.tradingAPI.submit_order(order_data=market_order_data)
 
-        # get the order later like:
-        # retrievedOrder = self.tradingAPI.get_order_by_id(order.id)
-        # return order
-
     """
     `_getAlpacaAccount`: returns information about the alpaca account associated with the details above
     test: None
@@ -221,35 +233,57 @@ class AlpacaInterface(InvestingInterface):
 
 
 if __name__ == "__main__":
+    pass
 
-    # no keys required for crypto data
-    client = StockHistoricalDataClient(
-        "PKU60BA6H93KCR7YKEL1", "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm"
-    )
+    # # no keys required for crypto data
+    # client = StockHistoricalDataClient(
+    #     "PKU60BA6H93KCR7YKEL1", "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm"
+    # )
 
-    request_params = StockBarsRequest(
-        symbol_or_symbols=["SPY", "AAPL"],
-        timeframe=TimeFrame.Day,
-        start=datetime(2022, 9, 1),
-        end=datetime(2022, 9, 3),
-    )
+    # request_params = StockBarsRequest(
+    #     symbol_or_symbols=["SPY", "AAPL"],
+    #     timeframe=TimeFrame.Day,
+    #     start=datetime(2022, 9, 1),
+    #     end=datetime(2022, 9, 3),
+    # )
 
-    bars = client.get_stock_bars(request_params)
+    # bars = client.get_stock_bars(request_params)
 
     # access bars as list - important to note that you must access by symbol key
     # even for a single symbol request - models are agnostic to number of symbols
-    trading_client = TradingClient(
-        "PKU60BA6H93KCR7YKEL1", "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm"
-    )
-    brokerClient = BrokerClient(
-        "PKU60BA6H93KCR7YKEL1",
-        "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm",
-        api_version="v2",
-    )
+    # trading_client = TradingClient(
+    #     "PKIS4QYICDFQNBMQC5R1",
+    #     "pYmiOk8xL3ScCyFBDHhcViKZggYXjdAPd7klhWNc",
+    #     paper=True,
+    # )
 
-    request_params = GetPortfolioHistoryRequest(period="1A", timeframe="1D")
+    # # orders = trading_client.get_orders()
 
-    data = brokerClient.get_portfolio_history_for_account(
-        account_id="1a859566-ce53-4e12-8a5b-5691623b4c80",
-        history_filter=request_params,
-    )
+    # # Get the last 100 closed orders
+    # get_orders_data = GetOrdersRequest(
+    #     status=QueryOrderStatus.CLOSED,
+    #     limit=500,
+    #     # nested=True,  # show nested multi-leg orders
+    # )
+
+    # orders = trading_client.get_orders(filter=get_orders_data)
+    # logging.error("#####")
+    # logging.error(orders[4])
+    # logging.error("#####")
+    # logging.error(len(orders))
+    # so = StockOrder(orders[4])
+
+    # logging.error(so)
+
+    # brokerClient = BrokerClient(
+    #     "PKU60BA6H93KCR7YKEL1",
+    #     "LIcD1MKc6B8XcsMBnKjhUEsUf6sme4XtCOvhIdCm",
+    #     api_version="v2",
+    # )
+
+    # request_params = GetPortfolioHistoryRequest(period="1A", timeframe="1D")
+
+    # data = brokerClient.get_portfolio_history_for_account(
+    #     account_id="1a859566-ce53-4e12-8a5b-5691623b4c80",
+    #     history_filter=request_params,
+    # )

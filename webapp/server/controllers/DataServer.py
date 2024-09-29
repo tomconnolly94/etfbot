@@ -31,7 +31,9 @@ class DataGrabbingSources(Enum):
 
 class InvestmentData:
 
-    def __init__(self, currentValue, oneMonthPrevValue, oneYearPrevValue, values):
+    def __init__(
+        self, currentValue, oneMonthPrevValue, oneYearPrevValue, values
+    ):
         self.currentValue = currentValue
         self.oneMonthPrevValue = oneMonthPrevValue
         self.oneYearPrevValue = oneYearPrevValue
@@ -81,7 +83,9 @@ def getInvestmentData():
 
 
 def runInvestmentBalancer():
-    projectRoot = dirname(dirname(dirname(os.path.abspath(__file__)))).replace(".", "")
+    projectRoot = dirname(dirname(dirname(os.path.abspath(__file__)))).replace(
+        ".", ""
+    )
     investmentappDir = os.path.join(projectRoot, os.getenv("INVESTMENTAPP_DIR"))
     pythonExecutable = os.path.join(os.getenv("PYTHON_DIR"), "python3")
 
@@ -107,7 +111,8 @@ def runInvestmentBalancer():
         # collect most recent log file from /var/log/etfbot
         # * means all if need specific format then *.csv
         list_of_files = glob.glob(
-            os.path.join(projectRoot, os.getenv("INVESTMENT_APP_LOGS_DIR")) + "/*"
+            os.path.join(projectRoot, os.getenv("INVESTMENT_APP_LOGS_DIR"))
+            + "/*"
         )
         latest_file = max(list_of_files, key=os.path.getctime)
         with open(latest_file) as file:
@@ -124,7 +129,9 @@ def getExcludeList():
     companyRecords = getCompanyNamesForStockSymbols(
         [record[0] for record in excludedStockRecords]
     )
-    excludedStockReasons = {record[0]: record[1] for record in excludedStockRecords}
+    excludedStockReasons = {
+        record[0]: record[1] for record in excludedStockRecords
+    }
     # match reasons to company records
     for companyRecord in companyRecords:
         companyRecord["reason"] = excludedStockReasons[companyRecord["symbol"]]
@@ -177,7 +184,10 @@ def _getSPY500Data():
         pricesWithDates[date] = price
 
     return InvestmentData(
-        endValue, oneMonthPrevValue, oneYearPrevValue, _normaliseValues(pricesWithDates)
+        endValue,
+        oneMonthPrevValue,
+        oneYearPrevValue,
+        _normaliseValues(pricesWithDates),
     ).toDict()
 
 
@@ -214,8 +224,12 @@ def _getCurrentHoldingsPerformanceData():
 
     sortedDates = sorted(portfolioHistoryTotals.keys())
     endValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 1]]
-    oneMonthPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 31]]
-    oneYearPrevValue = portfolioHistoryTotals[sortedDates[len(sortedDates) - 365]]
+    oneMonthPrevValue = portfolioHistoryTotals[
+        sortedDates[len(sortedDates) - 31]
+    ]
+    oneYearPrevValue = portfolioHistoryTotals[
+        sortedDates[len(sortedDates) - 365]
+    ]
 
     # replace timestamps with dates
     portfolioHistoryTotalsWithDates = {}
@@ -236,13 +250,17 @@ def _getCurrentHoldingsPerformanceDataThreadWrapper(results, threadId):
 
 
 def _getPortfolioPerformanceData():
-    rawPortfolioPerformanceData = DatabaseInterface().getPortfolioValueOverTime()
+    rawPortfolioPerformanceData = (
+        DatabaseInterface().getPortfolioValueOverTime()
+    )
 
     # calculate date list
     dateList = _getLastYearDates()
 
     # create base data of null values
-    portfolioPerformanceData = {date.strftime("%Y-%m-%d"): None for date in dateList}
+    portfolioPerformanceData = {
+        date.strftime("%Y-%m-%d"): None for date in dateList
+    }
 
     # overwrite null values with real data
     for rawData in rawPortfolioPerformanceData:
@@ -276,6 +294,18 @@ def _getPortfolioPerformanceData():
 
 def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getPortfolioPerformanceData()
+
+
+def getCompletedOrderDataBySymbol():
+    ordersBySymbol = {}
+
+    for order in AlpacaInterface().getAllOrders():
+        if order.symbol not in ordersBySymbol:
+            ordersBySymbol[order.symbol] = []
+
+        if order.isCompleted():
+            ordersBySymbol[order.symbol].append(order.asdict())
+    return ordersBySymbol
 
 
 if __name__ == "__main__":

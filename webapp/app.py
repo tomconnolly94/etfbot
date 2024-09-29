@@ -12,7 +12,8 @@ sys.path.append(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )  # make investmentapp and common sub projects accessible
 sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/investmentapp"
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    + "/investmentapp"
 )  # make investmentapp and common sub projects accessible
 
 # internal dependencies
@@ -23,6 +24,7 @@ from webapp.server.controllers.DataServer import (
     getExcludeList,
     removeExcludeListItem,
     addExcludeListItem,
+    getCompletedOrderDataBySymbol,
 )
 from common import LoggingController
 
@@ -108,6 +110,15 @@ def excludeList():
 def logFileNames():
     try:
         return LoggingController.listExistingLogFiles()
+    except Exception as exception:
+        logging.error(exception)
+        return getResponse(500, "Unknown error, check server logs")
+
+
+@app.route("/symbolOrderInfo", methods=["GET"])
+def symbolOrderInfo():
+    try:
+        return getCompletedOrderDataBySymbol()
     except Exception as exception:
         logging.error(exception)
         return getResponse(500, "Unknown error, check server logs")

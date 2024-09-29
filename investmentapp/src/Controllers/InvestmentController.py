@@ -112,8 +112,6 @@ class InvestmentController:
             moneySpent += tradeValue
             logging.info(f"Buy successful, total money spent: {moneySpent}")
 
-        # audit existing order records without prices and find actual prices for them
-
     """
     `_getPositionInIndex`: returns the position of a stock in the index by symbol
     """

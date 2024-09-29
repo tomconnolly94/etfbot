@@ -22,7 +22,6 @@
 					<div id="monthPerformanceChartContainer">
 						<canvas id="monthPerformanceChart"></canvas>
 						<ul class="dataPanel">
-							<!-- <p>{{ monthPerformanceChartDataPanelMessage }}</p> -->
 							<li v-for="message in monthPerformanceChartDataPanelMessages">
 								{{ message }}
 							</li>
@@ -32,11 +31,46 @@
 					<div id="yearPerformanceChartContainer">
 						<canvas id="yearPerformanceChart"></canvas>
 						<ul class="dataPanel">
-							<!-- {{ yearPerformanceChartDataPanelMessage }} -->
 							<li v-for="message in yearPerformanceChartDataPanelMessages">
 								{{ message }}
 							</li>
 						</ul>
+					</div>
+					<hr>
+					<div id="stockBuySellChartContainer">
+						<canvas id="stockBuySellChart"></canvas>
+
+						<div class="row">
+							<div class="col-lg-4">
+								<select class="form-control" @change="updateOrderDataSelectedSymbol($event)">
+									<option value="all" selected>all</option>
+									<option v-for="symbol in symbols" :value="symbol" :key="symbol">{{ symbol }}</option>
+								</select>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-lg-8">
+								<div class="accordion">
+									<div class="accordion-item">
+										<h2 class="accordion-header">
+											<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+												Order details
+											</button>
+										</h2>
+										<div id="collapseOne" class="accordion-collapse collapse hide" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+											<div class="accordion-body">
+												<ul class="dataPanel">
+													<li v-for="message in orderDataProfitLossMessages">
+														{{ message }}
+													</li>
+												</ul>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
