@@ -14,15 +14,19 @@ from alpaca.trading.enums import OrderSide, TimeInForce, QueryOrderStatus
 from alpaca.trading.models import TradeAccount, Position
 from alpaca.broker.client import BrokerClient
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import os
 import logging
+import random
 
 # internal dependencies
+from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 from investmentapp.src.Types.StockExchange import StockExchange
 from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
 from investmentapp.src.Types.StockData import StockData
-from investmentapp.src.Interfaces.StockIndexDataInterface import StockIndexDataInterface
-from dateutil.relativedelta import relativedelta
+from investmentapp.src.Interfaces.StockIndexDataInterface import (
+    StockIndexDataInterface,
+)
 
 
 """
@@ -43,7 +47,8 @@ class AlpacaInterface(InvestingInterface):
 
         # no keys required for crypto data
         self.historicalDataAPI = StockHistoricalDataClient(
-            os.getenv("ALPACA_TRADING_KEY_ID"), os.getenv("ALPACA_TRADING_SECRET_KEY")
+            os.getenv("ALPACA_TRADING_KEY_ID"),
+            os.getenv("ALPACA_TRADING_SECRET_KEY"),
         )
         self.tradingAPI = TradingClient(
             os.getenv("ALPACA_TRADING_KEY_ID"),
@@ -61,6 +66,7 @@ class AlpacaInterface(InvestingInterface):
 
         self._sortedFullStockCache = []
         self._stockIndexDataInterface = StockIndexDataInterface()
+        self._databaseInterface = DatabaseInterface()
         logging.info(
             f"AlpacaInterface initialised. devMode={self.devMode} env={os.getenv('TRADING_DEV_MODE', 'False')}"
         )
@@ -75,7 +81,9 @@ class AlpacaInterface(InvestingInterface):
                 StockExchange.SP500
             )
             self._sortedFullStockCache = sorted(
-                self.getStockDataList(indexSymbols), key=lambda x: x.price, reverse=True
+                self.getStockDataList(indexSymbols),
+                key=lambda x: x.price,
+                reverse=True,
             )
             # logging.debug(f"self._sortedFullStockCache: {self._sortedFullStockCache}")
         return self._sortedFullStockCache
@@ -86,11 +94,6 @@ class AlpacaInterface(InvestingInterface):
     """
 
     def buyStock(self, stockSymbol: str, quantity: int) -> None:
-        if self.devMode:
-            logging.info(
-                f"buyStock called, devMode={self.devMode} so no order was submitted"
-            )
-            return
         self._submitOrder(stockSymbol, quantity, OrderSide.BUY)
 
     """
@@ -98,11 +101,6 @@ class AlpacaInterface(InvestingInterface):
     """
 
     def sellStock(self, stockSymbol: str, quantity: int) -> None:
-        if self.devMode:
-            logging.info(
-                f"sellStock called, devMode={self.devMode} so no order was submitted"
-            )
-            return
         self._submitOrder(stockSymbol, quantity, OrderSide.SELL)
 
     """
@@ -131,7 +129,9 @@ class AlpacaInterface(InvestingInterface):
     `getStockDataList`: return stock data on each stockSymbol in `stockSymbols`
     """
 
-    def getStockDataList(self: object, stockSymbols: "list[str]") -> "list[StockData]":
+    def getStockDataList(
+        self: object, stockSymbols: "list[str]"
+    ) -> "list[StockData]":
         request = StockLatestQuoteRequest(symbol_or_symbols=stockSymbols)
         stockDataList = self.historicalDataAPI.get_stock_latest_quote(request)
         logging.debug(f"len(stockDataList): {len(stockDataList)}")
@@ -144,7 +144,9 @@ class AlpacaInterface(InvestingInterface):
         ]
 
     def openOrdersExist(self):
-        request_params = GetOrdersRequest(status=QueryOrderStatus.OPEN, limit=500)
+        request_params = GetOrdersRequest(
+            status=QueryOrderStatus.OPEN, limit=500
+        )
         return len(list(self.tradingAPI.get_orders(filter=request_params)))
 
     def getLastYearPortfolioPerformance(self):
@@ -173,19 +175,41 @@ class AlpacaInterface(InvestingInterface):
         #     logging.error(e)
         return outputDict
 
+    # """
+    # `_submitOrder`: submits an order to the alpaca api to buy/sell
+    # test: None
+    # """
+
+    # def _submitOrder(self, stockSymbol, quantity, orderType: OrderSide) -> bool:
+    #     pass
+
     """
     `_submitOrder`: submits an order to the alpaca api to buy/sell 
     test: None
     """
 
-    def _submitOrder(self, stockSymbol, quantity, order: OrderSide) -> None:
+    def _submitOrder(self, stockSymbol, quantity, orderType: OrderSide) -> bool:
+
+        if self.devMode:
+            logging.info(
+                f"_submitOrder ({orderType.name}) called for symbol={stockSymbol} quantity={quantity} , devMode={self.devMode} so no order was submitted"
+            )
+            return
+
         # preparing order data
         market_order_data = MarketOrderRequest(
-            symbol=stockSymbol, qty=quantity, side=order, time_in_force=TimeInForce.DAY
+            symbol=stockSymbol,
+            qty=quantity,
+            side=orderType,
+            time_in_force=TimeInForce.DAY,
         )
 
-        # Market order
-        self.tradingAPI.submit_order(order_data=market_order_data)
+        # submit market order
+        return self.tradingAPI.submit_order(order_data=market_order_data)
+
+        # get the order later like:
+        # retrievedOrder = self.tradingAPI.get_order_by_id(order.id)
+        # return order
 
     """
     `_getAlpacaAccount`: returns information about the alpaca account associated with the details above
@@ -226,5 +250,6 @@ if __name__ == "__main__":
     request_params = GetPortfolioHistoryRequest(period="1A", timeframe="1D")
 
     data = brokerClient.get_portfolio_history_for_account(
-        account_id="1a859566-ce53-4e12-8a5b-5691623b4c80", history_filter=request_params
+        account_id="1a859566-ce53-4e12-8a5b-5691623b4c80",
+        history_filter=request_params,
     )

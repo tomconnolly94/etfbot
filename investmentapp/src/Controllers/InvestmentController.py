@@ -8,7 +8,9 @@ from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
 from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import (
     StockChoiceStrategy,
 )
-from investmentapp.src.Controllers.StockChoiceController import StockChoiceController
+from investmentapp.src.Controllers.StockChoiceController import (
+    StockChoiceController,
+)
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategyEnum import (
     StockChoiceStrategyEnum,
@@ -42,9 +44,13 @@ class InvestmentController:
     def rebalanceInvestments(self):
 
         # get current positions
-        currentPositions: "dict[str, int]" = self._investingInterface.getOpenPositions()
+        currentPositions: "dict[str, int]" = (
+            self._investingInterface.getOpenPositions()
+        )
 
-        logging.info(f"Number of current positions held: {len(currentPositions)}")
+        logging.info(
+            f"Number of current positions held: {len(currentPositions)}"
+        )
         logging.info(
             f"Current positions - (symbol: index position) {', '.join(f'{stockSymbol}: {self._getPositionInIndex(stockSymbol)}' for stockSymbol in currentPositions.keys())}"
         )
@@ -89,7 +95,9 @@ class InvestmentController:
         )
 
         logging.info(f"Available funds for new investments: {liquidFunds}")
-        logging.info(f"Number of positions that will be opened: {len(positionsToBuy)}")
+        logging.info(
+            f"Number of positions that will be opened: {len(positionsToBuy)}"
+        )
         moneySpent = 0
 
         # make buys
@@ -104,12 +112,16 @@ class InvestmentController:
             moneySpent += tradeValue
             logging.info(f"Buy successful, total money spent: {moneySpent}")
 
+        # audit existing order records without prices and find actual prices for them
+
     """
     `_getPositionInIndex`: returns the position of a stock in the index by symbol
     """
 
     def _getPositionInIndex(self: object, stockDataSymbol: str):
-        for index, cachedStock in enumerate(self._investingInterface.getStockCache()):
+        for index, cachedStock in enumerate(
+            self._investingInterface.getStockCache()
+        ):
             if cachedStock.symbol == stockDataSymbol:
                 return index
         return None

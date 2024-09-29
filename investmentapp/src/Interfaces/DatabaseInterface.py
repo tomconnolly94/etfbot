@@ -8,6 +8,7 @@ from enum import Enum
 import datetime
 import os
 import logging
+import traceback
 
 # internal dependencies
 
@@ -99,7 +100,9 @@ class DatabaseInterface:
     `addExcludedStockSymbol`: get the list of excluded stock symbol records from the database file
     """
 
-    def addExcludedStockSymbol(self, stockSymbol: str, reason: str, stockExchange: str):
+    def addExcludedStockSymbol(
+        self, stockSymbol: str, reason: str, stockExchange: str
+    ):
         if list(self.getExcludedStockRecord(stockSymbol)):
             logging.info(f"{stockSymbol} is already in the excludeList")
             return False
@@ -118,7 +121,9 @@ class DatabaseInterface:
     `getPortfolioValueOverTime`: get the list of excluded stock symbol records from the database file
     """
 
-    def getPortfolioValueOverTime(self, timePeriod: TIME_PERIOD = TIME_PERIOD.YEAR):
+    def getPortfolioValueOverTime(
+        self, timePeriod: TIME_PERIOD = TIME_PERIOD.YEAR
+    ):
         timePeriodTimeDeltaMap = {
             TIME_PERIOD.YEAR: datetime.timedelta(days=365),
             TIME_PERIOD.MONTH: datetime.timedelta(days=31),
@@ -126,7 +131,9 @@ class DatabaseInterface:
         }
 
         today = datetime.datetime.today()
-        startDate = (today - timePeriodTimeDeltaMap[timePeriod]).strftime("%Y-%m-%d")
+        startDate = (today - timePeriodTimeDeltaMap[timePeriod]).strftime(
+            "%Y-%m-%d"
+        )
         return [
             {"date": record[0], "value": record[1]}
             for record in self.db_connection.execute(
@@ -167,7 +174,25 @@ class DatabaseInterface:
             f"'{self.PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_MAP[PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.VALUE]}') "
             f"VALUES(datetime('now', 'localtime'), '{portfolioValue}');"
         )
-        self.db_connection.execute(query)
+        return self._executeQuery(query=query)
+
+    """
+    `executeQuery`: execute database query with handling for common errors and consistent logging
+    """
+
+    def _executeQuery(
+        self,
+        query: str,
+    ):
+        try:
+            self.db_connection.execute(query)
+            return True
+        except apsw.SQLError:
+            logging.error(
+                f"Problem with database SQL query={query} exception:"
+                f"\n{traceback.format_exc()}".rstrip()
+            )
+            return False
 
 
 if __name__ == "__main__":
