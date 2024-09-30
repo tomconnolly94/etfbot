@@ -374,22 +374,10 @@ new Vue({
 		updateOrderDataSelectedSymbol: function(event)
 		{
 			this.orderDataSelectedSymbol = event.target.options[event.target.options.selectedIndex].text
-			this.populateStockBuySellPanel();
+			this.getOrderData();
 		},
-		populateStockBuySellPanel: function()
+		createMessagesFromOrderData: function(orders)
 		{
-			this.orderDataProfitLossMessages = [];
-
-			let orders = []
-			if(this.orderDataSelectedSymbol != "all")
-				orders = this.orderData[this.orderDataSelectedSymbol];
-			else
-			{
-				for(let i = 0; i < this.symbols.length; i++)
-				{
-					orders = orders.concat(this.orderData[this.symbols[i]]); 
-				}
-			}
 
 			let totalPL = 0;
 
@@ -399,23 +387,63 @@ new Vue({
 				const order = orders[i];
 				let orderMessage = `${order["orderType"]} ${order["symbol"]} `;
 
-				if(order["orderType"] == "SELL" )
+				if(order["orderType"] == "SELL" || order["orderType"] == "CURRENT PRICE" )
 				{
-					orderMessage += `+${order["price"]}`;
-					totalPL += Number(order["price"]);
+					orderMessage += `+${order["price"]} (${order["price"]}x${order["quantity"]})`;
+					totalPL += Number(order["price"]) * order["quantity"];
 				}
 				else if(order["orderType"] == "BUY" )
 				{
-					orderMessage += `-${order["price"]}`;
-					totalPL -= Number(order["price"]);
+					orderMessage += `-${order["price"]} (${order["price"]}x${order["quantity"]})`;
+					totalPL -= Number(order["price"]) * order["quantity"];
 				}
 				this.orderDataProfitLossMessages.push(orderMessage);
 			}
-			this.orderDataProfitLossMessages.push(`Total P/L: ${totalPL}`);
 
-			this.buildStockBuySellChart();
+			this.orderDataProfitLossMessages.push(`Total P/L: ${totalPL.toFixed(2)}`);
+
+			this.buildStockBuySellChart(orders);
 		},
-		buildStockBuySellChart: function()
+		getOrderData: function()
+		{
+			this.orderDataProfitLossMessages = [];
+
+			let orders = []
+			if(this.orderDataSelectedSymbol != "all")
+			{
+				orders = this.orderData[this.orderDataSelectedSymbol];
+				const finalOrder = orders[orders.length - 1];
+
+				if(finalOrder["orderType"] == "SELL"){
+					this.createMessagesFromOrderData(orders);
+					return;
+				}
+
+				const ownedQuantity = finalOrder["quantity"]
+				// if we still own the stock we make a request to get its current value
+				axios.get(`/currentPrice/${this.orderDataSelectedSymbol}`).then((response) => {
+					
+					const stockData = response.data;
+					
+					orders.push({
+						"symbol": stockData["symbol"],
+						"price": stockData["price"],
+						"orderType": "CURRENT PRICE",
+						"quantity": ownedQuantity,
+						"filledDate": new Date().toLocaleDateString()
+					});
+					this.createMessagesFromOrderData(orders);
+				});
+			}
+			else
+			{
+				for(let i = 0; i < this.symbols.length; i++)
+					orders = orders.concat(this.orderData[this.symbols[i]]);
+
+				this.createMessagesFromOrderData(orders);
+			}
+		},
+		buildStockBuySellChart: function(orders)
 		{
 			// destroy the existing chart
 			if(this.stockBuySellChart)
@@ -423,14 +451,13 @@ new Vue({
 
 			if(this.orderDataSelectedSymbol == "all")
 				return;
-			let symbolOrders = this.orderData[this.orderDataSelectedSymbol];
 			const stockBuySellChartContainer = document.getElementById('stockBuySellChart');
 			let labels = [];
 			let prices = [];
 
-			for(let i = 0; i < symbolOrders.length; i++)
+			for(let i = 0; i < orders.length; i++)
 			{
-				let order = symbolOrders[i];
+				let order = orders[i];
 				labels.push(order["filledDate"] + " - " + order["orderType"]);
 				prices.push(order["price"]);
 			}
@@ -522,7 +549,7 @@ new Vue({
 			this.orderData = response.data;
 			this.symbols = Object.keys(this.orderData);
 			console.log(this.symbols)
-			vueComponent.populateStockBuySellPanel();
+			vueComponent.getOrderData();
 		});
 	}
 });

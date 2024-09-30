@@ -19,3 +19,6 @@ class StockData:
         self.symbol = symbol
         self.price = stockPrice
         self.fundWeighting = fundWeighting
+
+    def asdict(self):
+        return {"symbol": self.symbol, "price": self.price}

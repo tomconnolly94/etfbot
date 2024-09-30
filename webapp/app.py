@@ -25,6 +25,7 @@ from webapp.server.controllers.DataServer import (
     removeExcludeListItem,
     addExcludeListItem,
     getCompletedOrderDataBySymbol,
+    getCurrentStockPrice,
 )
 from common import LoggingController
 
@@ -119,6 +120,15 @@ def logFileNames():
 def symbolOrderInfo():
     try:
         return getCompletedOrderDataBySymbol()
+    except Exception as exception:
+        logging.error(exception)
+        return getResponse(500, "Unknown error, check server logs")
+
+
+@app.route("/currentPrice/<stockSymbol>", methods=["GET"])
+def currentPrice(stockSymbol):
+    try:
+        return getCurrentStockPrice(stockSymbol)
     except Exception as exception:
         logging.error(exception)
         return getResponse(500, "Unknown error, check server logs")

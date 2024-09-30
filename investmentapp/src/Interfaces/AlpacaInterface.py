@@ -143,9 +143,8 @@ class AlpacaInterface(InvestingInterface):
     ) -> "list[StockData]":
         request = StockLatestQuoteRequest(symbol_or_symbols=stockSymbols)
         stockDataList = self.historicalDataAPI.get_stock_latest_quote(request)
-        logging.debug(f"len(stockDataList): {len(stockDataList)}")
-        # for symbol, stockData in stockDataList.items():
-        #     logging.debug(f"{symbol}: {stockData}")
+        logging.error(f"len(stockDataList): {len(stockDataList)}")
+        logging.error(f"stockData: {stockDataList}")
 
         return [
             StockData(symbol, stockData.bid_price)
