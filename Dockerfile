@@ -14,7 +14,7 @@ ADD . $PROJDIR
 # hack to jump over PEP668
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
-ENV apt install iputils-ping; ping -c 5 google.com; ping -c 8.8.8.8
+RUN apt install iputils-ping; ping -c 5 google.com; ping -c 8.8.8.8
 
 # install npm dependencies and perform gulp build
 RUN npm install -g npm@10.9.0; npm install --prefix $WEBAPPDIR/client
