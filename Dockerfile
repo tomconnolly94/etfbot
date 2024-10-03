@@ -15,7 +15,7 @@ ADD . $PROJDIR
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # install npm dependencies and perform gulp build
-RUN npm install -g npm@10.5.2; npm install --prefix $WEBAPPDIR/client
+RUN npm config set timeout 6000000; npm install -g npm@10.5.2; npm install --prefix $WEBAPPDIR/client
 RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
 
 # unit testing
