@@ -2,8 +2,7 @@
 
 # external dependencies
 from alpaca.data.historical.stock import StockHistoricalDataClient
-from alpaca.data.requests import StockBarsRequest, StockLatestQuoteRequest
-from alpaca.data.timeframe import TimeFrame
+from alpaca.data.requests import StockLatestQuoteRequest
 from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import (
     MarketOrderRequest,
@@ -143,8 +142,8 @@ class AlpacaInterface(InvestingInterface):
     ) -> "list[StockData]":
         request = StockLatestQuoteRequest(symbol_or_symbols=stockSymbols)
         stockDataList = self.historicalDataAPI.get_stock_latest_quote(request)
-        logging.error(f"len(stockDataList): {len(stockDataList)}")
-        logging.error(f"stockData: {stockDataList}")
+        logging.info(f"Retrieved stock data for {len(stockDataList)} stocks")
+        logging.debug(f"Stock symbols: {stockDataList.keys()}")
 
         return [
             StockData(symbol, stockData.bid_price)
@@ -167,14 +166,11 @@ class AlpacaInterface(InvestingInterface):
                 timeframe="1D",
                 date_end=datetime.now() - relativedelta(days=3),
             )
-            logging.info("getLastYearPortfolioPerformance start")
 
             account_id = self._getAlpacaAccount().id
             data = self.brokerAPI.get_portfolio_history_for_account(
                 account_id=account_id, history_filter=request_params
             )
-
-            logging.info("getLastYearPortfolioPerformance end")
 
             for index, record in enumerate(data.equity):
                 outputDict[data.timestamp[index]] = record

@@ -169,7 +169,8 @@ new Vue({
 			orderDataProfitLossMessages: [],
 			orderDataSelectedSymbol: "all",
 			stockBuySellChart: null,
-			symbols: []
+			symbols: [],
+			totalCapitalGainsLiability: 0
 		}
 	},
 	methods: {
@@ -378,7 +379,6 @@ new Vue({
 		},
 		createMessagesFromOrderData: function(orders)
 		{
-
 			let totalPL = 0;
 
 			// loop through orders and create buy/sell messages
@@ -391,6 +391,9 @@ new Vue({
 				{
 					orderMessage += `+${order["price"]} (${order["price"]}x${order["quantity"]})`;
 					totalPL += Number(order["price"]) * order["quantity"];
+					// look back through order history for all previous BUY orders
+					if(order["orderType"] == "SELL" && totalPL > 0)
+						orderMessage += ` - Capital gains liability: ${totalPL.toFixed(2)}`
 				}
 				else if(order["orderType"] == "BUY" )
 				{
@@ -403,6 +406,37 @@ new Vue({
 			this.orderDataProfitLossMessages.push(`Total P/L: ${totalPL.toFixed(2)}`);
 
 			this.buildStockBuySellChart(orders);
+		},
+		calculateCurrentCapitalGains: function()
+		{
+			this.totalCapitalGainsLiability = 0;
+			// loop grouped orders and for any sell orders calculate the capital gains liability
+			let symbols = Object.keys(this.orderData);
+
+			for(let symbolIndex = 0; symbolIndex < symbols.length; symbolIndex++)
+			{
+				let symbol = symbols[symbolIndex];
+				let orders = this.orderData[symbol];
+				let stockPL = 0;
+				
+				for(let orderIndex = 0; orderIndex < orders.length; orderIndex++)
+				{
+					let order = orders[orderIndex];
+					if(order["orderType"] == "BUY" )
+						stockPL -= Number(order["price"]) * order["quantity"];
+					else if(order["orderType"] == "SELL")
+					{
+						stockPL += Number(order["price"]) * order["quantity"];
+						
+						if(stockPL > 0)
+						{
+							// add the capital gains liability for this sale to the total and reset 
+							this.totalCapitalGainsLiability += stockPL;
+							stockPL = 0; // this assumes that when we sell, we sell everything we own of this stock
+						}
+					}
+				}
+			}
 		},
 		getOrderData: function()
 		{
@@ -441,6 +475,7 @@ new Vue({
 					orders = orders.concat(this.orderData[this.symbols[i]]);
 
 				this.createMessagesFromOrderData(orders);
+				this.calculateCurrentCapitalGains();
 			}
 		},
 		buildStockBuySellChart: function(orders)
