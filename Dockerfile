@@ -14,8 +14,7 @@ ADD . $PROJDIR
 # hack to jump over PEP668
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
-# install npm dependencies and perform gulp build
-RUN npm config delete proxy; npm install -g npm@10.5.2; npm install --prefix $WEBAPPDIR/client
+# perform gulp build
 RUN $WEBAPPDIR/client/node_modules/gulp/bin/gulp.js --gulpfile $WEBAPPDIR/client/build/gulpfile.js build
 
 # unit testing
