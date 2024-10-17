@@ -52,6 +52,16 @@
 								Total capital gains liability: {{ totalCapitalGainsLiability }}
 							</div>
 						</div>
+						<div class="row container">
+							<div class="col-lg-7"></div>
+							<label id="taxYearLabel" class="col-lg-2" for="taxYears">Tax year:</label>
+							<div class="col-lg-3">
+								<select class="form-control" @change="updateSymbolOrderInfo($event)">
+									<option v-for="taxYearLabel in availableTaxYears" :value="taxYearLabel" :key="taxYearLabel">{{ taxYearLabel }}</option>
+								</select>
+							</div>
+						</div>
+
 
 						<div class="row">
 							<div class="col-lg-8">

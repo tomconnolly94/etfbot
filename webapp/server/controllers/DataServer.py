@@ -296,10 +296,12 @@ def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getPortfolioPerformanceData()
 
 
-def getCompletedOrderDataBySymbol():
+def getCompletedOrderDataBySymbol(earliestTimestamp, latestTimestamp):
     ordersBySymbol = {}
 
-    for order in AlpacaInterface().getAllOrders():
+    for order in AlpacaInterface().getAllOrders(
+        earliestTimestamp, latestTimestamp
+    ):
         if order.symbol not in ordersBySymbol:
             ordersBySymbol[order.symbol] = []
 

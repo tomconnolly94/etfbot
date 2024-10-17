@@ -119,7 +119,10 @@ def logFileNames():
 @app.route("/symbolOrderInfo", methods=["GET"])
 def symbolOrderInfo():
     try:
-        return getCompletedOrderDataBySymbol()
+        return getCompletedOrderDataBySymbol(
+            request.args.get("earliestTimestamp"),
+            request.args.get("latestTimestamp"),
+        )
     except Exception as exception:
         logging.error(exception)
         return getResponse(500, "Unknown error, check server logs")

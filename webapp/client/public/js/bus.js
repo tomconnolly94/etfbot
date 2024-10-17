@@ -1,0 +1,11 @@
+//////////////////////////////////////////////////////////////////////
+//
+// filename: bus.js
+// author: Tom Connolly
+// description: Contains bus functionality for communication between
+//              vue components
+//
+//////////////////////////////////////////////////////////////////////
+
+// create bus for communication between vue instances
+Vue.prototype.$bus = new Vue();

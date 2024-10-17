@@ -6,157 +6,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-// create bus for communication between vue instances
-Vue.prototype.$bus = new Vue();
-
-
 // const vars
 var charts = [];
-
-new Vue({
-	el: '#triggerPanel',
-	data() {
-		return {
-			responseMessage: "",
-			outputLogs: [],
-			running: false,
-			startTime: null,
-			originalSpinnerParentClass: "col-sm-6 col-xl-4",
-			spinnerParentClass: this.originalSpinnerParentClass
-		}
-	},
-	methods: {
-		runInvestmentBalancer: function (){
-			console.log("runInvestmentBalancer called.")
-
-			if (this.running){
-				return;
-			}
-
-			this.running = true;
-			this.startTime = new Date().toLocaleString();
-			this.spinnerParentClass = "col-sm-8"
-			this.responseMessage = "";
-			this.outputLogs = [];
-			vueComponent = this;
-
-			axios.get(`/runInvestmentBalancer`).then((response) => {
-				vueComponent.cleanUpInvestmentAppRun(true, response);
-			}).catch(function(error){
-				vueComponent.cleanUpInvestmentAppRun(false, error);
-			});
-		},
-		cleanUpInvestmentAppRun: function(success, response){
-			var successStr = success ? "successfully" : "unsuccessfully";
-			console.log(`runInvestmentApp finished ${successStr}.`);
-			this.responseMessage = `InvestmentApp run ${successStr} at ${vueComponent.startTime}`
-			this.running = false;
-			this.spinnerParentClass = this.originalSpinnerParentClass;
-			if(response.data && response.data.logs)
-				this.outputLogs = response.data.logs;
-			Vue.prototype.$bus.$emit('reloadLogFileNameList', {});
-		}
-	}
-});
-
-
-new Vue({
-	el: '#excludeListPanel',
-	data() {
-		return {
-			stocks: [],
-			newExcludeListStockSymbol: "",
-			excludeReason: "immoral"
-		}
-	},
-	beforeMount() {
-		this.reloadExcludeList();
-	},
-	methods: {
-		reloadExcludeList(){
-			this.stocks = [];
-			axios.get(`/excludeList`).then((response) => {
-				for(const stockRecord of response.data)
-				{
-					this.stocks.push({
-						symbol: stockRecord["symbol"],
-						companyName: stockRecord["companyName"],
-						reason: stockRecord["reason"]
-					})
-				}
-			}).catch(function(error){
-				console.log(`Failed to retrieve excludeList error: ${error}`);
-			});
-		},
-		removeExcludeListItem(stockForRemoval) {
-			const stockSymbolForRemoval = stockForRemoval.stock["symbol"]
-			for(let index = 0; index < this.stocks.length; index++)
-			{
-				const stockSymbol = this.stocks[index]["symbol"];
-				if(stockSymbol == stockSymbolForRemoval)
-				{
-					axios.delete(`/excludeList/${stockSymbolForRemoval}`).then((response) => {
-						this.stocks.splice(index, 1);
-					}).catch(function(error){
-						console.log(`Failed to remove item from excludeList error: ${error}`);
-					});
-				}
-			}
-		},
-		addExcludeListItem(){
-			
-			if(!this.excludeReason)
-			{
-				console.log(`Please select an "excludeReason"`);
-				return;
-			}
-
-			let vueComponent = this;
-			// add symbol
-			axios.post(`excludeList/${this.newExcludeListStockSymbol}`, null, { params: {
-				reason: this.excludeReason
-			}}).then((response) => {
-				vueComponent.reloadExcludeList();
-				console.log(`Successfully added ${vueComponent} to excludeList, and reloaded the list to the UI`);
-			}).catch(function(error){
-				console.log(`Failed to add to excludeList, error: ${error}`);
-			});
-		}
-	}
-});
-
-
-new Vue({
-	el: '#logListPanel',
-	data() {
-		return {
-			logFileNameList: []
-		}
-	},
-	mounted() {
-		Vue.prototype.$bus.$on('reloadLogFileNameList', (payload) => {
-			this.reloadLogFileNameList();
-		});
-	},
-	beforeMount() {
-		this.reloadLogFileNameList();
-	},
-	methods: {
-		reloadLogFileNameList(){
-			console.log("reloading... logFileNameList");
-			this.logFileNameList = [];
-			axios.get(`/logFileNames`).then((response) => {
-				for(const logFileName of response.data)
-				{
-					this.logFileNameList.push(logFileName);
-				}
-				console.log("successfully reloaded logFileNameList");
-			}).catch(function(error){
-				console.log(`Failed to retrieve excludeList error: ${error}`);
-			});
-		}
-	}
-});
 
 
 new Vue({
@@ -170,7 +21,12 @@ new Vue({
 			orderDataSelectedSymbol: "all",
 			stockBuySellChart: null,
 			symbols: [],
-			totalCapitalGainsLiability: 0
+			totalCapitalGainsLiability: 0,
+			dateRangeModel: "2024-04-01",
+			availableTaxYears: [],
+			availableTaxYearDates: {},
+			earliestYearForCGT: null,
+			latestYearForCGT: null
 		}
 	},
 	methods: {
@@ -354,8 +210,6 @@ new Vue({
 				chart.destroy();
 			});
 
-			console.log(yearConfig);
-
 			charts.push(new Chart(yearPerformanceChartContainer, yearConfig));
 			charts.push(new Chart(monthPerformanceChartContainer, monthConfig));
 		},
@@ -377,35 +231,64 @@ new Vue({
 			this.orderDataSelectedSymbol = event.target.options[event.target.options.selectedIndex].text
 			this.getOrderData();
 		},
-		createMessagesFromOrderData: function(orders)
+		createMessagesFromOrderData: async function(symbols)
 		{
 			let totalPL = 0;
+			let allOrders = [];
 
-			// loop through orders and create buy/sell messages
-			for(let i = 0; i < orders.length; i++)
+			for(let symbolIndex = 0; symbolIndex < symbols.length; symbolIndex++)
 			{
-				const order = orders[i];
-				let orderMessage = `${order["orderType"]} ${order["symbol"]} `;
+				let symbol = symbols[symbolIndex];
+				let orders = this.orderData[symbol];
+				allOrders.concat(orders);
+				const finalOrder = orders[orders.length - 1];
 
-				if(order["orderType"] == "SELL" || order["orderType"] == "CURRENT PRICE" )
-				{
-					orderMessage += `+${order["price"]} (${order["price"]}x${order["quantity"]})`;
-					totalPL += Number(order["price"]) * order["quantity"];
-					// look back through order history for all previous BUY orders
-					if(order["orderType"] == "SELL" && totalPL > 0)
-						orderMessage += ` - Capital gains liability: ${totalPL.toFixed(2)}`
+				// if the final order is a BUY, get the current value of the stock
+				if(finalOrder["orderType"] == "BUY"){
+					const ownedQuantity = finalOrder["quantity"]
+					// if we still own the stock we make a request to get its current value
+					let response = await axios.get(`/currentPrice/${symbol}`);
+
+					const stockData = response.data;
+						
+					orders.push({
+						"symbol": stockData["symbol"],
+						"price": stockData["price"],
+						"orderType": "CURRENT PRICE",
+						"quantity": ownedQuantity,
+						"filledDate": new Date().toLocaleDateString()
+					});
+					totalPL += this.processSymbolOrders(orders);
 				}
-				else if(order["orderType"] == "BUY" )
+				else
+					totalPL += this.processSymbolOrders(orders);
+			}
+			this.orderDataProfitLossMessages.push(`Total P/L: ${totalPL.toFixed(2)}`);
+		},
+		processSymbolOrders: function(orders)
+		{
+			let symbolPL = 0;
+
+			for(let orderIndex = 0; orderIndex < orders.length; orderIndex++)
+			{
+				const order = orders[orderIndex];
+
+				let orderMessage = `${order["orderType"]} ${order["symbol"]} `;
+				if(order["orderType"] == "BUY" )
 				{
 					orderMessage += `-${order["price"]} (${order["price"]}x${order["quantity"]})`;
-					totalPL -= Number(order["price"]) * order["quantity"];
+					symbolPL -= Number(order["price"]) * order["quantity"];
+				}
+				else if(order["orderType"] == "SELL" || order["orderType"] == "CURRENT PRICE")
+				{
+					orderMessage += `+${order["price"]} (${order["price"]}x${order["quantity"]})`;
+					symbolPL += Number(order["price"]) * order["quantity"];
+					if(order["orderType"] == "SELL" && symbolPL > 0)
+						orderMessage += ` - Capital gains liability: ${symbolPL.toFixed(2)}`
 				}
 				this.orderDataProfitLossMessages.push(orderMessage);
 			}
-
-			this.orderDataProfitLossMessages.push(`Total P/L: ${totalPL.toFixed(2)}`);
-
-			this.buildStockBuySellChart(orders);
+			return symbolPL;
 		},
 		calculateCurrentCapitalGains: function()
 		{
@@ -413,11 +296,14 @@ new Vue({
 			// loop grouped orders and for any sell orders calculate the capital gains liability
 			let symbols = Object.keys(this.orderData);
 
+
 			for(let symbolIndex = 0; symbolIndex < symbols.length; symbolIndex++)
 			{
 				let symbol = symbols[symbolIndex];
 				let orders = this.orderData[symbol];
 				let stockPL = 0;
+				let earliestTimestampForCGT = new Date(this.earliestYearForCGT, 3, 6).getTime();
+				let latestTimestampForCGT = new Date(this.latestYearForCGT, 3, 5).getTime();
 				
 				for(let orderIndex = 0; orderIndex < orders.length; orderIndex++)
 				{
@@ -426,6 +312,14 @@ new Vue({
 						stockPL -= Number(order["price"]) * order["quantity"];
 					else if(order["orderType"] == "SELL")
 					{
+						let splitDate = order["filledDate"].split("/");
+						let orderTimestamp = new Date(splitDate[2], Number(splitDate[1]) - 1, splitDate[0]).getTime();
+
+						// skip any sell orders outside of the relevant tax year
+						if(orderTimestamp < earliestTimestampForCGT || orderTimestamp > latestTimestampForCGT)
+							continue;
+
+
 						stockPL += Number(order["price"]) * order["quantity"];
 						
 						if(stockPL > 0)
@@ -437,46 +331,24 @@ new Vue({
 					}
 				}
 			}
+			this.totalCapitalGainsLiability = this.totalCapitalGainsLiability.toFixed(2);
 		},
-		getOrderData: function()
+		getOrderData: async function()
 		{
 			this.orderDataProfitLossMessages = [];
 
-			let orders = []
 			if(this.orderDataSelectedSymbol != "all")
 			{
-				orders = this.orderData[this.orderDataSelectedSymbol];
-				const finalOrder = orders[orders.length - 1];
-
-				if(finalOrder["orderType"] == "SELL"){
-					this.createMessagesFromOrderData(orders);
-					return;
-				}
-
-				const ownedQuantity = finalOrder["quantity"]
-				// if we still own the stock we make a request to get its current value
-				axios.get(`/currentPrice/${this.orderDataSelectedSymbol}`).then((response) => {
-					
-					const stockData = response.data;
-					
-					orders.push({
-						"symbol": stockData["symbol"],
-						"price": stockData["price"],
-						"orderType": "CURRENT PRICE",
-						"quantity": ownedQuantity,
-						"filledDate": new Date().toLocaleDateString()
-					});
-					this.createMessagesFromOrderData(orders);
-				});
+				this.createMessagesFromOrderData([this.orderDataSelectedSymbol]);
+				const orders = this.orderData[this.orderDataSelectedSymbol];
+				this.buildStockBuySellChart(orders);
 			}
 			else
 			{
-				for(let i = 0; i < this.symbols.length; i++)
-					orders = orders.concat(this.orderData[this.symbols[i]]);
-
-				this.createMessagesFromOrderData(orders);
-				this.calculateCurrentCapitalGains();
+				this.createMessagesFromOrderData(this.symbols);
+				this.buildStockBuySellChart([]);
 			}
+			this.calculateCurrentCapitalGains();
 		},
 		buildStockBuySellChart: function(orders)
 		{
@@ -484,8 +356,9 @@ new Vue({
 			if(this.stockBuySellChart)
 				this.stockBuySellChart.destroy();
 
-			if(this.orderDataSelectedSymbol == "all")
+			if(orders.length < 1)
 				return;
+
 			const stockBuySellChartContainer = document.getElementById('stockBuySellChart');
 			let labels = [];
 			let prices = [];
@@ -534,6 +407,22 @@ new Vue({
 				change = "N/A";
 
 			return `${label} - Start: ${prevValue}, End: ${currentValue}, Change: ${change}.`
+		},
+		getSymbolOrderInfo: function()
+		{
+			vueComponent = this;
+			axios.get(`/symbolOrderInfo`).then((response) => {
+				this.orderData = response.data;
+				this.symbols = Object.keys(this.orderData);
+				vueComponent.getOrderData();
+			});
+		},
+		updateSymbolOrderInfo: function(event)
+		{
+			let years = event.target.value.split("/");
+			this.earliestYearForCGT = years[0];
+			this.latestYearForCGT = years[1];
+			this.getSymbolOrderInfo();
 		}
 	},
 	beforeMount() {
@@ -579,12 +468,23 @@ new Vue({
 			let portfolioPerformanceOneYearPrevValue = data["PortfolioPerformance"].oneYearPrevValue ? (data["PortfolioPerformance"].oneYearPrevValue).toFixed(1) : "N/A";
 			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", portfolioPerformanceOneYearPrevValue, portfolioPerformanceCurrentValue));
 		});
-		axios.get(`/symbolOrderInfo`).then((response) => {
 
-			this.orderData = response.data;
-			this.symbols = Object.keys(this.orderData);
-			console.log(this.symbols)
-			vueComponent.getOrderData();
-		});
+		// calculate tax years, earliest tax year should be 23/24, latest should be the current tax year
+		let earliestTaxYear = 2023;
+		let currentDate = new Date();
+		let thisTaxYearThreshold = new Date(currentDate.getFullYear(), 4, 5);
+		let latestTaxYear = currentDate <= thisTaxYearThreshold ? currentDate.getFullYear() : currentDate.getFullYear() + 1;
+
+		for(let currentTaxStartYear = earliestTaxYear; currentTaxStartYear < latestTaxYear; currentTaxStartYear++)
+		{	
+			vueComponent.availableTaxYearDates[`${currentTaxStartYear}/${currentTaxStartYear + 1}`] = {
+				earliestTimestamp: new Date(currentTaxStartYear, 3, 5).getTime(),
+				latestTimestamp: new Date(currentTaxStartYear + 1, 3, 6).getTime()
+			};
+		};
+		vueComponent.availableTaxYears = Object.keys(vueComponent.availableTaxYearDates).reverse();		
+		vueComponent.earliestYearForCGT = latestTaxYear - 1;
+		vueComponent.latestYearForCGT = latestTaxYear;
+		vueComponent.getSymbolOrderInfo();
 	}
 });

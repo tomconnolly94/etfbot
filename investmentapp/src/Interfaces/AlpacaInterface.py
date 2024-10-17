@@ -184,9 +184,15 @@ class AlpacaInterface(InvestingInterface):
     test: None
     """
 
-    def getAllOrders(self) -> list[StockOrder]:
+    def getAllOrders(
+        self, earliestTimestamp, latestTimestamp
+    ) -> list[StockOrder]:
         get_orders_data = GetOrdersRequest(
-            status=QueryOrderStatus.CLOSED, limit=500, direction="asc"
+            status=QueryOrderStatus.CLOSED,
+            limit=500,
+            direction="asc",
+            after=earliestTimestamp,
+            until=latestTimestamp,
         )
 
         return [

@@ -7,6 +7,10 @@
         "node_modules/vue/dist/vue.js",
         "node_modules/bootstrap/dist/js/bootstrap.js",
         "node_modules/chart.js/dist/chart.umd.js",
+        "public/js/bus.js",
+        "public/js/triggerPanel.js",
+        "public/js/excludeListPanel.js",
+        "public/js/logListPanel.js",
         "public/js/index.js"
     ]
 }
