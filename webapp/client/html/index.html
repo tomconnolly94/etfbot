@@ -17,68 +17,67 @@
 	<div id="pageContent" class="container">
 		<div class="row">
 			<div class="col-lg-8">
-				<div id="displayPanel" class="panel">
-					<h2>Stock performance:</h2>
-					<div id="monthPerformanceChartContainer">
-						<canvas id="monthPerformanceChart"></canvas>
-						<ul class="dataPanel">
-							<li v-for="message in monthPerformanceChartDataPanelMessages">
-								{{ message }}
-							</li>
-						</ul>
-					</div>
-					<hr>
-					<div id="yearPerformanceChartContainer">
-						<canvas id="yearPerformanceChart"></canvas>
-						<ul class="dataPanel">
-							<li v-for="message in yearPerformanceChartDataPanelMessages">
-								{{ message }}
-							</li>
-						</ul>
-					</div>
-					<hr>
-					<div id="stockBuySellChartContainer">
-						<canvas id="stockBuySellChart"></canvas>
-
-						<div class="row">
-							<div class="col-lg-4">
-								<select class="form-control" @change="updateOrderDataSelectedSymbol($event)">
-									<option value="all" selected>all</option>
-									<option v-for="symbol in symbols" :value="symbol" :key="symbol">{{ symbol }}</option>
-								</select>
-							</div>
-							<div class="col-lg-4"></div>
-							<div class="col-lg-4">
-								Total capital gains liability: {{ totalCapitalGainsLiability }}
-							</div>
+				<div id="displayPanel">
+					<div id="chartPanel" class="panel">
+						<h2>Stock performance:</h2>
+						<div id="monthPerformanceChartContainer">
+							<canvas id="monthPerformanceChart"></canvas>
+							<ul class="dataPanel">
+								<li v-for="message in monthPerformanceChartDataPanelMessages">
+									{{ message }}
+								</li>
+							</ul>
 						</div>
-						<div class="row container">
-							<div class="col-lg-7"></div>
-							<label id="taxYearLabel" class="col-lg-2" for="taxYears">Tax year:</label>
-							<div class="col-lg-3">
-								<select class="form-control" @change="updateSymbolOrderInfo($event)">
-									<option v-for="taxYearLabel in availableTaxYears" :value="taxYearLabel" :key="taxYearLabel">{{ taxYearLabel }}</option>
-								</select>
-							</div>
+						<div id="yearPerformanceChartContainer">
+							<canvas id="yearPerformanceChart"></canvas>
+							<ul class="dataPanel">
+								<li v-for="message in yearPerformanceChartDataPanelMessages">
+									{{ message }}
+								</li>
+							</ul>
 						</div>
+					</div>
+					<div id="transactionPanel" class="panel">
+						<h2>Transaction Info:</h2>
+						<div id="transactionContainer">
+							<div class="row" v-show="orderDataSelectedSymbol!='all'">
+								<canvas id="stockBuySellChart"></canvas>
+							</div>
+							<div class="row">
+								<div class="col-lg-4">
+									<select class="form-control" @change="updateOrderDataSelectedSymbol()" v-model="orderDataSelectedSymbol">
+										<option value="all" selected>all</option>
+										<option v-for="symbol in symbols" :value="symbol" :key="symbol">{{ symbol }}</option>
+									</select>
+								</div>
+								<div class="col-lg-3">
+									Total capital gains liability: {{ totalCapitalGainsLiability }}
+								</div>
+								<label id="taxYearLabel" class="col-lg-2" for="taxYears">Tax year:</label>
+								<div class="col-lg-3">
+									<select class="form-control" @change="updateSymbolOrderInfo($event)">
+										<option v-for="taxYearLabel in availableTaxYears" :value="taxYearLabel" :key="taxYearLabel">{{ taxYearLabel }}</option>
+									</select>
+								</div>
+							</div>
 
-
-						<div class="row">
-							<div class="col-lg-8">
-								<div class="accordion">
-									<div class="accordion-item">
-										<h2 class="accordion-header">
-											<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-												Order details
-											</button>
-										</h2>
-										<div id="collapseOne" class="accordion-collapse collapse hide" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-											<div class="accordion-body">
-												<ul class="dataPanel">
-													<li v-for="message in orderDataProfitLossMessages">
-														{{ message }}
-													</li>
-												</ul>
+							<div class="row">
+								<div class="col-lg-8">
+									<div class="accordion">
+										<div class="accordion-item">
+											<h2 class="accordion-header">
+												<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#transactionAccordionCollapsePanel" aria-expanded="true" aria-controls="transactionAccordionCollapsePanel">
+													Order details
+												</button>
+											</h2>
+											<div id="transactionAccordionCollapsePanel" class="accordion-collapse collapse hide" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+												<div class="accordion-body">
+													<ul class="dataPanel">
+														<li v-for="message in orderDataProfitLossMessages">
+															{{ message }}
+														</li>
+													</ul>
+												</div>
 											</div>
 										</div>
 									</div>

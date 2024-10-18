@@ -30,19 +30,14 @@ div.container {
 
 body {
     background-color: black;
-}
-
-h2 {
     color: white;
 }
 
 button.btn.btn-light {
-    background-color: white;
     color: black;
 }
 
 button.btn.btn-light:hover {
-    color: white;
     background-color: #666a6e;
     border-color: #f9fafb;
 }
@@ -53,13 +48,28 @@ button.btn.btn-light:hover {
     border:1px solid white;
     border-radius: 15px;
     margin-top: 70px;
+}
+
+#displayPanel, #transactionPanel, #chartPanel {
+    background-color: black;
+}
+
+select{
+    background-color: black;
     color: white;
 }
+
 
 /* general styles */
 
 
 /* displayPanel styles */
+
+
+
+/* displayPanel styles */
+
+/* chartPanel styles */
 
 .active {
     background-color: green;
@@ -69,35 +79,54 @@ button.btn.btn-light:hover {
     background-color: red;
 }
 
-#displayPanel ul {
+#chartPanel ul {
     list-style: none;
 }
 
-#displayPanel {
+
+#chartPanel {
     background-color: black;
 }
 
-#monthPerformanceChartContainer, #yearPerformanceChartContainer, #stockBuySellChartContainer {
+#monthPerformanceChartContainer, 
+#yearPerformanceChartContainer, 
+#transactionContainer {
     background-color: black;
     border:1px solid white;
     border-radius: 15px;
 
 }
 
-.dataPanel {
-    color: white;
-}
-
-#stockBuySellChartContainer .row {
-    margin: 20px;
-}
-
 #taxYearLabel{
     text-align: right;
 }
 
+#chartPanel div {
+    margin: 20px 0px;
+}
 
-/* displayPanel styles */
+
+/* chartPanel styles */
+
+
+/* transactionPanel styles */
+
+
+#transactionPanel .row {
+    margin: 20px;
+}
+
+#transactionAccordionCollapsePanel{
+    background-color: black;
+    list-style: none;
+}
+
+#transactionAccordionCollapsePanel ul{
+    list-style: none;
+}
+
+
+/* transactionPanel styles */
 
 
 /* inputPanel styles */
@@ -120,8 +149,6 @@ label {
 }
 
 button.btn{
-    background-color: #000000;
-    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -170,13 +197,7 @@ button.main-button {
     border:1px solid white;
     border-radius: 15px;
     margin-top: 70px;
-    color: white;
 }
-
-// #runInvestmentBalancerButton {
-//     background-color: white;
-//     color: black
-// }
 
 /* triggerPanel styles */
 
@@ -214,7 +235,6 @@ button.main-button {
 
 #titlePanel{
     margin: 10px;
-    color: white;
 }
 
 #titlePanel > h1{

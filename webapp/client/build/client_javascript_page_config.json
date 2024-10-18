@@ -11,6 +11,7 @@
         "public/js/triggerPanel.js",
         "public/js/excludeListPanel.js",
         "public/js/logListPanel.js",
-        "public/js/index.js"
+        "public/js/chartPanel.js",
+        "public/js/transactionPanel.js"
     ]
 }
