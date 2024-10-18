@@ -190,7 +190,8 @@ new Vue({
 				type: 'line',
 				data: yearGraphData,
 				options: {
-					spanGaps: true
+					spanGaps: true,
+					response: true
 				}
 			};
 			
@@ -198,7 +199,8 @@ new Vue({
 				type: 'line',
 				data: monthGraphData,
 				options: {
-					spanGaps: true
+					spanGaps: true,
+					response: true
 				}
 			};
 

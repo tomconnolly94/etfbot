@@ -81,10 +81,7 @@ new Vue({
 						"quantity": ownedQuantity,
 						"filledDate": new Date().toLocaleDateString()
 					});
-
-					console.log(`Added CURRENT PRICE to ${symbol} orders at ${stockData["price"]}`);
-				});
-					
+				});					
 			});
 		},
 		getPLDataFromSymbolOrders: function(orders)
