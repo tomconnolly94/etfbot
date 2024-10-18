@@ -7,11 +7,22 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+var charts = [];
+
+// vanilla javascript to destroy charts on page close/reload
+window.addEventListener("beforeunload", function(e){
+	for(let chartIndex = 0; chartIndex < charts.length; chartIndex++)
+		charts[chartIndex].destroy();
+	charts = [];
+});
+
+
+
 new Vue({
 	el: '#transactionPanel',
 	data() {
 		return {
-			orderData: [],
+			orderData: {},
 			orderDataProfitLossMessages: [],
 			orderDataSelectedSymbol: "all",
 			symbols: [],
@@ -28,41 +39,55 @@ new Vue({
 		{
 			this.processOrderData();
 		},
-		createMessagesFromOrderData: async function(symbols)
+		addCurrentPricesToOrderData: async function()
 		{
-			let totalPL = 0;
-			let allOrders = [];
+			const vueComponent = this;
+			this.orderDataProfitLossMessages = [];
+			const symbols = Object.keys(this.orderData);
+			let httpPromises = []
 
 			for(let symbolIndex = 0; symbolIndex < symbols.length; symbolIndex++)
 			{
 				let symbol = symbols[symbolIndex];
 				let orders = this.orderData[symbol];
-				allOrders.concat(orders);
 				const finalOrder = orders[orders.length - 1];
 
 				// if the final order is a BUY, get the current value of the stock
-				if(finalOrder["orderType"] == "BUY" && false){
-					const ownedQuantity = finalOrder["quantity"]
-					// if we still own the stock we make a request to get its current value
-					let response = await axios.get(`/currentPrice/${symbol}`);
+				if(finalOrder["orderType"] == "BUY")
+					httpPromises.push(axios.get(`/currentPrice/${symbol}`));
+			}
+
+			await Promise.all(httpPromises).then((responses) => {
+				
+				responses.forEach((response) => {
 
 					const stockData = response.data;
-						
-					orders.push({
-						"symbol": stockData["symbol"],
+					let symbol = stockData["symbol"];
+
+					if(!(symbol in vueComponent.orderData))
+					{
+						console.log(`ERROR: ${symbol} not found in vueComponent.orderData`);
+						return;
+					}
+
+					let orders = this.orderData[symbol];
+					const finalOrder = orders[orders.length - 1];
+					const ownedQuantity = finalOrder["quantity"]
+
+					vueComponent.orderData[symbol].push({
+						"symbol": symbol,
 						"price": stockData["price"],
 						"orderType": "CURRENT PRICE",
 						"quantity": ownedQuantity,
 						"filledDate": new Date().toLocaleDateString()
 					});
-					totalPL += this.processSymbolOrders(orders);
-				}
-				else
-					totalPL += this.processSymbolOrders(orders);
-			}
-			this.orderDataProfitLossMessages.push(`Total P/L: ${totalPL.toFixed(2)}`);
+
+					console.log(`Added CURRENT PRICE to ${symbol} orders at ${stockData["price"]}`);
+				});
+					
+			});
 		},
-		processSymbolOrders: function(orders)
+		getPLDataFromSymbolOrders: function(orders)
 		{
 			let symbolPL = 0;
 
@@ -130,29 +155,6 @@ new Vue({
 			}
 			this.totalCapitalGainsLiability = this.totalCapitalGainsLiability.toFixed(2);
 		},
-		processOrderData: async function()
-		{
-			console.log(this.showStockBuySellChart)
-			console.log(1, this.orderDataSelectedSymbol)
-			this.orderDataProfitLossMessages = [];
-
-			if(this.orderDataSelectedSymbol != "all")
-			{
-				this.showStockBuySellChart = true;
-				this.createMessagesFromOrderData([this.orderDataSelectedSymbol]);
-				const orders = this.orderData[this.orderDataSelectedSymbol];
-				this.buildStockBuySellChart(orders);
-			}
-			else
-			{
-				this.showStockBuySellChart = false;
-				this.createMessagesFromOrderData(this.symbols);
-			}
-			console.log(2, this.orderDataSelectedSymbol)
-			this.calculateCurrentCapitalGains();
-			console.log(3, this.orderDataSelectedSymbol)
-			console.log(this.showStockBuySellChart)
-		},
 		buildStockBuySellChart: function(orders)
 		{
 			// destroy the existing chart
@@ -191,16 +193,45 @@ new Vue({
 					spanGaps: true
 				}
 			};
-			
+
 			this.stockBuySellChart = new Chart(stockBuySellChartContainer, graphConfig);
-	
+			charts.push(this.stockBuySellChart);	
+		},
+		processOrderData: function(){
+
+			let symbols = [];
+
+			if(this.orderDataSelectedSymbol != "all")
+			{
+				symbols.push(this.orderDataSelectedSymbol);
+				const orders = this.orderData[this.orderDataSelectedSymbol];
+				this.buildStockBuySellChart(orders);
+			}
+			else
+				symbols = Object.keys(this.orderData);
+
+			// now calculate totalPL generating order messages for each order
+			let totalPL = 0;
+			this.orderDataProfitLossMessages = []; // empty the list
+
+			for(let symbolIndex = 0; symbolIndex < symbols.length; symbolIndex++)
+			{
+				let symbol = symbols[symbolIndex];
+				let orders = this.orderData[symbol];
+				totalPL += this.getPLDataFromSymbolOrders(orders);
+			}
+			this.orderDataProfitLossMessages.push(`Total P/L: ${totalPL.toFixed(2)}`);
+
+			// finally calculate capital gains tax for the selected tax year
+			this.calculateCurrentCapitalGains();
 		},
 		getSymbolOrderInfo: function()
 		{
 			const vueComponent = this;
-			axios.get(`/symbolOrderInfo`).then((response) => {
-				this.orderData = response.data;
-				this.symbols = Object.keys(this.orderData);
+			axios.get(`/symbolOrderInfo`).then(async (response) => {
+				vueComponent.orderData = response.data;
+				vueComponent.symbols = Object.keys(this.orderData);
+				await vueComponent.addCurrentPricesToOrderData();
 				vueComponent.processOrderData();
 			});
 		},
@@ -209,13 +240,13 @@ new Vue({
 			let years = event.target.value.split("/");
 			this.earliestYearForCGT = years[0];
 			this.latestYearForCGT = years[1];
-			this.getSymbolOrderInfo();
+			this.processOrderData();
 		}
 	},
-	beforeMount() {
+	async beforeMount() {
 		const vueComponent = this;
 
-		// calculate tax years, earliest tax year should be 23/24, latest should be the current tax year
+		// calculate tax years, earliest tax year should be 2023/2024, latest should be the current tax year
 		let earliestTaxYear = 2023;
 		let currentDate = new Date();
 		let thisTaxYearThreshold = new Date(currentDate.getFullYear(), 4, 5);
@@ -231,6 +262,6 @@ new Vue({
 		vueComponent.availableTaxYears = Object.keys(vueComponent.availableTaxYearDates).reverse();		
 		vueComponent.earliestYearForCGT = latestTaxYear - 1;
 		vueComponent.latestYearForCGT = latestTaxYear;
-		vueComponent.getSymbolOrderInfo();
+		await vueComponent.getSymbolOrderInfo();
 	}
 });

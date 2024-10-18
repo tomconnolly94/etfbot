@@ -10,6 +10,14 @@
 // const vars
 var charts = [];
 
+// vanilla javascript to destroy charts on page close/reload
+window.addEventListener("beforeunload", function(e){
+	for(let chartIndex = 0; chartIndex < charts.length; chartIndex++)
+		charts[chartIndex].destroy();
+	charts = [];
+ });
+
+
 
 new Vue({
 	el: '#chartPanel',
@@ -84,8 +92,6 @@ new Vue({
 
 			for(let i = 0; i < 365; i++)
 			{
-				// let dateParts = new Date(dataKeys[i]*1000).toUTCString().split(" ");
-				// let date = `${dateParts[1]} ${dateParts[2]} ${dateParts[3]}`
 				let date = dates[i];
 				labels.push(date);
 
@@ -184,26 +190,22 @@ new Vue({
 				type: 'line',
 				data: yearGraphData,
 				options: {
-					spanGaps: true,
-					animationDuration: 50
+					spanGaps: true
 				}
 			};
+			
 			const monthConfig = {
 				type: 'line',
 				data: monthGraphData,
 				options: {
-					spanGaps: true,
-					animationDuration: 50
+					spanGaps: true
 				}
 			};
 
 			for(let chartIndex = 0; chartIndex < charts.length; chartIndex++)
-			{
 				charts[chartIndex].destroy();
-				console.log("destroyed chart");
-			}
 
-			console.log("created charts");
+			charts = [];
 			charts.push(new Chart(yearPerformanceChartContainer, yearConfig));
 			charts.push(new Chart(monthPerformanceChartContainer, monthConfig));
 		},
