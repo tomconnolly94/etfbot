@@ -184,22 +184,26 @@ new Vue({
 				type: 'line',
 				data: yearGraphData,
 				options: {
-					spanGaps: true
+					spanGaps: true,
+					animationDuration: 50
 				}
 			};
 			const monthConfig = {
 				type: 'line',
 				data: monthGraphData,
 				options: {
-					spanGaps: true
+					spanGaps: true,
+					animationDuration: 50
 				}
 			};
 
+			for(let chartIndex = 0; chartIndex < charts.length; chartIndex++)
+			{
+				charts[chartIndex].destroy();
+				console.log("destroyed chart");
+			}
 
-			charts.forEach(function(chart){
-				chart.destroy();
-			});
-
+			console.log("created charts");
 			charts.push(new Chart(yearPerformanceChartContainer, yearConfig));
 			charts.push(new Chart(monthPerformanceChartContainer, monthConfig));
 		},

@@ -21,15 +21,19 @@
 					<div id="chartPanel" class="panel">
 						<h2>Stock performance:</h2>
 						<div id="monthPerformanceChartContainer">
-							<canvas id="monthPerformanceChart"></canvas>
-							<ul class="dataPanel">
+							<div>
+								<canvas id="monthPerformanceChart"></canvas>
+							</div>
+								<ul class="dataPanel">
 								<li v-for="message in monthPerformanceChartDataPanelMessages">
 									{{ message }}
 								</li>
 							</ul>
 						</div>
 						<div id="yearPerformanceChartContainer">
-							<canvas id="yearPerformanceChart"></canvas>
+							<div>
+								<canvas id="yearPerformanceChart"></canvas>
+							</div>
 							<ul class="dataPanel">
 								<li v-for="message in yearPerformanceChartDataPanelMessages">
 									{{ message }}
