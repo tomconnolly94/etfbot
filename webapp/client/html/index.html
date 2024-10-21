@@ -40,7 +40,9 @@
 					<div id="transactionPanel" class="panel">
 						<h2>Transaction Info:</h2>
 						<div id="transactionContainer">
-							<canvas id="stockBuySellChart" v-show="orderDataSelectedSymbol!='all'"></canvas>
+							<div v-show="orderDataSelectedSymbol!='all'">
+								<canvas id="stockBuySellChart"></canvas>
+							</div>
 							<div class="row">
 								<div class="col-lg-4">
 									<select class="form-control" @change="updateOrderDataSelectedSymbol()" v-model="orderDataSelectedSymbol">

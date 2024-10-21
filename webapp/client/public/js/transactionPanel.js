@@ -37,7 +37,9 @@ new Vue({
 	methods: {
 		updateOrderDataSelectedSymbol: function()
 		{
+			console.log(`this.orderDataSelectedSymbol ${this.orderDataSelectedSymbol}`);
 			this.processOrderData();
+			console.log(`this.orderDataSelectedSymbol ${this.orderDataSelectedSymbol}`);
 		},
 		addCurrentPricesToOrderData: async function()
 		{
@@ -87,6 +89,7 @@ new Vue({
 		getPLDataFromSymbolOrders: function(orders)
 		{
 			let symbolPL = 0;
+			let latestTransactionPL = 0;
 
 			for(let orderIndex = 0; orderIndex < orders.length; orderIndex++)
 			{
@@ -96,14 +99,19 @@ new Vue({
 				if(order["orderType"] == "BUY" )
 				{
 					orderMessage += `-${order["price"]} (${order["price"]}x${order["quantity"]})`;
-					symbolPL -= Number(order["price"]) * order["quantity"];
+					const transactionValue = Number(order["price"]) * order["quantity"];
+					symbolPL -= transactionValue;
+					latestTransactionPL -= transactionValue;
 				}
 				else if(order["orderType"] == "SELL" || order["orderType"] == "CURRENT PRICE")
 				{
 					orderMessage += `+${order["price"]} (${order["price"]}x${order["quantity"]})`;
-					symbolPL += Number(order["price"]) * order["quantity"];
-					if(order["orderType"] == "SELL" && symbolPL > 0)
-						orderMessage += ` - Capital gains liability: ${symbolPL.toFixed(2)}`
+					const transactionValue = Number(order["price"]) * order["quantity"];
+					symbolPL += transactionValue;
+					latestTransactionPL += transactionValue;
+					if(order["orderType"] == "SELL" && latestTransactionPL > 0)
+						orderMessage += ` - Capital gains liability: ${latestTransactionPL.toFixed(2)}`
+					latestTransactionPL = 0; // assumes that everything is sold.
 				}
 				this.orderDataProfitLossMessages.push(orderMessage);
 			}
@@ -120,7 +128,7 @@ new Vue({
 			{
 				let symbol = symbols[symbolIndex];
 				let orders = this.orderData[symbol];
-				let stockPL = 0;
+				let transactionPL = 0;
 				let earliestTimestampForCGT = new Date(this.earliestYearForCGT, 3, 6).getTime();
 				let latestTimestampForCGT = new Date(this.latestYearForCGT, 3, 5).getTime();
 				
@@ -128,9 +136,11 @@ new Vue({
 				{
 					let order = orders[orderIndex];
 					if(order["orderType"] == "BUY" )
-						stockPL -= Number(order["price"]) * order["quantity"];
+						transactionPL -= Number(order["price"]) * order["quantity"];
 					else if(order["orderType"] == "SELL")
 					{
+						if(transactionPL >= 0)
+							console.log(`ERROR: transactionPL=${transactionPL} orderType=${order["orderType"]}, something went wrong, we cant sell a negative value`)
 						let splitDate = order["filledDate"].split("/");
 						let orderTimestamp = new Date(splitDate[2], Number(splitDate[1]) - 1, splitDate[0]).getTime();
 
@@ -138,15 +148,11 @@ new Vue({
 						if(orderTimestamp < earliestTimestampForCGT || orderTimestamp > latestTimestampForCGT)
 							continue;
 
-
-						stockPL += Number(order["price"]) * order["quantity"];
+						transactionPL += Number(order["price"]) * order["quantity"];
 						
-						if(stockPL > 0)
-						{
-							// add the capital gains liability for this sale to the total and reset 
-							this.totalCapitalGainsLiability += stockPL;
-							stockPL = 0; // this assumes that when we sell, we sell everything we own of this stock
-						}
+						if(transactionPL > 0)
+							this.totalCapitalGainsLiability += transactionPL;
+						transactionPL = 0; // this assumes that when we sell, we sell everything we own of this stock
 					}
 				}
 			}
