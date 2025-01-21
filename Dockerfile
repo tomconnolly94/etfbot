@@ -4,6 +4,7 @@ FROM etfbot-dependency-img
 ARG PROJDIR=/proj-dir
 ARG WEBAPPDIR=$PROJDIR/webapp
 ARG INVESTMENTAPPDIR=$PROJDIR/investmentapp
+ARG DBDIR=/db
 
 # Set the working directory to $PROJDIR
 WORKDIR $PROJDIR
@@ -34,11 +35,13 @@ COPY ./webapp/.prodenv $WEBAPPDIR/.env
 COPY ./investmentapp/cron/etfbot.cronjob /etc/cron.d/etfbot
 RUN chmod 0644 /etc/cron.d/etfbot
 
+# install the empty db if it does not exist
+RUN mkdir $DBDIR
+RUN cp -n ./investmentapp/db/etfbot.base.db $DBDIR/etfbot.db
+
+
 # expose the port to allow web ui access
 EXPOSE 8080
 
-# run the command to start uWSGI
 WORKDIR $WEBAPPDIR
-# CMD ["uwsgi", "app-dev.ini"]
 ENTRYPOINT ["../entrypoint.sh"]
-

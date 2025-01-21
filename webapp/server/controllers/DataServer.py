@@ -161,7 +161,15 @@ def _getLastYearDates():
 
 
 def _normaliseValues(data):
-    maxValue = max([value for value in data.values() if value])
+    if len(data) < 1:
+        return {}
+
+    dataValues = [ value for value in data.values() if value ]
+
+    if len(dataValues) < 1: # all values in data are None, no normalisation needed
+        return data
+
+    maxValue = max(dataValues)
     normalisedDict = {}
 
     for key, value in data.items():
@@ -237,6 +245,7 @@ def _getCurrentHoldingsPerformanceData():
         date = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
         portfolioHistoryTotalsWithDates[date] = price
 
+    
     return InvestmentData(
         endValue,
         oneMonthPrevValue,

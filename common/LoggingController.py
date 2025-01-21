@@ -34,7 +34,7 @@ def initLogging(forceStdoutLogging=False):
     programName = f"etfbot-{frameInfo.filename.split('/')[-1].replace('.py', '')}"
     projectBaseDir = getLogsDir()
 
-    if os.getenv("ENVIRONMENT") == "production" and not forceStdoutLogging:
+    if os.getenv("ENVIRONMENT", "development") == "production" and not forceStdoutLogging:
         logFilename = os.path.join(
             projectBaseDir, f"{programName}_{time.strftime('%Y-%m-%d-%H-%M')}.log"
         )

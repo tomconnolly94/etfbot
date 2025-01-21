@@ -65,8 +65,6 @@ class AlpacaInterface(InvestingInterface):
             os.getenv("ALPACA_TRADING_SECRET_KEY"),
             paper=True,
         )
-        logging.info("self.tradingAPI:")
-        logging.info(self.tradingAPI)
         self.brokerAPI = BrokerClient(
             api_key=os.getenv("ALPACA_TRADING_KEY_ID"),
             secret_key=os.getenv("ALPACA_TRADING_SECRET_KEY"),

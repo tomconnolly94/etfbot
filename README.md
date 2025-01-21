@@ -7,9 +7,9 @@ Investment strategies will be limited to a single static weighting method initia
 ### Getting started ###
 
 * Clone the repo 
-* Create an env file (you can copy the example.env in the project root) and fill it with your details
-* Activate the python virtualenv
-* Run the program `python Main.py`
+* Create .prodenv files (you can copy the skelton.env files in the investmentapp and webapp) and fill it with your details
+* go to scripts/
+* execute ./update_and_restart.sh
 
 ### Contribution guidelines ###
 
