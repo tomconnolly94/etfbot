@@ -7,13 +7,15 @@ from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import (
     MarketOrderRequest,
     GetOrdersRequest,
-    GetPortfolioHistoryRequest,
+    GetPortfolioHistoryRequest
 )
 from alpaca.trading.enums import OrderSide, TimeInForce, QueryOrderStatus
 from alpaca.trading.models import TradeAccount, Position
 from alpaca.broker.client import BrokerClient
+from alpaca.common.exceptions import APIError
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from requests.exceptions import HTTPError
 import os
 import logging
 import sys
@@ -63,6 +65,8 @@ class AlpacaInterface(InvestingInterface):
             os.getenv("ALPACA_TRADING_SECRET_KEY"),
             paper=True,
         )
+        logging.info("self.tradingAPI:")
+        logging.info(self.tradingAPI)
         self.brokerAPI = BrokerClient(
             api_key=os.getenv("ALPACA_TRADING_KEY_ID"),
             secret_key=os.getenv("ALPACA_TRADING_SECRET_KEY"),
@@ -222,7 +226,11 @@ class AlpacaInterface(InvestingInterface):
         )
 
         # submit market order
-        return self.tradingAPI.submit_order(order_data=market_order_data)
+        try:
+            return self.tradingAPI.submit_order(order_data=market_order_data)
+        except (HTTPError, APIError) as error:
+            logging.error(f"self.tradingAPI.submit_order failed. stockSymbol={stockSymbol} quantity={quantity} orderType={orderType} error={error}")               
+            return False
 
     """
     `_getAlpacaAccount`: returns information about the alpaca account associated with the details above
