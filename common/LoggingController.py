@@ -61,8 +61,17 @@ def initLogging(forceStdoutLogging=False):
 
 
 def listExistingLogFiles():
-
     regexPattern = r"etfbot.*_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})\.log"
+    return listExistingLogFilesWithRegex(regexPattern)
+
+
+def listExistingMainLogFiles():
+    regexPattern = r"etfbot-Main_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})\.log"
+    return listExistingLogFilesWithRegex(regexPattern)
+
+
+def listExistingLogFilesWithRegex(regexPattern):
+
     logsDir = getLogsDir()
     logFiles = [
         f
@@ -73,7 +82,6 @@ def listExistingLogFiles():
     # sort log files by date
     def sortLogFileNames(logFileName):
         # e.g. log file name: etfbot-Main_2024-09-09-20-00.log
-        regexPattern = r"etfbot.*_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})\.log"
         result = re.search(regexPattern, logFileName)
         if result:
             return datetime.datetime(
@@ -87,10 +95,10 @@ def listExistingLogFiles():
     return sorted(logFiles, key=sortLogFileNames, reverse=True)
 
 
-def getLatestLogContent():
-    logFiles = listExistingLogFiles()
+def getLatestMainLogContent():
+    logFiles = listExistingMainLogFiles()
     if len(logFiles) == 0:
         return None
-    latestLogFilePath = listExistingLogFiles()[0]
+    latestLogFilePath = logFiles()[0]
     with open(os.path.join(getLogsDir(), latestLogFilePath), "r") as latestLogFile:
         return latestLogFile.read()

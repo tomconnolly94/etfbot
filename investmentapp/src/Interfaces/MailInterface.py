@@ -15,7 +15,7 @@ if __name__ == "__main__":  # horrible but just for testing
     sys.path.append(
         "/home/tom/projects/etfbot"
     )  # makes investmentapp accessible (during file run)
-from common.LoggingController import getLatestLogContent
+from common.LoggingController import getLatestMainLogContent
 
 
 class MailInterface:
@@ -50,7 +50,7 @@ class MailInterface:
         mailHeading = successHeading if success else failureHeading
 
         # get most recent log file content
-        logContent = str(getLatestLogContent())
+        logContent = str(getLatestMainLogContent())
 
         self._sendMail(mailHeading, logContent)
 

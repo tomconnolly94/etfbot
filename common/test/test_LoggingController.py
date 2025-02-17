@@ -7,7 +7,8 @@ import mock
 # internal dependencies
 from common.LoggingController import (
     listExistingLogFiles,
-    getLatestLogContent,
+    getLatestMainLogContent,
+    listExistingMainLogFiles
 )
 from webapp.server.test.testUtilities import FakeFile
 
@@ -22,34 +23,63 @@ class Test_LoggingController(unittest.TestCase):
         # config mocks
         getLogsDirMock.return_value = "nothing"
         listdirMock.return_value = [
-            "etfbot-Main_22-08-2024_18-45.log",
-            "etfbot-hello_wewew123_23-07-2024_18-45.log",
-            "etfbot_23-07-2023_18-45.log",
-            "etfbot-OtherRandom_thing_23-07-2024_18-55.log",
+            "etfbot-Main_2024-08-22-18-45.log",
+            "etfbot-hello_wewew123_2024-07-23-18-45.log",
+            "etfbot_2023-07-23-18-45.log",
+            "etfbot-OtherRandom_thing_2024-07-23-18-55.log",
         ]
         isfileMock.return_value = True
 
         existingLogFiles = listExistingLogFiles()
 
         expectedExistingLogFiles = [
-            "etfbot-Main_22-08-2024_18-45.log",
-            "etfbot-OtherRandom_thing_23-07-2024_18-55.log",
-            "etfbot-hello_wewew123_23-07-2024_18-45.log",
-            "etfbot_23-07-2023_18-45.log",
+            "etfbot-Main_2024-08-22-18-45.log",
+            "etfbot-OtherRandom_thing_2024-07-23-18-55.log",
+            "etfbot-hello_wewew123_2024-07-23-18-45.log",
+            "etfbot_2023-07-23-18-45.log",
         ]
 
         self.assertEqual(expectedExistingLogFiles, existingLogFiles)
 
+
+    @mock.patch("os.path.isfile")
+    @mock.patch("os.listdir")
+    @mock.patch("common.LoggingController.getLogsDir")
+    def test_listExistingMainLogFiles(self, getLogsDirMock, listdirMock, isfileMock):
+
+        # config mocks
+        getLogsDirMock.return_value = "nothing"
+        listdirMock.return_value = [
+            "etfbot-Main_2024-08-22-18-45.log",
+            "etfbot-hello_wewew123_2024-07-23-18-45.log",
+            "etfbot-Main_2024-07-23-18-45.log",
+            "etfbot-Main_2023-07-23-18-45.log",
+            "etfbot-Main_2024-07-23-18-55.log",
+        ]
+        isfileMock.return_value = True
+
+        existingLogFiles = listExistingMainLogFiles()
+
+        expectedExistingLogFiles = [
+            "etfbot-Main_2024-08-22-18-45.log",
+            "etfbot-Main_2024-07-23-18-55.log",
+            "etfbot-Main_2024-07-23-18-45.log",
+            "etfbot-Main_2023-07-23-18-45.log",
+        ]
+
+        self.assertEqual(expectedExistingLogFiles, existingLogFiles)
+
+
     @mock.patch("builtins.open", create=True)
     @mock.patch("common.LoggingController.listExistingLogFiles")
-    def test_listExistingLogFiles(self, listExistingLogFilesMock, openMock):
+    def test_getLatestMainLogContent(self, listExistingLogFilesMock, openMock):
 
         # config mocks
         listExistingLogFilesMock.return_value = [
-            "etfbot-Main_22-08-2024_18-45.log",
-            "etfbot-OtherRandom_thing_23-07-2024_18-55.log",
-            "etfbot-hello_wewew123_23-07-2024_18-45.log",
-            "etfbot_23-07-2023_18-45.log",
+            "etfbot-Main_2024-08-22-18-45.log",
+            "etfbot-OtherRandom_thing_2024-07-23-18-55.log",
+            "etfbot-hello_wewew123_2024-07-23-18-45.log",
+            "etfbot_2023-07-23-18-45.log",
         ]
         fakeLogContent = """
         some content of a log file
@@ -62,7 +92,7 @@ class Test_LoggingController(unittest.TestCase):
         openMock.return_value = FakeFile(fakeLogContent)
 
         # testable function
-        logContent = getLatestLogContent()
+        logContent = getLatestMainLogContent()
 
         self.assertEqual(fakeLogContent, logContent)
 
