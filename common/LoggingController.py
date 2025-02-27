@@ -99,6 +99,6 @@ def getLatestMainLogContent():
     logFiles = listExistingMainLogFiles()
     if len(logFiles) == 0:
         return None
-    latestLogFilePath = logFiles()[0]
+    latestLogFilePath = logFiles[0]
     with open(os.path.join(getLogsDir(), latestLogFilePath), "r") as latestLogFile:
         return latestLogFile.read()
