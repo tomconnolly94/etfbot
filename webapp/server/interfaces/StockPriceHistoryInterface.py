@@ -101,11 +101,18 @@ def _parsePriceData(priceData):
                 )
         return dataDict
     except KeyError as exception:
-        symbol = baseObject["meta"]["symbol"]
-        logging.error(
-            f"Exception occured when parsing price data for {symbol}. error: ",
-            exception,
-        )
+        try:
+            symbol = baseObject["meta"]["symbol"]
+            logging.error(
+                f"Exception occured when parsing price data for {symbol}. error: ",
+                exception,
+            )
+        except TypeError as exception:
+            logging.error(
+                f"Exception occured when parsing price data={priceData}. error: ",
+                exception,
+            )
+        
         return {}
 
 
@@ -144,8 +151,17 @@ def _parseStockExchangeData(priceData):
 
 
 async def _makeUrlRequest(session: aiohttp.ClientSession, url) -> dict:
+    logging.info(f"StockPriceHistoryInferace making request with _makeUrlRequest url={url}")
     response = await session.request("GET", url=url)
-    return await response.json()
+    try:
+        return await response.json()
+    except aiohttp.client_exceptions.ContentTypeError as exception:
+        logging.error(f"response={response}")
+        logging.exception(exception)
+        return {}
+    except Exception as exception:
+        logging.exception(exception)
+        return {}
 
 
 async def _getDataForUrlList(urls, dataProcessingFunction):
