@@ -55,8 +55,8 @@ new Vue({
 				const finalOrder = orders[orders.length - 1];
 
 				// if the final order is a BUY, get the current value of the stock
-				//if(finalOrder["orderType"] == "BUY")
-					//httpPromises.push(axios.get(`/currentPrice/${symbol}`));
+				if(finalOrder["orderType"] == "BUY")
+					httpPromises.push(axios.get(`/currentPrice/${symbol}`));
 			}
 
 			await Promise.all(httpPromises).then((responses) => {
