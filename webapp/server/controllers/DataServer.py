@@ -134,6 +134,9 @@ def getExcludeList():
     }
     # match reasons to company records
     for companyRecord in companyRecords:
+        if "symbol" not in companyRecord:
+            logging.error(f"Something is wrong with {companyRecord}, it has no 'symbol' field")
+            continue
         companyRecord["reason"] = excludedStockReasons[companyRecord["symbol"]]
     return companyRecords
 

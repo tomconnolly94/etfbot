@@ -25,15 +25,19 @@ def getTimestampForStartOfYesterday():
 
 
 def getPricesForStockSymbols(symbols):
+    logging.info("Running StockPriceHistoryInterface/py::getPricesForStockSymbols")
     try:
-        return asyncio.run(
+        data = asyncio.run(
             _getDataForUrlList(_buildGetPricesUrls(symbols), _parsePriceData)
         )
+        return data
     except Exception as exception:
         logging.error(exception)
+        return {}
 
 
 def getCompanyNamesForStockSymbols(symbols):
+    logging.info("Running StockPriceHistoryInterface/py::getCompanyNamesForStockSymbols")
     try:
         return asyncio.run(
             _getDataForUrlList(
@@ -41,10 +45,11 @@ def getCompanyNamesForStockSymbols(symbols):
             )
         )
     except Exception as exception:
-        logging.error(exception)
+        logging.exception(exception)
 
 
 def getStockExchangesForStockSymbol(stockSymbol: str):
+    logging.info("Running StockPriceHistoryInterface/py::getStockExchangesForStockSymbol")
     try:
         stockExchangeData = asyncio.run(
             _getDataForUrlList(
@@ -123,17 +128,17 @@ def _parseCompanyNameData(priceData):
             "symbol": priceData["chart"]["result"][0]["meta"]["symbol"],
             "companyName": priceData["chart"]["result"][0]["meta"]["longName"],
         }
-    except KeyError as exception:
-        symbol = priceData["chart"]["result"][0]["meta"]["symbol"]
+    except (KeyError, TypeError) as exception:
         logging.error(
-            f"Exception occured when parsing companyName data for {symbol}. error: ",
-            exception,
-        )
+            f"Exception occured when parsing companyName data in _parseCompanyNameData. error: ")
+
         return {}
+        #     "symbol": "NO",
+        #     "companyName": "invalid"
+        # }
 
 
 def _parseStockExchangeData(priceData):
-    logging.error(3)
     try:
         return {
             "symbol": priceData["chart"]["result"][0]["meta"]["symbol"],
@@ -142,37 +147,48 @@ def _parseStockExchangeData(priceData):
             ],
         }
     except KeyError as exception:
-        symbol = priceData["chart"]["result"][0]["meta"]["symbol"]
-        logging.error(
-            f"Exception occured when parsing stockExchange data for {symbol}. error: ",
-            exception,
-        )
+        logging.error(f"Exception occured when parsing stockExchange data for in _parseStockExchangeData. error: ")
         return {}
 
 
 async def _makeUrlRequest(session: aiohttp.ClientSession, url) -> dict:
     logging.info(f"StockPriceHistoryInferace making request with _makeUrlRequest url={url}")
-    response = await session.request("GET", url=url)
-    try:
-        return await response.json()
-    except aiohttp.client_exceptions.ContentTypeError as exception:
-        logging.error(f"response={response}")
-        logging.exception(exception)
-        return {}
-    except Exception as exception:
-        logging.exception(exception)
-        return {}
+    
+    # Initialize a semaphore object with a limit of 3 (max 3 downloads concurrently)
+    limit = asyncio.Semaphore(2)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
+    }
+
+    async with limit:
+        logging.error(f"Request being made with headers={headers} to url={url}")
+        response = await session.request("GET", url=url, headers=headers)
+
+        try:
+            return await response.json()
+        except aiohttp.client_exceptions.ContentTypeError as exception:
+            logging.error(f"response={response}")
+            return { "success": True }
+        except Exception as exception:
+            logging.exception(exception)
+            return {}
 
 
-async def _getDataForUrlList(urls, dataProcessingFunction):
-    async with aiohttp.ClientSession() as session:
+async def  _getDataForUrlList(urls, dataProcessingFunction):
+    connector = aiohttp.TCPConnector(limit=1)
+    async with aiohttp.ClientSession(connector=connector) as session:
         tasks = []
+        logging.info(f"num of urls={len(urls)}")
         for url in urls:
             tasks.append(_makeUrlRequest(session=session, url=url))
 
         data = []
         for task in asyncio.as_completed(tasks, timeout=10):
             # await the url request, parse the response for price data and append it to `data`
-            data.append(dataProcessingFunction(await task))
+            taskResult = await task
+            if not taskResult:
+                logging.error(f"Task failed in _getDataForUrlList, skipping taskResult={taskResult}")
+            data.append(dataProcessingFunction(taskResult))
+                
 
         return data

@@ -103,7 +103,7 @@ def excludeList():
     try:
         return getExcludeList()
     except Exception as exception:
-        logging.error(exception)
+        logging.exception(exception)
         return getResponse(500, "Unknown error, check server logs")
 
 
