@@ -27,6 +27,7 @@ class DataGrabbingSources(Enum):
     SPY500 = (1,)
     CurrentHoldings = (2,)
     PortfolioPerformance = 3
+    InternalPaperTrading = 4
 
 
 class InvestmentData:
@@ -55,11 +56,13 @@ def getInvestmentData():
         DataGrabbingSources.SPY500: None,
         # DataGrabbingSources.CurrentHoldings: None,
         DataGrabbingSources.PortfolioPerformance: None,
+        DataGrabbingSources.InternalPaperTrading: None,
     }
     dataGrabbingFunctions = {
         DataGrabbingSources.SPY500: _getSPY500DataThreadWrapper,
         # DataGrabbingSources.CurrentHoldings: _getCurrentHoldingsPerformanceDataThreadWrapper,
         DataGrabbingSources.PortfolioPerformance: _getPortfolioPerformanceDataThreadWrapper,
+        DataGrabbingSources.InternalPaperTrading: _getInternalPaperTradingDataThreadWrapper,
     }
 
     for key, wrapperFunction in dataGrabbingFunctions.items():
@@ -306,6 +309,57 @@ def _getPortfolioPerformanceData():
 
 def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
     results[threadId] = _getPortfolioPerformanceData()
+
+
+def _getInternalPaperTradingData():
+    strategyId = 1
+
+    rawPortfolioPerformanceData = (
+        DatabaseInterface().getInternalPaperTradingValueOverTime(strategyId)
+    )
+
+    # calculate date list
+    dateList = _getLastYearDates()
+
+    # create base data of null values
+    portfolioPerformanceData = {
+        date.strftime("%Y-%m-%d"): None for date in dateList
+    }
+
+    # overwrite null values with real data
+    for rawData in rawPortfolioPerformanceData:
+        portfolioPerformanceData[rawData["date"].split(" ")[0]] = float(
+            rawData["value"]
+        )
+
+    if not portfolioPerformanceData:
+        return {}
+
+    sortedDates = sorted(portfolioPerformanceData.keys())
+    endValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 1]]
+    oneMonthPrevValue = (
+        portfolioPerformanceData[sortedDates[len(sortedDates) - 31]]
+        if portfolioPerformanceData[sortedDates[len(sortedDates) - 31]]
+        else 0
+    )
+    oneYearPrevValue = (
+        portfolioPerformanceData[sortedDates[len(sortedDates) - 365]]
+        if portfolioPerformanceData[sortedDates[len(sortedDates) - 365]]
+        else 0
+    )
+
+    return {
+        strategyId: InvestmentData(
+            endValue,
+            oneMonthPrevValue,
+            oneYearPrevValue,
+            _normaliseValues(portfolioPerformanceData),
+        ).toDict()
+    }
+
+
+def _getInternalPaperTradingDataThreadWrapper(results, threadId):
+    results[threadId] = _getInternalPaperTradingData()
 
 
 def getCompletedOrderDataBySymbol(earliestTimestamp, latestTimestamp):

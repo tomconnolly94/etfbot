@@ -50,6 +50,7 @@ class DatabaseInterface:
         # table names
         self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME = "excluded_stock_symbols"
         self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME = "portfolio_value_by_date"
+        self.INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_NAME = "internal_paper_portfolio_value_by_date"
 
         # table field values, these maps help decouple the script from the db schema
         self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP: Dict[
@@ -138,6 +139,33 @@ class DatabaseInterface:
             {"date": record[0], "value": record[1]}
             for record in self.db_connection.execute(
                 f"SELECT * FROM {self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME} WHERE date > {startDate}"
+            )
+        ]
+
+    """
+    `getInternalPaperTradingValueOverTime`: get the value of internal paper trading 
+    """
+
+    def getInternalPaperTradingValueOverTime(
+        self, 
+        strategyId,
+        timePeriod: TIME_PERIOD = TIME_PERIOD.YEAR
+    ):
+        timePeriodTimeDeltaMap = {
+            TIME_PERIOD.YEAR: datetime.timedelta(days=365),
+            TIME_PERIOD.MONTH: datetime.timedelta(days=31),
+            TIME_PERIOD.DAY: datetime.timedelta(days=1),
+        }
+
+        today = datetime.datetime.today()
+        startDate = (today - timePeriodTimeDeltaMap[timePeriod]).strftime(
+            "%Y-%m-%d"
+        )
+
+        return [
+            {"date": record[0], "value": record[1]}
+            for record in self.db_connection.execute(
+                f"SELECT * FROM {self.INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_NAME} WHERE date > {startDate} AND strategy_id == {strategyId}"
             )
         ]
 

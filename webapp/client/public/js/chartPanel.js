@@ -33,7 +33,7 @@ new Vue({
 			let dataKeys = Object.keys(data);
 			if(dataKeys.length == 0)
 			{
-				console.log(`Data is malformed, no object keys found in ${JSON.stringify(data)}.`)
+				console.error(`Data is malformed, no object keys found in ${JSON.stringify(data)}.`)
 				return true;
 			}
 			let dataSetsLengths = [];
@@ -45,7 +45,7 @@ new Vue({
 		
 				if(typeof dataPack != 'object')
 				{
-					console.log(`${dataPack} is not an object`)
+					console.error(`${dataPack} is not an object`)
 					return true;
 				}
 		
@@ -53,7 +53,7 @@ new Vue({
 		
 				if(typeof dataPackValues != 'object' )
 				{
-					console.log(`${dataPackValues} is not an object`)
+					console.error(`${dataPackValues} is not an object`)
 					return true;
 				}
 		
@@ -66,7 +66,7 @@ new Vue({
 			{
 				if(prevDataSetLength != dataSetsLengths[i])
 				{
-					console.log(`Data is not uniform, some datasets in ${JSON.stringify(data)} were not the same length.`)
+					console.error(`Data is not uniform, some datasets in ${JSON.stringify(data)} were not the same length.`)
 					return true;
 				}
 			}
@@ -147,6 +147,17 @@ new Vue({
 						0.1
 					)
 				)
+			if("InternalPaperTrading" in data) 
+				yearGraphData.datasets.push(
+					vueComponent.formatGraphData(
+						'InternalPaperTrading', 
+						this.getValuesOrderedByKeys(data["InternalPaperTrading"]["values"]), 
+						null, 
+						false, 
+						'rgb(255, 255, 0)', 
+						0.1
+					)
+				)
 
 			const monthGraphData = {
 				labels: vueComponent.getFinalThirtyEntries(labels),
@@ -179,9 +190,20 @@ new Vue({
 					vueComponent.formatGraphData(
 						'Portfolio', 
 						this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]),
-						vueComponent.getFinalThirtyEntries, 
+						vueComponent.getFinalThirtyEntries,
 						false, 
 						'rgb(255, 0, 0)', 
+						0.1
+					)
+				)
+			if("InternalPaperTrading" in data) 
+				monthGraphData.datasets.push(
+					vueComponent.formatGraphData(
+						'InternalPaperTrading', 
+						this.getValuesOrderedByKeys(data["InternalPaperTrading"]["values"]),
+						vueComponent.getFinalThirtyEntries,
+						false, 
+						'rgb(255, 255, 0)', 
 						0.1
 					)
 				)
@@ -244,7 +266,8 @@ new Vue({
 			let data = response.data;
 
 			if(vueComponent.dataIsMalformed(data))
-				return;
+				//return;
+				console.error("data is malformed");
 
 			vueComponent.buildChart(data);
 
