@@ -314,48 +314,54 @@ def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
 def _getInternalPaperTradingData():
     strategyId = 1
 
-    rawPortfolioPerformanceData = (
-        DatabaseInterface().getInternalPaperTradingValueOverTime(strategyId)
-    )
+    knownStrategies = [1,2] # TODO: this should be more dynamic
 
     # calculate date list
     dateList = _getLastYearDates()
 
-    # create base data of null values
-    portfolioPerformanceData = {
-        date.strftime("%Y-%m-%d"): None for date in dateList
-    }
+    allInternalPaperTradingData = {}
 
-    # overwrite null values with real data
-    for rawData in rawPortfolioPerformanceData:
-        portfolioPerformanceData[rawData["date"].split(" ")[0]] = float(
-            rawData["value"]
+    for strategyId in knownStrategies:
+
+        rawPortfolioPerformanceData = (
+            DatabaseInterface().getInternalPaperTradingValueOverTime(strategyId)
         )
 
-    if not portfolioPerformanceData:
-        return {}
+        # create base data of null values
+        portfolioPerformanceData = {
+            date.strftime("%Y-%m-%d"): None for date in dateList
+        }
 
-    sortedDates = sorted(portfolioPerformanceData.keys())
-    endValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 1]]
-    oneMonthPrevValue = (
-        portfolioPerformanceData[sortedDates[len(sortedDates) - 31]]
-        if portfolioPerformanceData[sortedDates[len(sortedDates) - 31]]
-        else 0
-    )
-    oneYearPrevValue = (
-        portfolioPerformanceData[sortedDates[len(sortedDates) - 365]]
-        if portfolioPerformanceData[sortedDates[len(sortedDates) - 365]]
-        else 0
-    )
+        # overwrite null values with real data
+        for rawData in rawPortfolioPerformanceData:
+            portfolioPerformanceData[rawData["date"].split(" ")[0]] = float(
+                rawData["value"]
+            )
 
-    return {
-        strategyId: InvestmentData(
+        if not portfolioPerformanceData:
+            return {}
+
+        sortedDates = sorted(portfolioPerformanceData.keys())
+        endValue = portfolioPerformanceData[sortedDates[len(sortedDates) - 1]]
+        oneMonthPrevValue = (
+            portfolioPerformanceData[sortedDates[len(sortedDates) - 31]]
+            if portfolioPerformanceData[sortedDates[len(sortedDates) - 31]]
+            else 0
+        )
+        oneYearPrevValue = (
+            portfolioPerformanceData[sortedDates[len(sortedDates) - 365]]
+            if portfolioPerformanceData[sortedDates[len(sortedDates) - 365]]
+            else 0
+        )
+
+        allInternalPaperTradingData[strategyId] = InvestmentData(
             endValue,
             oneMonthPrevValue,
             oneYearPrevValue,
             _normaliseValues(portfolioPerformanceData),
         ).toDict()
-    }
+
+    return allInternalPaperTradingData
 
 
 def _getInternalPaperTradingDataThreadWrapper(results, threadId):
