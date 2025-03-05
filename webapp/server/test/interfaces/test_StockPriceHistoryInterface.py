@@ -8,6 +8,7 @@ import mock
 from webapp.server.interfaces.StockPriceHistoryInterface import (
     _buildGetPricesUrls,
     _parsePriceData,
+    _parseCompanyNameData
 )
 from webapp.server.test.testUtilities import FakeFile
 
@@ -63,3 +64,42 @@ class Test_StockPriceHistoryInterface(unittest.TestCase):
         self.assertEqual(3, len(priceData))
         self.assertEqual(expectedKeys, list(priceData.keys()))
         self.assertEqual(expectedValues, list(priceData.values()))
+
+
+    def test__parseCompanyNameData(self):
+
+
+        # config fake data
+        fakeSymbol = "fakeSymbol1"
+        fakeCompanyName = "fakeCompanyName1"
+        fakePriceData = {
+            "chart": {
+                "result": [
+                    {
+                        "timestamp": [
+                            "fakeTimestamp1",
+                            "fakeTimestamp2",
+                            "fakeTimestamp3",
+                        ],
+                        "indicators": {
+                            "quote": [
+                                {"close": ["fakeClose1", "fakeClose2", "fakeClose3"]}
+                            ]
+                        },
+                        "meta": {
+                            "symbol": fakeSymbol,
+                            "longName": fakeCompanyName
+                        },
+                    }
+                ]
+            }
+        }
+
+        companyNameData = _parseCompanyNameData((f"https://query2.finance.yahoo.com/v8/finance/chart/{fakeSymbol}?period1=1741046400&period2=1741046400", fakePriceData))
+
+        expectedCompanyNameData = {
+            "symbol": fakeSymbol,
+            "companyName": fakeCompanyName,
+        }
+
+        self.assertEqual(expectedCompanyNameData, companyNameData)

@@ -6,6 +6,7 @@ from dateutil import tz
 import aiohttp
 import asyncio
 import logging
+import re
 
 # internal dependencies
 
@@ -88,7 +89,10 @@ def _buildGetCompanyNamesUrls(symbols):
     ]
 
 
-def _parsePriceData(priceData):
+def _parsePriceData(urlAndPriceData):
+
+    url = urlAndPriceData[0]
+    priceData = urlAndPriceData[1]
 
     try:
         baseObject = priceData["chart"]["result"][0]
@@ -121,7 +125,10 @@ def _parsePriceData(priceData):
         return {}
 
 
-def _parseCompanyNameData(priceData):
+def _parseCompanyNameData(urlAndPriceData):
+
+    url = urlAndPriceData[0]
+    priceData = urlAndPriceData[1]
 
     try:
         return {
@@ -132,13 +139,19 @@ def _parseCompanyNameData(priceData):
         logging.error(
             f"Exception occured when parsing companyName data in _parseCompanyNameData. error: ")
 
-        return {}
-        #     "symbol": "NO",
-        #     "companyName": "invalid"
-        # }
+        stockSymbolRegexPattern = "https:\/\/query2\.finance\.yahoo\.com\/v8\/finance\/chart\/(\w+)?" # dependent on yahoo
+        stockSymbol = re.search(stockSymbolRegexPattern, url).group(1)
+
+        return {
+            "symbol": stockSymbol,
+            "companyName": "-",
+        }
 
 
-def _parseStockExchangeData(priceData):
+def _parseStockExchangeData(urlAndPriceData):
+
+    url = urlAndPriceData[0]
+    priceData = urlAndPriceData[1]
     try:
         return {
             "symbol": priceData["chart"]["result"][0]["meta"]["symbol"],
@@ -165,7 +178,8 @@ async def _makeUrlRequest(session: aiohttp.ClientSession, url) -> dict:
         response = await session.request("GET", url=url, headers=headers)
 
         try:
-            return await response.json()
+            responseJson = await response.json()
+            return (url, responseJson)
         except aiohttp.client_exceptions.ContentTypeError as exception:
             logging.error(f"response={response}")
             return { "success": True }
@@ -184,7 +198,7 @@ async def  _getDataForUrlList(urls, dataProcessingFunction):
 
         data = []
         for task in asyncio.as_completed(tasks, timeout=10):
-            # await the url request, parse the response for price data and append it to `data`
+            # await the url request, parse the response using the dataProcessingFunction and append it to `data`
             taskResult = await task
             if not taskResult:
                 logging.error(f"Task failed in _getDataForUrlList, skipping taskResult={taskResult}")
@@ -192,3 +206,4 @@ async def  _getDataForUrlList(urls, dataProcessingFunction):
                 
 
         return data
+    
