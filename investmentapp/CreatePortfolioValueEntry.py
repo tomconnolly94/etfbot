@@ -10,53 +10,17 @@ import sys, os
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )  # make webapp and common sub projects accessible
+from investmentapp.src.Interfaces.InternalPaperTradingClient import InternalPaperTradingClient
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
-from investmentapp.src.Interfaces.DatabaseInterface import TIME_PERIOD, DatabaseInterface
+from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 from common import LoggingController
-
-
-
-def getOwnedSymbolsAndQuantities(orders):
-
-    symbolQuantityOwned = {}
-
-    for order in orders:
-
-        if order["symbol"] not in symbolQuantityOwned:
-            symbolQuantityOwned[order["symbol"]] = 0
-
-        if(order["buySell"] == "BUY"):
-            symbolQuantityOwned[order["symbol"]] += order["orderQuantity"]
-
-        if(order["buySell"] == "SELL"):
-            symbolQuantityOwned[order["symbol"]] -= order["orderQuantity"]
-
-    return symbolQuantityOwned
-
 
 
 def addInternalPaperTradingDailyValues(databaseInterface: DatabaseInterface):
 
     strategyIds = databaseInterface.getInternalPaperTradingStrategyIds()
     for strategyId in strategyIds:
-        # get list of symbols that are "owned", known because most recent order is a "BUY"
-        ordersForStrategy = databaseInterface.getOrdersByStrategy(strategyId)
-        logging.info(f"strategyId: {strategyId} - symbols: {ordersForStrategy}")
-        ownedSymbolsAndQuantities = getOwnedSymbolsAndQuantities(ordersForStrategy)
-        logging.info(f"ownedSymbolsAndQuantities: {ownedSymbolsAndQuantities}")
-
-        # get value of quantity of symbol owned
-        currentStockPrices = { stockData.symbol: stockData.price 
-                     for stockData in 
-                     AlpacaInterface().getStockDataList(ownedSymbolsAndQuantities.keys()) }
-        logging.info(f"currentStockPrices: {currentStockPrices}")
-
-        ownedSymbolsAndValues = {}
-        for symbol, quantity in ownedSymbolsAndQuantities.items():
-            ownedSymbolsAndValues[symbol] = currentStockPrices[symbol] * quantity
-
-        logging.info(f"ownedSymbolsAndValues: {ownedSymbolsAndValues}")
-        totalStrategyValue = sum(ownedSymbolsAndValues.values())
+        totalStrategyValue = InternalPaperTradingClient(databaseInterface, strategyId).getTotalStockValue()
 
         logging.info(f"strategyId: {strategyId}, value: {totalStrategyValue}")
         databaseInterface.addTodaysInternalPortfolioValues(totalStrategyValue, strategyId)

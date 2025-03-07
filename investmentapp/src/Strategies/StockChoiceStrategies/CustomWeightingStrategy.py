@@ -6,6 +6,7 @@ import math
 
 # internal dependencies
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
+from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
 from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import (
     StockChoiceStrategy,
 )
@@ -24,13 +25,13 @@ The strategy is as follows:
 
 class CustomWeightingStrategy(StockChoiceStrategy):
 
-    def __init__(self):
+    def __init__(self, investingInterface: InvestingInterface):
         # class fields
         self._idealStockRangeIndexStart = 300
         self._idealStockRangeIndexEnd = 400
         self._divisionWeights = [32, 22, 14, 10, 8, 6, 4, 2, 1.5, 0.5]
-        self._alpacaInterface = AlpacaInterface()
-        super().__init__(self._alpacaInterface)
+        self._investingInterface = investingInterface
+        super().__init__(self._investingInterface)
 
     """
     `getStockOrderNumbers`: returns a dictionary of stock symbols mapped to the number of shares of that stock to buy  
@@ -51,8 +52,8 @@ class CustomWeightingStrategy(StockChoiceStrategy):
     """
 
     def getSellOrders(self: object) -> "list[str]":
-        stockCurrentlyOwned: "dict[str, int]" = self._alpacaInterface.getOpenPositions()
-        fullStockRange: "list[StockData]" = self._alpacaInterface.getStockCache()
+        stockCurrentlyOwned: "dict[str, int]" = self._investingInterface.getOpenPositions()
+        fullStockRange: "list[StockData]" = self._investingInterface.getStockCache()
 
         return [
             stockSymbol

@@ -312,10 +312,11 @@ def _getPortfolioPerformanceDataThreadWrapper(results, threadId):
 
 
 def _getInternalPaperTradingData():
-    strategyId = 1
 
-    knownStrategies = [1,2] # TODO: this should be more dynamic
+    databaseInterface = DatabaseInterface()
 
+    knownStrategies = databaseInterface.getInternalPaperTradingStrategyIds()
+    
     # calculate date list
     dateList = _getLastYearDates()
 
@@ -324,7 +325,7 @@ def _getInternalPaperTradingData():
     for strategyId in knownStrategies:
 
         rawPortfolioPerformanceData = (
-            DatabaseInterface().getInternalPaperTradingValueOverTime(strategyId)
+            databaseInterface.getInternalPaperTradingValueOverTime(strategyId)
         )
 
         # create base data of null values

@@ -3,18 +3,13 @@
 # external dependencies
 from alpaca.data.historical.stock import StockHistoricalDataClient
 from alpaca.data.requests import StockLatestQuoteRequest
-from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import (
     MarketOrderRequest,
     GetOrdersRequest,
-    GetPortfolioHistoryRequest
 )
 from alpaca.trading.enums import OrderSide, TimeInForce, QueryOrderStatus
 from alpaca.trading.models import TradeAccount, Position
-from alpaca.broker.client import BrokerClient
 from alpaca.common.exceptions import APIError
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from requests.exceptions import HTTPError
 import os
 import logging
@@ -29,6 +24,7 @@ sys.path.append(
         )
     )
 )  # make webapp and common sub projects accessible
+from investmentapp.src.Interfaces.InternalPaperTradingClient import InternalPaperTradingClient
 from investmentapp.src.Types.StockOrder import StockOrder
 from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 from investmentapp.src.Types.StockExchange import StockExchange
@@ -51,33 +47,24 @@ Python sdk docs: https://alpaca.markets/docs/python-sdk/trading.html#trading
 """
 
 
-class AlpacaInterface(InvestingInterface):
+class InternalPaperTradingInterface(InvestingInterface):
 
-    def __init__(self: object):
+    def __init__(self: object, strategyId: str):
 
         # no keys required for crypto data
         self.historicalDataAPI = StockHistoricalDataClient(
             os.getenv("ALPACA_TRADING_KEY_ID"),
             os.getenv("ALPACA_TRADING_SECRET_KEY"),
         )
-        self.tradingAPI = TradingClient(
-            os.getenv("ALPACA_TRADING_KEY_ID"),
-            os.getenv("ALPACA_TRADING_SECRET_KEY"),
-            paper=True,
-        )
-        self.brokerAPI = BrokerClient(
-            api_key=os.getenv("ALPACA_TRADING_KEY_ID"),
-            secret_key=os.getenv("ALPACA_TRADING_SECRET_KEY"),
-            api_version="v2",
-            url_override=os.getenv("ALPACA_TRADING_URL"),
-        )
 
         self.devMode = os.getenv("TRADING_DEV_MODE", "False").lower() == "true"
 
         self._sortedFullStockCache = []
         self._stockIndexDataInterface = StockIndexDataInterface()
+        self._databaseInterface = DatabaseInterface()
+        self.tradingAPI = InternalPaperTradingClient(self._databaseInterface, strategyId)
         logging.info(
-            f"AlpacaInterface initialised. devMode={self.devMode} env={os.getenv('TRADING_DEV_MODE', 'False')}"
+            f"InternalPaperTradingInterface initialised. devMode={self.devMode} env={os.getenv('TRADING_DEV_MODE', 'False')}"
         )
 
     """
@@ -157,29 +144,6 @@ class AlpacaInterface(InvestingInterface):
         )
         return len(list(self.tradingAPI.get_orders(filter=request_params)))
 
-    def getLastYearPortfolioPerformance(self):
-        outputDict = {}
-        if True:
-            # try:
-
-            request_params = GetPortfolioHistoryRequest(
-                period="1A",
-                timeframe="1D",
-                date_end=datetime.now() - relativedelta(days=3),
-            )
-
-            account_id = self._getAlpacaAccount().id
-            data = self.brokerAPI.get_portfolio_history_for_account(
-                account_id=account_id, history_filter=request_params
-            )
-
-            for index, record in enumerate(data.equity):
-                outputDict[data.timestamp[index]] = record
-
-        # except Exception as e:
-        #     logging.error(e)
-        return outputDict
-
     """
     `getAllOrders`: get all finalised order records
     test: None
@@ -213,6 +177,8 @@ class AlpacaInterface(InvestingInterface):
                 f"_submitOrder ({orderType.name}) called for symbol={stockSymbol} quantity={quantity} , devMode={self.devMode} so no order was submitted"
             )
             return
+        
+        logging.info(f"_submitOrder ({orderType.name}) ({orderType}) called for symbol={stockSymbol} quantity={quantity}")
 
         # preparing order data
         market_order_data = MarketOrderRequest(
