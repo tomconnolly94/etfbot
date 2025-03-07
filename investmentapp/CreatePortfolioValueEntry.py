@@ -41,7 +41,7 @@ def main():
     portfolioValue = AlpacaInterface().getPortfolioValue()
     logging.info(f"portfolioValue: {portfolioValue}")
     databaseInterface = DatabaseInterface()
-    # databaseInterface.addTodaysExternalPortfolioValue(portfolioValue)
+    databaseInterface.addTodaysExternalPortfolioValue(portfolioValue)
 
     # deal with internal paper trading strategies
     addInternalPaperTradingDailyValues(databaseInterface)

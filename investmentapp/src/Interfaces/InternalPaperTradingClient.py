@@ -22,9 +22,23 @@ class InternalPaperTradingClient():
         self._strategyId = strategyId
 
     def get_all_positions(self):
-        ordersForStrategy = self._databaseInterface.getInternalPaperTradingOrdersByStrategy(self._strategyId)
-        logging.info(f"strategyId: {self._strategyId} - symbols: {ordersForStrategy}")
-        return self.getOwnedSymbolsAndQuantities(ordersForStrategy)
+        positions = []
+
+        ordersByStrategy = self._databaseInterface.getInternalPaperTradingOrdersByStrategy(self._strategyId)
+        symbolsAndQuantities = self.getOwnedSymbolsAndQuantities(ordersByStrategy)
+
+        for symbol, quantity in symbolsAndQuantities.items():
+            position = Position(asset_id="abcdabcdabcdabcdabcdabcdabcdabcd",
+                                symbol=symbol,
+                                exchange="NYSE",
+                                asset_class="us_equity",
+                                avg_entry_price="0",
+                                qty=str(int(quantity)),
+                                side="long",
+                                cost_basis="fakeCostBasis")
+            positions.append(position)
+
+        return positions
 
     def get_orders(self, filter: GetOrdersRequest):
         if filter.status == QueryOrderStatus.OPEN:
@@ -55,9 +69,9 @@ class InternalPaperTradingClient():
             order_data.qty):
             logging.error("Something went wrong in _databaseInterface.createNewInternalPaperTradingOrder, returning early")
             return
-        
+
         # update strategy cash value
-        posNegMultiplier = -1 if order_data.side == buyInstruction else 1 
+        posNegMultiplier = -1 if order_data.side == buyInstruction else 1
         newCashValue = self.get_account().cash + (posNegMultiplier * stockPrice * order_data.qty)
         self._databaseInterface.updateInternalPaperTradingAccountCash(self._strategyId, newCashValue)
 
@@ -79,7 +93,7 @@ class InternalPaperTradingClient():
 
         strategyCash = self._databaseInterface.getInternalPaperTradingAccountCash(self._strategyId)
         strategyEquity = self.getTotalStockValue()
-        
+
         return InternalPaperTradingAccount(strategyCash, strategyEquity, self._strategyId)
 
 
@@ -108,9 +122,9 @@ class InternalPaperTradingClient():
 
         if len(symbols) == 0:
             return 0
-        
-        currentStockPrices = { stockData.symbol: stockData.price 
-                    for stockData in 
+
+        currentStockPrices = { stockData.symbol: stockData.price
+                    for stockData in
                     AlpacaInterface().getStockDataList(ownedSymbolsAndQuantities.keys()) }
         logging.info(f"currentStockPrices: {currentStockPrices}")
 

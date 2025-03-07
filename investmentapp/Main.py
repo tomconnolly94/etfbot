@@ -33,10 +33,10 @@ def main():
     errorString = ""
 
     strategyConfig = {
-        # "Alpaca": { 
-        #     "investingInterface": AlpacaInterface(), 
-        #     "investingStrategy": StockChoiceStrategyEnum.LinearWeightingCheapFirst 
-        # },
+        "Alpaca": { 
+            "investingInterface": AlpacaInterface(), 
+            "investingStrategy": StockChoiceStrategyEnum.LinearWeightingCheapFirst 
+        },
         "3": { 
             "investingInterface": InternalPaperTradingInterface("3"), 
             "investingStrategy": StockChoiceStrategyEnum.LinearWeightingCheapFirst 
@@ -60,9 +60,9 @@ def main():
         logging.info(f"Finished strategy={strategyName}")
 
     # send email notification with the log and any unhandled exceptions
-    # MailInterface().sendInvestmentAppSummaryMail(
-    #     success=False if errorString else True
-    # )
+    MailInterface().sendInvestmentAppSummaryMail(
+        success=False if errorString else True
+    )
     logging.info(f"Program ended.")
 
 
