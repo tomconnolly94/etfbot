@@ -37,8 +37,8 @@ def main():
             "investingInterface": AlpacaInterface(), 
             "investingStrategy": StockChoiceStrategyEnum.LinearWeightingCheapFirst 
         },
-        "3": { 
-            "investingInterface": InternalPaperTradingInterface("3"), 
+        "1": { 
+            "investingInterface": InternalPaperTradingInterface("1"), 
             "investingStrategy": StockChoiceStrategyEnum.LinearWeightingCheapFirst 
         }
     }
