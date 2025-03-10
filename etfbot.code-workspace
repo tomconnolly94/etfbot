@@ -9,6 +9,9 @@
 		"editor.defaultFormatter": "ms-python.black-formatter",
 		"python.analysis.autoFormatStrings": true,
 		"editor.formatOnSave": true,
-		"notebook.formatOnSave.enabled": true
+		"notebook.formatOnSave.enabled": true,
+		"[json]": {
+			"editor.defaultFormatter": "vscode.json-language-features"
+		}
 	}
 }

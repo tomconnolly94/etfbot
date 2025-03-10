@@ -10,9 +10,22 @@ import sys, os
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )  # make webapp and common sub projects accessible
+from investmentapp.src.Interfaces.InternalPaperTradingClient import InternalPaperTradingClient
 from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 from investmentapp.src.Interfaces.DatabaseInterface import DatabaseInterface
 from common import LoggingController
+
+
+def addInternalPaperTradingDailyValues(databaseInterface: DatabaseInterface):
+
+    strategyIds = databaseInterface.getInternalPaperTradingStrategyIds()
+    for strategyId in strategyIds:
+        totalStrategyValue = InternalPaperTradingClient(databaseInterface, strategyId).getTotalStockValue()
+
+        logging.info(f"strategyId: {strategyId}, value: {totalStrategyValue}")
+        databaseInterface.addTodaysInternalPortfolioValues(totalStrategyValue, strategyId)
+
+        logging.info(f"databaseInterface.addTodaysExternalPortfolioValue finished.")
 
 
 def main():
@@ -24,13 +37,14 @@ def main():
 
     logging.info(f"Program started.")
 
-    # create AlpacaInterface
-    alpacaInterface = AlpacaInterface()
-    portfolioValue = alpacaInterface.getPortfolioValue()
+    # deal with external paper trading
+    portfolioValue = AlpacaInterface().getPortfolioValue()
     logging.info(f"portfolioValue: {portfolioValue}")
-
     databaseInterface = DatabaseInterface()
-    databaseInterface.addTodaysPortfolioValue(portfolioValue)
+    databaseInterface.addTodaysExternalPortfolioValue(portfolioValue)
+
+    # deal with internal paper trading strategies
+    addInternalPaperTradingDailyValues(databaseInterface)
 
 
 if __name__ == "__main__":

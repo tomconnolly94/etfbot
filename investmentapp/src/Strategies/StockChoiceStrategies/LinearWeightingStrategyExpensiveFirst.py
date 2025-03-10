@@ -3,6 +3,7 @@
 # external dependencies
 
 # internal dependencies
+from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
 from investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy import (
     LinearWeightingStrategy,
 )
@@ -17,6 +18,6 @@ This is a StockChoiceStrategy that takes an ordered list of stocks applies a cus
 
 class LinearWeightingStrategyExpensiveFirst(LinearWeightingStrategy):
 
-    def __init__(self):
+    def __init__(self, investingInterface: InvestingInterface):
         self._reverseStockDataList = False
         super(LinearWeightingStrategy, self).__init__()

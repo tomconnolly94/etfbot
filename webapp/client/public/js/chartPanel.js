@@ -24,53 +24,48 @@ new Vue({
 	data() {
 		return {
 			monthPerformanceChartDataPanelMessages: [],
-			yearPerformanceChartDataPanelMessages: []
+			yearPerformanceChartDataPanelMessages: [],
+			chartColourList:[
+				'rgb(255, 0, 0)',
+				'rgb(0, 255, 0)',
+				'rgb(0, 0, 255)',
+				'rgb(255, 255, 0)',
+				'rgb(0, 255, 255)',
+				'rgb(255, 0, 255)',
+				'rgb(255, 255, 255)',
+			]
 		}
 	},
 	methods: {
-		dataIsMalformed: function(data) // perform very basic data validation
+		dataIsMalformed: function(dataKey, data) // perform very basic data validation, return number of values for later
 		{
+			// example data
+			// {
+			//		"currentValue": null,
+			//		"oneMonthPrevValue": 30.5,
+			//		"oneYearPrevValue": 0,
+			//		"values": {
+			// 			"2025-03-01": 0.99375,
+			// 			"2025-03-02": 1.0,
+			// 			"2025-03-03": null,
+			// 			"2025-03-04": null
+			// 			}
+			// }
+
 			let dataKeys = Object.keys(data);
 			if(dataKeys.length == 0)
 			{
-				console.log(`Data is malformed, no object keys found in ${JSON.stringify(data)}.`)
-				return true;
+				console.error(`Data is malformed, no values found in ${JSON.stringify(data)}.`)
+				return 0;
 			}
-			let dataSetsLengths = [];
-		
-			//assert all the lists in the data dict are the same length
-			for(let i = 0; i < dataKeys.length; i++)
+
+			if(!dataKeys.includes("currentValue") && !dataKeys.includes("oneMonthPrevValue") && !dataKeys.includes("oneYearPrevValue") && !dataKeys.includes("values"))
 			{
-				let dataPack = data[dataKeys[i]];
-		
-				if(typeof dataPack != 'object')
-				{
-					console.log(`${dataPack} is not an object`)
-					return true;
-				}
-		
-				let dataPackValues = data[dataKeys[i]]["values"];
-		
-				if(typeof dataPackValues != 'object' )
-				{
-					console.log(`${dataPackValues} is not an object`)
-					return true;
-				}
-		
-				if(dataPackValues != null)
-					dataSetsLengths.push(dataPackValues.length);
+				console.error(`Data is malformed, at least one data key in ${dataKeys} is missing from in ${JSON.stringify(data)}.`)
+				return 0;
 			}
-		
-			let prevDataSetLength = dataSetsLengths[0];
-			for(let i = 0; i < dataSetsLengths.length; i++)
-			{
-				if(prevDataSetLength != dataSetsLengths[i])
-				{
-					console.log(`Data is not uniform, some datasets in ${JSON.stringify(data)} were not the same length.`)
-					return true;
-				}
-			}
-		
+
+			
 			return false;
 		},
 		getValuesOrderedByKeys: function(obj)
@@ -82,13 +77,38 @@ new Vue({
 				});
 			return orderedValues;
 		},
+		getAYearOfDates: function()
+		{
+			Date.prototype.addDays = function(days) {
+				var date = new Date(this.valueOf());
+				date.setDate(date.getDate() + days);
+				return date;
+			}
+			
+			function getDates(latestDate, earliestDate) {
+				var dateArray = new Array();
+				var currentDate = earliestDate;
+				while (currentDate <= latestDate) {
+					let dateStringParts = new Date (currentDate).toLocaleDateString("en-GB").split("/");
+					dateArray.push(`${dateStringParts[2]}-${dateStringParts[1]}-${dateStringParts[0]}`);
+					currentDate = currentDate.addDays(1);
+				}
+				return dateArray;
+			}
+
+			var dateOneYearAgo = new Date();
+			dateOneYearAgo.setDate(dateOneYearAgo.getDate() - 365);
+
+			return getDates(new Date(), dateOneYearAgo);
+		},
 		buildChart: function(data)
 		{
 			const vueComponent = this;
 			const yearPerformanceChartContainer = document.getElementById('yearPerformanceChart');
 			const monthPerformanceChartContainer = document.getElementById('monthPerformanceChart');
 			const labels = [];
-			const dates = Object.keys(data["PortfolioPerformance"]["values"]); // SPY500 is the most consistently available data
+			const dataKeys = Object.keys(data);
+			const dates = this.getAYearOfDates();
 
 			for(let i = 0; i < 365; i++)
 			{
@@ -96,17 +116,10 @@ new Vue({
 				labels.push(date);
 
 				// use the date to add empty fields to our data sets
-				if(!(date in data["SPY500"]["values"]))
-				{
-					data["SPY500"]["values"][date] = null;
-				}
-				if("CurrentHoldings" in data){
-					if(!(date in data["CurrentHoldings"]["values"]))
-					{
-						data["CurrentHoldings"]["values"][date] = null;
-						console.log(`data["CurrentHoldings"]["values"][${date}] = null`)
-					}
-				}
+				dataKeys.forEach(dataKey => {
+					if(!(date in data[dataKey]["values"]))
+						data[dataKey]["values"][date] = null;
+				});
 			}
 
 			const yearGraphData = {
@@ -114,77 +127,34 @@ new Vue({
 				datasets: []
 			};
 
-			if("CurrentHoldings" in data) 
-				yearGraphData.datasets.push(
-					vueComponent.formatGraphData(
-						'Current holdings', 
-						this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), 
-						null, 
-						false, 
-						'rgb(0, 0, 255)', 
-						0.1
-					)
-				)
-			if("SPY500" in data) 
-				yearGraphData.datasets.push(
-					vueComponent.formatGraphData(
-						'SPY 500', 
-						this.getValuesOrderedByKeys(data["SPY500"]["values"]), 
-						null, 
-						false, 
-						'rgb(0, 255, 0)', 
-						0.1
-					)
-				)
-			if("PortfolioPerformance" in data) 
-				yearGraphData.datasets.push(
-					vueComponent.formatGraphData(
-						'Portfolio', 
-						this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]), 
-						null, 
-						false, 
-						'rgb(255, 0, 0)', 
-						0.1
-					)
-				)
-
 			const monthGraphData = {
 				labels: vueComponent.getFinalThirtyEntries(labels),
 				datasets: []
 			};
-			
-			if("CurrentHoldings" in data) 
-				monthGraphData.datasets.push(
+
+			dataKeyIndex = 0;
+
+			dataKeys.forEach(dataKey => {
+
+				const dataKeyColour = vueComponent.chartColourList[dataKeyIndex % vueComponent.chartColourList.length];
+
+				yearGraphData.datasets.push(
 					vueComponent.formatGraphData(
-						'Current holdings', 
-						this.getValuesOrderedByKeys(data["CurrentHoldings"]["values"]), 
-						vueComponent.getFinalThirtyEntries, 
-						false, 
-						'rgb(0, 0, 255)', 0.1
+						dataKey,
+						this.getValuesOrderedByKeys(data[dataKey]["values"]),
+						dataKeyColour
 					)
 				)
-			if("SPY500" in data)
+
 				monthGraphData.datasets.push(
 					vueComponent.formatGraphData(
-						'SPY 500', 
-						this.getValuesOrderedByKeys(data["SPY500"]["values"]), 
-						vueComponent.getFinalThirtyEntries, 
-						false, 
-						'rgb(0, 255, 0)', 
-						0.1
+						dataKey,
+						vueComponent.getFinalThirtyEntries(this.getValuesOrderedByKeys(data[dataKey]["values"])),
+						dataKeyColour
 					)
 				)
-			if("PortfolioPerformance" in data)
-				monthGraphData.datasets.push(
-					vueComponent.formatGraphData(
-						'Portfolio', 
-						this.getValuesOrderedByKeys(data["PortfolioPerformance"]["values"]),
-						vueComponent.getFinalThirtyEntries, 
-						false, 
-						'rgb(255, 0, 0)', 
-						0.1
-					)
-				)
+				dataKeyIndex++;
+			});
 
 			const yearConfig = {
 				type: 'line',
@@ -214,14 +184,14 @@ new Vue({
 		getFinalThirtyEntries: function(list){
 			return list.slice(list.length-30, list.length);
 		},		
-		formatGraphData: function(label, data, dataFunction, fill, borderColor, tension)
+		formatGraphData: function(label, data, borderColor)
 		{
 			return {
 				label: label,
-				data: dataFunction ? dataFunction(data) : data,
-				fill: fill,
+				data: data,
+				fill: false,
 				borderColor:borderColor,
-				tension: tension
+				tension: 0.1
 			};
 		},
 		formatDataPanelString: function(label, prevValue, currentValue)
@@ -236,49 +206,128 @@ new Vue({
 
 			return `${label} - Start: ${prevValue}, End: ${currentValue}, Change: ${change}.`
 		},
+		preProcessAndValidateData(data)
+		{
+			let dataItemValuesLengths = []
+			let InternalPaperTradingId = "InternalPaperTrading";
+			
+			// validate each non InternalPaperTrading data object
+			for (let recognisedDataKey of Object.keys(data)) {
+
+				if(recognisedDataKey == InternalPaperTradingId)
+					continue;
+				
+				if(this.dataIsMalformed(recognisedDataKey, data[recognisedDataKey]))
+				{
+					console.error(`data is malformed key=${recognisedDataKey}`);
+					continue;
+				}
+				dataItemValuesLengths.push(data[recognisedDataKey]["values"].length);
+			};
+
+			// validate each InternalPaperTrading data object and flatten the data structure
+			let internalPaperTradingData = data[InternalPaperTradingId];
+			let internalPaperTradingDataKeys = Object.keys(internalPaperTradingData);
+			
+			for (let internalPaperTradingDataKey of internalPaperTradingDataKeys) {
+
+				let newDataKey = `InternalPaperTrading_strategy_${internalPaperTradingDataKey}`;
+
+				if(this.dataIsMalformed(newDataKey, internalPaperTradingData[internalPaperTradingDataKey]))
+				{
+					console.error(`data is malformed key=InternalPaperTrading strategy=${internalPaperTradingDataKey}`);
+					continue;
+				}
+				dataItemValuesLengths.push(internalPaperTradingData[internalPaperTradingDataKey]["values"].length);
+				data[newDataKey] = internalPaperTradingData[internalPaperTradingDataKey];
+			};
+
+			// assert values field all have the same length
+			if(!dataItemValuesLengths.every((val, i, arr) => val === arr[0]))
+			{
+				console.error(`data is malformed data values are not all of equal value`);
+				return;
+			}
+
+			// remove now unnecessary InternalPaperTrading field
+			delete data[InternalPaperTradingId];
+			return data;
+		},
+		writeGraphLabels(data)
+		{
+			for (const [key, value] of Object.entries(data)) {
+				let currentValue = value.currentValue ? (value.currentValue).toFixed(1) : "N/A";
+				let oneMonthPrevValue = value.oneMonthPrevValue ? (value.oneMonthPrevValue).toFixed(1) : "N/A";
+				let oneYearPrevValue = value.oneYearPrevValue ? (value.oneYearPrevValue).toFixed(1) : "N/A";
+				
+				this.monthPerformanceChartDataPanelMessages.push(
+					this.formatDataPanelString(
+						key, 
+						oneMonthPrevValue, 
+						currentValue
+					)
+				);
+
+				this.yearPerformanceChartDataPanelMessages.push(
+					this.formatDataPanelString(
+						key, 
+						oneYearPrevValue, 
+						currentValue
+					)
+				);
+			}
+		}
 	},
 	beforeMount() {
 		const vueComponent = this;
 		axios.get(`/getInvestmentPerformanceData`).then((response) => {
 
-			let data = response.data;
+			// example data:
+			// {
+			// 	"InternalPaperTrading": {
+			// 		"1": {
+			// 			"currentValue": null,
+			// 			"oneMonthPrevValue": 30.5,
+			// 			"oneYearPrevValue": 0,
+			// 			"values": {
+			// 				"2025-03-01": 0.99375,
+			// 				"2025-03-02": 1.0,
+			// 				"2025-03-03": null,
+			// 				"2025-03-04": null
+			// 			}
+			// 		}
+			// 	},
+			// 	"PortfolioPerformance": {
+			// 		"currentValue": null,
+			// 		"oneMonthPrevValue": 5586.38,
+			// 		"oneYearPrevValue": 0,
+			// 		"values": {
+			// 			"2025-03-01": 0.9612093114100239,
+			// 			"2025-03-02": 0.9617335793623462,
+			// 			"2025-03-03": null,
+			// 			"2025-03-04": null
+			// 		}
+			// 	},
+			// 	"SPY500": {
+			// 		"currentValue": 583.77001953125,
+			// 		"oneMonthPrevValue": 591.6400146484375,
+			// 		"oneYearPrevValue": 562.8400268554688,
+			// 		"values": {
+			// 			"2025-02-26": 0.9699965495763149,
+			// 			"2025-02-27": 0.9545135574764407,
+			// 			"2025-02-28": 0.9694092307048872,
+			// 			"2025-03-03": 0.9524252794071445
+			// 		}
+			// 	}
+			// }
 
-			if(vueComponent.dataIsMalformed(data))
-				return;
+			let data = vueComponent.preProcessAndValidateData(response.data);
 
+			// draw graph
 			vueComponent.buildChart(data);
 
-
-			vueComponent.monthPerformanceChartDataPanelMessages = [];
-
-			let SPY500CurrentValue = data["SPY500"].currentValue ? (data["SPY500"].currentValue).toFixed(1) : "N/A";
-			let SPY500OneMonthPrevValue = data["SPY500"].oneMonthPrevValue ? (data["SPY500"].oneMonthPrevValue).toFixed(1) : "N/A";
-			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", SPY500OneMonthPrevValue, SPY500CurrentValue));
-
-			let currentHoldingsCurrentValue;
-			let currentHoldingsOneMonthPrevValue;
-
-			if("CurrentHoldings" in data){
-				currentHoldingsCurrentValue = data["CurrentHoldings"].currentValue ? (data["CurrentHoldings"].currentValue).toFixed(1) : "N/A";
-				currentHoldingsOneMonthPrevValue = data["CurrentHoldings"].oneMonthPrevValue ? (data["CurrentHoldings"].oneMonthPrevValue).toFixed(1) : "N/A";
-				vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", currentHoldingsOneMonthPrevValue, currentHoldingsCurrentValue));
-			}
-
-			let portfolioPerformanceCurrentValue = data["PortfolioPerformance"].currentValue ? (data["PortfolioPerformance"].currentValue).toFixed(1) : "N/A";
-			let portfolioPerformanceOneMonthPrevValue = data["PortfolioPerformance"].oneMonthPrevValue ? (data["PortfolioPerformance"].oneMonthPrevValue).toFixed(1) : "N/A";
-			vueComponent.monthPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", portfolioPerformanceOneMonthPrevValue, portfolioPerformanceCurrentValue));
-
-			vueComponent.yearPerformanceChartDataPanelMessages = [];			
-
-			let SPY500OneYearPrevValue = data["SPY500"].oneYearPrevValue ? (data["SPY500"].oneYearPrevValue).toFixed(1) : "N/A";
-			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("SPY500", SPY500OneYearPrevValue, SPY500CurrentValue));
-
-			if("CurrentHoldings" in data){
-				let currentHoldingsOneYearPrevValue = data["CurrentHoldings"].oneYearPrevValue ? (data["CurrentHoldings"].oneYearPrevValue).toFixed(1) : "N/A";
-				vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("CurrentHoldings", currentHoldingsOneYearPrevValue, currentHoldingsCurrentValue));
-			}
-			let portfolioPerformanceOneYearPrevValue = data["PortfolioPerformance"].oneYearPrevValue ? (data["PortfolioPerformance"].oneYearPrevValue).toFixed(1) : "N/A";
-			vueComponent.yearPerformanceChartDataPanelMessages.push(vueComponent.formatDataPanelString("Portfolio", portfolioPerformanceOneYearPrevValue, portfolioPerformanceCurrentValue));
+			// write labels for graph
+			vueComponent.writeGraphLabels(data);
 		});
 	}
 });

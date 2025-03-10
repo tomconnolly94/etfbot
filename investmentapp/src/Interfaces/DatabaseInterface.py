@@ -14,17 +14,36 @@ import traceback
 
 
 class EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE(Enum):
-    SYMBOL = 1
-    REASON = 2
-    STOCK_EXCHANGE = 3
+    SYMBOL = "symbol"
+    REASON = "reason"
+    STOCK_EXCHANGE = "stock_exchange"
 
 
 class PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE(Enum):
-    DATE = 1
-    VALUE = 2
+    DATE = "date"
+    VALUE = "value"
 
 
-class TIME_PERIOD:
+class INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE(Enum):
+    DATE = "date"
+    VALUE = "value"
+    STRATEGY_ID = "strategy_id"
+    
+class INTERNAL_PAPER_TRANSACTIONS_TABLE_COLUMN_TITLE(Enum):
+    SYMBOL = "symbol"
+    TRANSACTION_VALUE = "transaction_value"
+    BUY_SELL = "buy_sell"
+    DATE = "date"
+    STRATEGY_ID = "strategy_id"
+    ORDER_QUANTITY =" order_quantity"
+
+    
+class INTERNAL_PAPER_ACCOUNTS_TABLE_COLUMN_TITLE(Enum):
+    STRATEGY_ID = "strategy_id"
+    CASH = "cash"
+
+
+class TIME_PERIOD(Enum):
     YEAR = 1
     MONTH = 2
     DAY = 3
@@ -44,27 +63,15 @@ class DatabaseInterface:
         # Open existing read-write (exception if it doesn't exist)
         dbFile = f"{os.getenv('DB_DIR')}/etfbot.db"
         self.db_connection = apsw.Connection(
-            f"{os.getenv('DB_DIR')}/etfbot.db", flags=apsw.SQLITE_OPEN_READWRITE
+            dbFile, flags=apsw.SQLITE_OPEN_READWRITE
         )
 
         # table names
         self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME = "excluded_stock_symbols"
         self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME = "portfolio_value_by_date"
-
-        # table field values, these maps help decouple the script from the db schema
-        self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP: Dict[
-            EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE, str
-        ] = {
-            EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL: "symbol",
-            EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.REASON: "reason",
-            EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.STOCK_EXCHANGE: "stock_exchange",
-        }
-        self.PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_MAP: Dict[
-            PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE, str
-        ] = {
-            PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.DATE: "date",
-            PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.VALUE: "value",
-        }
+        self.INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_NAME = "internal_paper_portfolio_value_by_date"
+        self.INTERNAL_PAPER_TRANSACTIONS_TABLE_NAME = "internal_paper_transactions"
+        self.INTERNAL_PAPER_ACCOUNTS_TABLE_NAME = "internal_paper_accounts"
 
     """
     `removeExcludeListItem`: get the list of excluded stock symbol records from the database file
@@ -74,7 +81,7 @@ class DatabaseInterface:
         logging.info(f"Attempting to remove {stockSymbol} from excludeList")
         return self.db_connection.execute(
             f"DELETE FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME} "
-            f"WHERE {self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]} == '{stockSymbol}';"
+            f"WHERE {EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL.value} == '{stockSymbol}';"
         )
 
     """
@@ -93,7 +100,7 @@ class DatabaseInterface:
     def getExcludedStockRecord(self, stockSymbol: str):
         return self.db_connection.execute(
             f"SELECT * FROM {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME} WHERE "
-            f"'{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]}' == '{stockSymbol}'"
+            f"'{EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL.value}' == '{stockSymbol}'"
         )
 
     """
@@ -108,9 +115,9 @@ class DatabaseInterface:
             return False
         query = (
             f"INSERT INTO {self.EXCLUDED_STOCK_SYMBOLS_TABLE_NAME}"
-            f"('{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL]}', "
-            f"'{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.REASON]}', "
-            f"'{self.EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_MAP[EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.STOCK_EXCHANGE]}') "
+            f"('{EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.SYMBOL.value}', "
+            f"'{EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.REASON.value}', "
+            f"'{EXCLUDED_STOCK_SYMBOLS_TABLE_COLUMN_TITLE.STOCK_EXCHANGE.value}') "
             f"VALUES('{stockSymbol}', '{reason}', '{stockExchange}');"
         )
         self.db_connection.execute(query)
@@ -118,7 +125,7 @@ class DatabaseInterface:
         return True
 
     """
-    `getPortfolioValueOverTime`: get the list of excluded stock symbol records from the database file
+    `getPortfolioValueOverTime`: get the values over time of the external paper trading strategy 
     """
 
     def getPortfolioValueOverTime(
@@ -142,17 +149,173 @@ class DatabaseInterface:
         ]
 
     """
-    `getPortfolioValueForToday`: get the list of excluded stock symbol records from the database file
+    `getInternalPaperTradingValueOverTime`: get the values over time of an internal paper trading strategy 
     """
 
-    def _todayHasAPortfolioValue(self):
+    def getInternalPaperTradingValueOverTime(
+        self, 
+        strategyId,
+        timePeriod: TIME_PERIOD = TIME_PERIOD.YEAR
+    ):
+        timePeriodTimeDeltaMap = {
+            TIME_PERIOD.YEAR: datetime.timedelta(days=365),
+            TIME_PERIOD.MONTH: datetime.timedelta(days=31),
+            TIME_PERIOD.DAY: datetime.timedelta(days=1),
+        }
+
+        today = datetime.datetime.today()
+        startDate = (today - timePeriodTimeDeltaMap[timePeriod]).strftime(
+            "%Y-%m-%d"
+        ) + " 00:00:00"
+
+        return [
+            {"date": record[0], "value": record[1]}
+            for record in self.db_connection.execute(
+                f"SELECT * FROM '{self.INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_NAME}' WHERE date > '{startDate}' AND strategy_id == '{strategyId}'"
+            )
+        ]
+    
+    """
+    `addTodaysInternalPortfolioValues`: insert into the db a portfolio value for a specific internal paper strategy 
+    """
+
+    def addTodaysInternalPortfolioValues(self, portfolioValue: int, strategy_id: int):
+        
+        todaysDate = datetime.datetime.today().strftime("%Y-%m-%d")
+        if len([record
+            for record in self.db_connection.execute(
+                f"SELECT value from {self.INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_NAME} WHERE date LIKE '{todaysDate}%' and strategy_id={int(strategy_id)}"
+            )]) > 0:
+            logging.info("record already exists, skipping insert")
+            return
+
+        query = (
+            f"INSERT INTO '{self.INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_NAME}' "
+            f"('{INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.DATE.value}', "
+            f"'{INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.VALUE.value}', "
+            f"'{INTERNAL_PAPER_PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.STRATEGY_ID.value}') "
+            f"VALUES('{todaysDate}', '{portfolioValue}', {int(strategy_id)});"
+        )
+        return self._executeWriteQuery(query=query)
+
+    
+    """
+    `getInternalPaperTradingStrategyIds`: get a list of all strategyIds currently in use 
+    """
+
+    def getInternalPaperTradingStrategyIds(self):
+
+        query = (
+            f"select {INTERNAL_PAPER_ACCOUNTS_TABLE_COLUMN_TITLE.STRATEGY_ID.value} from {self.INTERNAL_PAPER_ACCOUNTS_TABLE_NAME};"
+        )
+    
+        return [
+            int(record[0])
+            for record in self.db_connection.execute(query)
+        ]
+    
+    """
+    `getInternalPaperTradingOrdersByStrategy`: get a list of all symbols owned by a specific strategy 
+    """
+
+    def getInternalPaperTradingOrdersByStrategy(self, strategyId: int):
+
+        query = (
+            f"SELECT symbol, transaction_value, buy_sell, date, order_quantity FROM {self.INTERNAL_PAPER_TRANSACTIONS_TABLE_NAME} WHERE strategy_id={strategyId} ORDER BY date DESC;"
+        )
+
+        return [
+            { 
+                "symbol": record[0],
+                "transactionValue": record[1],
+                "buySell": record[2],
+                "date": record[3],
+                "orderQuantity": record[4],
+            } 
+            for record in self.db_connection.execute(query)
+        ]
+
+    """
+    `createNewInternalPaperTradingOrder`: create new order for a symbol in a strategy at a price and quantity 
+    """
+
+    def createNewInternalPaperTradingOrder(self, 
+                                           strategyId: int, 
+                                           symbol, 
+                                           transactionValue, 
+                                           buySell,
+                                           orderQuantity, 
+                                           date = datetime.datetime.today().strftime("%Y-%m-%d")):
+
+        query = (
+            f"INSERT INTO {self.INTERNAL_PAPER_TRANSACTIONS_TABLE_NAME} "
+            f"({INTERNAL_PAPER_TRANSACTIONS_TABLE_COLUMN_TITLE.SYMBOL.value}, "
+            f"{INTERNAL_PAPER_TRANSACTIONS_TABLE_COLUMN_TITLE.TRANSACTION_VALUE.value}, "
+            f"{INTERNAL_PAPER_TRANSACTIONS_TABLE_COLUMN_TITLE.BUY_SELL.value}, " 
+            f"{INTERNAL_PAPER_TRANSACTIONS_TABLE_COLUMN_TITLE.DATE.value}, "
+            f"{INTERNAL_PAPER_TRANSACTIONS_TABLE_COLUMN_TITLE.STRATEGY_ID.value}, "
+            f"{INTERNAL_PAPER_TRANSACTIONS_TABLE_COLUMN_TITLE.ORDER_QUANTITY.value}) "
+            f"VALUES ('{symbol}', {transactionValue}, '{buySell}', '{date}', {strategyId}, {orderQuantity});"
+        )
+
+        return self._executeWriteQuery(str(query))
+    
+    "INSERT INTO internal_paper_transactions (symbol, transaction_value, buy_sell, date,  order_quantity) VALUES (ENPH, 58.69, SELL, 2025-03-06, 3, 1.0) WHERE strategy_id=3;"
+
+    """
+    `getInternalPaperTradingAccountCash`: get cash value on the account for a strategyId
+    """
+
+    def getInternalPaperTradingAccountCash(self, strategyId: int):
+
+        query = (
+            f"SELECT " 
+            f"{INTERNAL_PAPER_ACCOUNTS_TABLE_COLUMN_TITLE.CASH.value} "
+            f"FROM {self.INTERNAL_PAPER_ACCOUNTS_TABLE_NAME} "
+            f"WHERE {INTERNAL_PAPER_ACCOUNTS_TABLE_COLUMN_TITLE.STRATEGY_ID.value}={strategyId} "
+        )
+
+        logging.debug(f"getInternalPaperTradingAccountCash query={query}")
+
+        rawResult = list(self.db_connection.execute(query))
+
+        if len(rawResult) < 1 or len(rawResult[0]) < 1:
+            logging.error(f"Something went wrong when accessing account cash for strategy={strategyId} with query={query}")
+            return -1
+        
+        result = rawResult[0][0]
+        logging.info(f"result: {result}")
+
+        return result
+
+    """
+    `updateInternalPaperTradingAccountCash`: get cash value on the account for a strategyId
+    """
+
+    def updateInternalPaperTradingAccountCash(self, strategyId: int, newCashValue: float):
+
+        query = (
+            f"UPDATE {self.INTERNAL_PAPER_ACCOUNTS_TABLE_NAME} " 
+            f"SET {INTERNAL_PAPER_ACCOUNTS_TABLE_COLUMN_TITLE.CASH.value} = {newCashValue} "
+            f"WHERE {INTERNAL_PAPER_ACCOUNTS_TABLE_COLUMN_TITLE.STRATEGY_ID.value} = {strategyId} "
+        )
+
+        logging.debug(f"updateInternalPaperTradingAccountCash query={query}")
+
+        return self._executeWriteQuery(query)
+
+    """
+    `_tableHasAValueForToday`: return true if there is a portfolioValue for today in the specified table
+    """
+
+    def _tableHasAValueForToday(self, table_name: str):
         todaysDate = datetime.datetime.today().strftime("%Y-%m-%d")
         return (
             len(
                 [
                     record
                     for record in self.db_connection.execute(
-                        f"SELECT value from {self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME} WHERE date LIKE '{todaysDate}%'"
+                        f"SELECT value from {table_name} WHERE date LIKE '{todaysDate}%'"
                     )
                 ]
             )
@@ -160,27 +323,27 @@ class DatabaseInterface:
         )
 
     """
-    `addTodaysPortfolioValue`: get the list of excluded stock symbol records from the database file
+    `addTodaysExternalPortfolioValue`: get the list of excluded stock symbol records from the database file
     """
 
-    def addTodaysPortfolioValue(self, portfolioValue: int):
+    def addTodaysExternalPortfolioValue(self, portfolioValue: int):
 
-        if self._todayHasAPortfolioValue():
+        if self._tableHasAValueForToday(self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME):
             return
 
         query = (
             f"INSERT INTO '{self.PORTFOLIO_VALUE_BY_DATE_TABLE_NAME}'"
-            f"('{self.PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_MAP[PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.DATE]}', "
-            f"'{self.PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_MAP[PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.VALUE]}') "
+            f"('{PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.DATE.value}', "
+            f"'{PORTFOLIO_VALUE_BY_DATE_TABLE_COLUMN_TITLE.VALUE.value}') "
             f"VALUES(datetime('now', 'localtime'), '{portfolioValue}');"
         )
-        return self._executeQuery(query=query)
+        return self._executeWriteQuery(query=query)
 
     """
     `executeQuery`: execute database query with handling for common errors and consistent logging
     """
 
-    def _executeQuery(
+    def _executeWriteQuery(
         self,
         query: str,
     ):
@@ -212,7 +375,7 @@ if __name__ == "__main__":
     elif (
         len(sys.argv) == 2
     ):  # use this to add a new record quickly, usage: `python src/Interfaces/DatabaseInterface.py <todays-value>``
-        databaseInterface.addTodaysPortfolioValue(str(sys.argv[1]))
+        databaseInterface.addTodaysExternalPortfolioValue(str(sys.argv[1]))
 
         portfolioValueOverTime = databaseInterface.getPortfolioValueOverTime()
 

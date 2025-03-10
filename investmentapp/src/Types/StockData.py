@@ -22,3 +22,7 @@ class StockData:
 
     def asdict(self):
         return {"symbol": self.symbol, "price": self.price}
+    
+
+    def __repr__(self):
+        return f"StockData(symbol='{self.symbol}', price={self.price}, fundWeighting={self.fundWeighting})"

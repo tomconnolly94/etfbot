@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 # external dependencies
+from investmentapp.src.Interfaces.InvestingInterface import InvestingInterface
 from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy import (
     StockChoiceStrategy,
 )
@@ -35,8 +36,8 @@ class StockChoiceController:
         StockChoiceStrategyEnum.CustomWeighting: CustomWeightingStrategy,
     }
 
-    def __init__(self: object, stockChoiceStrategy: StockChoiceStrategyEnum):
-        self._stockChoiceStrategy = self.stockChoiceStrategyMap[stockChoiceStrategy]()
+    def __init__(self: object, stockChoiceStrategy: StockChoiceStrategyEnum, investingInterface: InvestingInterface):
+        self._stockChoiceStrategy = self.stockChoiceStrategyMap[stockChoiceStrategy](investingInterface)
         pass
 
     def getStockChoiceStrategy(self: object):

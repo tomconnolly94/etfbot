@@ -29,12 +29,11 @@ class InvestmentController:
     `__init__`: intialise object fields
     """
 
-    def __init__(self: object):
+    def __init__(self: object, strategyName: str, stockChoiceStrategy: StockChoiceStrategyEnum, investingInterface: InvestingInterface):
         # class fields
-        self._stockChoiceController = StockChoiceController(
-            StockChoiceStrategyEnum.LinearWeightingCheapFirst
-        )
-        self._investingInterface: InvestingInterface = AlpacaInterface()
+        self._stockChoiceController: StockChoiceController = StockChoiceController(stockChoiceStrategy, investingInterface)
+        self._investingInterface: InvestingInterface = investingInterface
+        self._strategyName: str = strategyName
 
     """
     `rebalanceInvestments`: analyse open positions to look for positions to close, and 
