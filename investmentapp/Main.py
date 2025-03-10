@@ -40,10 +40,6 @@ def main():
         "3": { 
             "investingInterface": InternalPaperTradingInterface("3"), 
             "investingStrategy": StockChoiceStrategyEnum.LinearWeightingCheapFirst 
-        },
-        "4": { 
-            "investingInterface": InternalPaperTradingInterface("4"), 
-            "investingStrategy": StockChoiceStrategyEnum.LinearWeightingCheapFirst 
         }
     }
 
