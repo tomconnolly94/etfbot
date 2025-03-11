@@ -11,7 +11,6 @@ from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategy impo
 from investmentapp.src.Controllers.StockChoiceController import (
     StockChoiceController,
 )
-from investmentapp.src.Interfaces.AlpacaInterface import AlpacaInterface
 from investmentapp.src.Strategies.StockChoiceStrategies.StockChoiceStrategyEnum import (
     StockChoiceStrategyEnum,
 )
@@ -29,7 +28,10 @@ class InvestmentController:
     `__init__`: intialise object fields
     """
 
-    def __init__(self: object, strategyName: str, stockChoiceStrategy: StockChoiceStrategyEnum, investingInterface: InvestingInterface):
+    def __init__(self: object,
+                 strategyName: str,
+                 stockChoiceStrategy: StockChoiceStrategyEnum,
+                 investingInterface: InvestingInterface):
         # class fields
         self._stockChoiceController: StockChoiceController = StockChoiceController(stockChoiceStrategy, investingInterface)
         self._investingInterface: InvestingInterface = investingInterface

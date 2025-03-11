@@ -25,10 +25,8 @@ class TestInvestmentController(unittest.TestCase):
     @mock.patch(
         "investmentapp.src.Controllers.InvestmentController.InvestmentController._getPositionInIndex"
     )
-    @mock.patch("investmentapp.src.Controllers.InvestmentController.AlpacaInterface")
     def test_rebalanceInvestments(
         self,
-        AlpacaInterfaceMock,
         _getPositionInIndexMock,
         loggingMock,
         StockChoiceControllerMock,
@@ -49,6 +47,8 @@ class TestInvestmentController(unittest.TestCase):
         fakeAvailableFunds = 100
         fakeBuyOrders = {"fakeBuyOrder1": 10, "fakeBuyOrder2": 15}
         fakeSellOrders = ["fakeOpenPosition1", "fakeOpenPosition2"]
+        fakeStrategyName = "fakeStrategyName"
+        stockChoiceStrategy = "stockChoiceStrategy"
 
         class FakeStockChoiceStrategy(StockChoiceStrategy):
 
@@ -67,7 +67,7 @@ class TestInvestmentController(unittest.TestCase):
         AlpacaInterfaceMagicMock.getOpenPositions.return_value = fakeOpenPositions
         AlpacaInterfaceMagicMock.getAvailableFunds.return_value = fakeAvailableFunds
         AlpacaInterfaceMagicMock.openOrdersExist.return_value = False
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
+        fakeInvestingInterface = AlpacaInterfaceMagicMock
         _getPositionInIndexMock.side_effect = fakePositionsInIndex
         StockChoiceControllerMagicMock = MagicMock()
         StockChoiceControllerMagicMock.getStockChoiceStrategy.return_value = (
@@ -77,7 +77,7 @@ class TestInvestmentController(unittest.TestCase):
         _getValueOfStockMock.return_value = 10
 
         # run testable function
-        InvestmentController().rebalanceInvestments()
+        InvestmentController(fakeStrategyName, stockChoiceStrategy, fakeInvestingInterface).rebalanceInvestments()
 
         # asserts
         AlpacaInterfaceMagicMock.getOpenPositions.assert_called()

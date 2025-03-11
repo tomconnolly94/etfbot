@@ -32,9 +32,6 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         return stockData
 
     @mock.patch(
-        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface"
-    )
-    @mock.patch(
         "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.CustomWeightingStrategy._getBuyingQuantities"
     )
     @mock.patch(
@@ -47,13 +44,11 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         self,
         _getStockRangeIdealMock,
         _generateStockWeightsBasedOnValueMock,
-        _getBuyingQuantitiesMock,
-        AlpacaInterfaceMock,
+        _getBuyingQuantitiesMock
     ):
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
 
         # configure fake data
         fakeStockWeights = {"fakeStockWeight": 1}
@@ -67,7 +62,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         _getBuyingQuantitiesMock.return_value = fakeStockOrderNumbers
 
         # run testable function
-        actualStockOrderNumbers = CustomWeightingStrategy().getBuyOrders(
+        actualStockOrderNumbers = CustomWeightingStrategy(AlpacaInterfaceMagicMock).getBuyOrders(
             fakeAvailableFunds
         )
 
@@ -79,16 +74,11 @@ class TestCustomWeightingStrategy(unittest.TestCase):
             fakeAvailableFunds, fakeStockWeights
         )
 
-    @mock.patch(
-        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface"
-    )
-    def test__getStockWeightBasedOnListIndex(self, AlpacaInterfaceMock):
+    def test__getStockWeightBasedOnListIndex(self):
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
-
-        customWeightingStrategy = CustomWeightingStrategy()
+        customWeightingStrategy = CustomWeightingStrategy(AlpacaInterfaceMagicMock)
 
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(0, 100)
         self.assertEqual(3.2, stockWeight)
@@ -117,15 +107,11 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         stockWeight = customWeightingStrategy._getStockWeightBasedOnListIndex(1, 20)
         self.assertEqual(16, stockWeight)
 
-    @mock.patch(
-        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface"
-    )
-    def test__generateStockWeightsBasedOnValue(self, AlpacaInterfaceMock):
+    def test__generateStockWeightsBasedOnValue(self):
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
-        customWeightingStrategy = CustomWeightingStrategy()
+        customWeightingStrategy = CustomWeightingStrategy(AlpacaInterfaceMagicMock)
 
         stockData = self._loadStockData()
 
@@ -140,15 +126,11 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         self.assertEqual(100, round(stockWeightTotal))
 
-    @mock.patch(
-        "investmentapp.src.Strategies.StockChoiceStrategies.CustomWeightingStrategy.AlpacaInterface"
-    )
-    def test__getBuyingQuantities(self, AlpacaInterfaceMock):
+    def test__getBuyingQuantities(self):
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
-        customWeightingStrategy = CustomWeightingStrategy()
+        customWeightingStrategy = CustomWeightingStrategy(AlpacaInterfaceMagicMock)
 
         # inputs
         funds = 100

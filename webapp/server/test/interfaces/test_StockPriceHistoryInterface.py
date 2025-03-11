@@ -55,8 +55,9 @@ class Test_StockPriceHistoryInterface(unittest.TestCase):
                 ]
             }
         }
+        fakeUrl = "http://my.com/fake/url"
 
-        priceData = _parsePriceData(fakePriceData)
+        priceData = _parsePriceData((fakeUrl, fakePriceData))
 
         expectedKeys = ["fakeTimestamp1", "fakeTimestamp2", "fakeTimestamp3"]
         expectedValues = ["fakeClose1", "fakeClose2", "fakeClose3"]

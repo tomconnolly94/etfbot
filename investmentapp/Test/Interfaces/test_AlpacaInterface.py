@@ -38,6 +38,7 @@ class TestAlpacaInterface(unittest.TestCase):
 
         # run testable function
         alpacaInterface = AlpacaInterface()
+        alpacaInterface.devMode = False
         result = alpacaInterface._submitOrder(stockSymbol, quantity, orderType)
 
         # asserts
@@ -66,6 +67,7 @@ class TestAlpacaInterface(unittest.TestCase):
         BrokerClientMock = MagicMock
         StockHistoricalDataClientMock = MagicMock
         alpacaInterface = AlpacaInterface()
+        alpacaInterface.devMode = False
         alpacaInterface.tradingAPI.submit_order.side_effect = APIError("test failure")
 
         # run testable function

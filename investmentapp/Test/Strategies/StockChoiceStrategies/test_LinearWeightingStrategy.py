@@ -30,10 +30,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
 
         return stockData
 
-    @mock.patch(
-        "investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface"
-    )
-    def test__getSellOrders(self, AlpacaInterfaceMock):
+    def test__getSellOrders(self):
         # configure fake data
         fakeOpenPositions = {"A": 5, "B": 5, "C": 5, "D": 5, "E": 5, "F": 5}
         openPositionListPositions = [295, 300, 350, 399, 400, 450]
@@ -43,8 +40,7 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         AlpacaInterfaceMagicMock = MagicMock()
         AlpacaInterfaceMagicMock.getOpenPositions.return_value = fakeOpenPositions
         AlpacaInterfaceMagicMock.getStockCache.return_value = fullStockRange
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
-        linearWeightingStrategy = LinearWeightingStrategy()
+        linearWeightingStrategy = LinearWeightingStrategy(AlpacaInterfaceMagicMock)
 
         for i in range(0, 500):
             if i in openPositionListPositions:
@@ -60,15 +56,11 @@ class TestCustomWeightingStrategy(unittest.TestCase):
         self.assertEqual(1, len(positionsToSell))
         self.assertTrue("F" in positionsToSell)
 
-    @mock.patch(
-        "investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface"
-    )
-    def test__reorderStockDataListBasedOnExistingPositions(self, AlpacaInterfaceMock):
+    def test__reorderStockDataListBasedOnExistingPositions(self):
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
-        linearWeightingStrategy = LinearWeightingStrategy()
+        linearWeightingStrategy = LinearWeightingStrategy(AlpacaInterfaceMagicMock)
 
         # inputs
         stockDataList = [
@@ -102,15 +94,11 @@ class TestCustomWeightingStrategy(unittest.TestCase):
                 expectedOrderedStockData.price, orderedStockDataList[i].price
             )
 
-    @mock.patch(
-        "investmentapp.src.Strategies.StockChoiceStrategies.LinearWeightingStrategy.AlpacaInterface"
-    )
-    def test__getBuyingQuantities(self, AlpacaInterfaceMock):
+    def test__getBuyingQuantities(self):
 
         # config mocks
         AlpacaInterfaceMagicMock = MagicMock()
-        AlpacaInterfaceMock.return_value = AlpacaInterfaceMagicMock
-        linearWeightingStrategy = LinearWeightingStrategy()
+        linearWeightingStrategy = LinearWeightingStrategy(AlpacaInterfaceMagicMock)
 
         # inputs
         funds = 103
