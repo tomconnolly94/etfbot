@@ -72,7 +72,7 @@ class AlpacaInterface(InvestingInterface):
             url_override=os.getenv("ALPACA_TRADING_URL"),
         )
 
-        self.devMode = True # os.getenv("TRADING_DEV_MODE", "False").lower() == "true"
+        self.devMode = os.getenv("TRADING_DEV_MODE", "False").lower() == "true"
 
         self._sortedFullStockCache = []
         self._stockIndexDataInterface = StockIndexDataInterface()

@@ -386,9 +386,3 @@ def getCompletedOrderDataBySymbol(earliestTimestamp, latestTimestamp):
 def getCurrentStockPrice(stockSymbol: str) -> dict:
     stockData = AlpacaInterface().getStockDataList([stockSymbol])[0]
     return stockData.asdict()
-
-
-if __name__ == "__main__":
-    print(__file__)
-    print(dirname(dirname(dirname(__file__))))
-    print(dirname(dirname(dirname(__file__))).replace(".", ""))

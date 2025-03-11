@@ -11,7 +11,7 @@ from alpaca.trading.requests import (
     MarketOrderRequest,
     GetOrdersRequest,
 )
-from alpaca.trading.enums import OrderSide, TimeInForce, QueryOrderStatus
+from alpaca.trading.enums import QueryOrderStatus
 
 from investmentapp.src.Types.StockOrder import OrderType, StockOrder
 
@@ -20,6 +20,7 @@ class InternalPaperTradingClient():
     def __init__(self, databaseInterface: DatabaseInterface, strategyId: str):
         self._databaseInterface = databaseInterface
         self._strategyId = strategyId
+        self.alpacaInterface = AlpacaInterface()
 
     def get_all_positions(self):
         positions = []
@@ -56,7 +57,7 @@ class InternalPaperTradingClient():
 
     def submit_order(self, order_data: MarketOrderRequest):
 
-        stockPrice = AlpacaInterface().getStockDataList([order_data.symbol])[0].price
+        stockPrice = self.alpacaInterface.getStockDataList([order_data.symbol])[0].price
 
         buyInstruction = "buy" # TODO: should be OrderType.BUY
 
@@ -125,7 +126,7 @@ class InternalPaperTradingClient():
 
         currentStockPrices = { stockData.symbol: stockData.price
                     for stockData in
-                    AlpacaInterface().getStockDataList(ownedSymbolsAndQuantities.keys()) }
+                    self.alpacaInterface.getStockDataList(ownedSymbolsAndQuantities.keys()) }
         logging.info(f"currentStockPrices: {currentStockPrices}")
 
         ownedSymbolsAndValues = {}
