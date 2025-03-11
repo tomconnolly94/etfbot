@@ -22,9 +22,7 @@ def addInternalPaperTradingDailyValues(databaseInterface: DatabaseInterface):
     for strategyId in strategyIds:
         totalStrategyValue = InternalPaperTradingClient(databaseInterface, strategyId).getTotalStockValue()
 
-        logging.info(f"strategyId: {strategyId}, value: {totalStrategyValue}")
         databaseInterface.addTodaysInternalPortfolioValues(totalStrategyValue, strategyId)
-
         logging.info(f"InternalPaperTrading strategy={strategyId} portfolioValue={totalStrategyValue}.")
 
 
