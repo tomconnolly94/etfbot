@@ -38,7 +38,9 @@ def getPricesForStockSymbols(symbols):
 
 
 def getCompanyNamesForStockSymbols(symbols):
-    logging.info("Running StockPriceHistoryInterface/py::getCompanyNamesForStockSymbols")
+    logging.info(
+        "Running StockPriceHistoryInterface/py::getCompanyNamesForStockSymbols"
+    )
     try:
         return asyncio.run(
             _getDataForUrlList(
@@ -50,7 +52,9 @@ def getCompanyNamesForStockSymbols(symbols):
 
 
 def getStockExchangesForStockSymbol(stockSymbol: str):
-    logging.info("Running StockPriceHistoryInterface/py::getStockExchangesForStockSymbol")
+    logging.info(
+        "Running StockPriceHistoryInterface/py::getStockExchangesForStockSymbol"
+    )
     try:
         stockExchangeData = asyncio.run(
             _getDataForUrlList(
@@ -121,7 +125,7 @@ def _parsePriceData(urlAndPriceData):
                 f"Exception occured when parsing price data={priceData}. error: ",
                 exception,
             )
-        
+
         return {}
 
 
@@ -137,9 +141,10 @@ def _parseCompanyNameData(urlAndPriceData):
         }
     except (KeyError, TypeError) as exception:
         logging.error(
-            f"Exception occured when parsing companyName data in _parseCompanyNameData. error: ")
+            f"Exception occured when parsing companyName data in _parseCompanyNameData. error: "
+        )
 
-        stockSymbolRegexPattern = "https:\/\/query2\.finance\.yahoo\.com\/v8\/finance\/chart\/(\w+)?" # dependent on yahoo
+        stockSymbolRegexPattern = "https:\/\/query2\.finance\.yahoo\.com\/v8\/finance\/chart\/(\w+)?"  # dependent on yahoo
         stockSymbol = re.search(stockSymbolRegexPattern, url).group(1)
 
         return {
@@ -160,17 +165,21 @@ def _parseStockExchangeData(urlAndPriceData):
             ],
         }
     except KeyError as exception:
-        logging.error(f"Exception occured when parsing stockExchange data for in _parseStockExchangeData. error: ")
+        logging.error(
+            f"Exception occured when parsing stockExchange data for in _parseStockExchangeData. error: "
+        )
         return {}
 
 
 async def _makeUrlRequest(session: aiohttp.ClientSession, url) -> dict:
-    logging.info(f"StockPriceHistoryInferace making request with _makeUrlRequest url={url}")
-    
+    logging.info(
+        f"StockPriceHistoryInferace making request with _makeUrlRequest url={url}"
+    )
+
     # Initialize a semaphore object with a limit of 3 (max 3 downloads concurrently)
     limit = asyncio.Semaphore(2)
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
+        "User-Agent": "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)"
     }
 
     async with limit:
@@ -182,13 +191,13 @@ async def _makeUrlRequest(session: aiohttp.ClientSession, url) -> dict:
             return (url, responseJson)
         except aiohttp.client_exceptions.ContentTypeError as exception:
             logging.error(f"response={response}")
-            return { "success": True }
+            return {"success": True}
         except Exception as exception:
             logging.exception(exception)
             return {}
 
 
-async def  _getDataForUrlList(urls, dataProcessingFunction):
+async def _getDataForUrlList(urls, dataProcessingFunction):
     connector = aiohttp.TCPConnector(limit=1)
     async with aiohttp.ClientSession(connector=connector) as session:
         tasks = []
@@ -201,9 +210,9 @@ async def  _getDataForUrlList(urls, dataProcessingFunction):
             # await the url request, parse the response using the dataProcessingFunction and append it to `data`
             taskResult = await task
             if not taskResult:
-                logging.error(f"Task failed in _getDataForUrlList, skipping taskResult={taskResult}")
+                logging.error(
+                    f"Task failed in _getDataForUrlList, skipping taskResult={taskResult}"
+                )
             data.append(dataProcessingFunction(taskResult))
-                
 
         return data
-    
